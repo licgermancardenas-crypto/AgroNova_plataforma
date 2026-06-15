@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 64px;
+  --header-h: 56px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; }
+
+body {
+  background-color: #06080F;
+  color: #DCE8F5;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #06080F; }
+::-webkit-scrollbar-thumb { background: #1A2540; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #1E6FDB; }
+
+/* ── Glassmorphism utilities ────────────────────────────────────────────────── */
+@layer components {
+  .glass {
+    background: rgba(12, 18, 32, 0.75);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(26, 37, 64, 0.8);
+    box-shadow:
+      0 2px 16px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .glass-elevated {
+    background: rgba(17, 26, 46, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(30, 58, 107, 0.5);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(30, 111, 219, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-hover {
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .glass-hover:hover {
+    border-color: rgba(30, 111, 219, 0.35);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      0 0 16px rgba(30, 111, 219, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Status dot */
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full;
+  }
+
+  /* Glow accent */
+  .glow-blue  { box-shadow: 0 0 16px rgba(30, 111, 219, 0.4); }
+  .glow-cyan  { box-shadow: 0 0 16px rgba(6, 200, 255, 0.4); }
+  .glow-green { box-shadow: 0 0 16px rgba(13, 184, 126, 0.4); }
+
+  /* Data grid rows */
+  .tr-hover {
+    @apply transition-colors duration-150;
+  }
+  .tr-hover:hover {
+    background: rgba(30, 111, 219, 0.06);
+  }
+}
+
+/* ── Recharts overrides for dark theme ──────────────────────────────────────── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(26, 37, 64, 0.5);
+}
+.recharts-tooltip-wrapper { outline: none; }
+.recharts-default-tooltip {
+  background: #0C1220 !important;
+  border: 1px solid #1A2540 !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  color: #DCE8F5 !important;
+}
+.recharts-legend-item-text { color: #7A9EC4 !important; font-size: 11px !important; }
+.recharts-text { fill: #3E5C7A; font-size: 11px; }
+
+/* ── Leaflet overrides ───────────────────────────────────────────────────────── */
+.leaflet-container { background: #0C1220; border-radius: 12px; }
+.leaflet-control-attribution { display: none; }
+.leaflet-tile-pane .leaflet-tile { filter: brightness(0.5) saturate(0.6) hue-rotate(200deg); }
+.leaflet-popup-content-wrapper {
+  background: #0C1220;
+  border: 1px solid #1A2540;
+  color: #DCE8F5;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+.leaflet-popup-tip { background: #0C1220; }
+
+/* ── Animations ──────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #111A2E 25%, #1A2540 50%, #111A2E 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
