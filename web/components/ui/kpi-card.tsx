@@ -14,8 +14,8 @@ interface KPICardProps {
 }
 
 const accentStyles = {
-  blue:    { bar: "bg-primary-DEFAULT", icon: "bg-primary-dim text-primary-light", glow: "hover:shadow-[0_0_20px_rgba(30,111,219,0.2)]" },
-  cyan:    { bar: "bg-cyan-brand",      icon: "bg-cyan-glow text-cyan-brand",      glow: "hover:shadow-[0_0_20px_rgba(6,200,255,0.15)]" },
+  blue:    { bar: "bg-primary-DEFAULT", icon: "bg-primary-dim text-primary-light", glow: "hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]" },
+  cyan:    { bar: "bg-cyan-brand",      icon: "bg-cyan-glow text-cyan-brand",      glow: "hover:shadow-[0_0_20px_rgba(163,230,53,0.15)]" },
   green:   { bar: "bg-success-DEFAULT", icon: "bg-success-bg text-success-DEFAULT",glow: "hover:shadow-[0_0_20px_rgba(13,184,126,0.15)]" },
   warning: { bar: "bg-warning-DEFAULT", icon: "bg-warning-bg text-warning-DEFAULT",glow: "hover:shadow-[0_0_20px_rgba(232,160,32,0.15)]" },
   danger:  { bar: "bg-danger-DEFAULT",  icon: "bg-danger-bg text-danger-DEFAULT",  glow: "hover:shadow-[0_0_20px_rgba(224,62,62,0.15)]" },

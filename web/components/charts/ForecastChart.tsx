@@ -35,32 +35,32 @@ export function ForecastChart({ data, height = 280 }: Props) {
       <ComposedChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         <defs>
           <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor="#1E6FDB" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#1E6FDB" stopOpacity={0} />
+            <stop offset="5%"  stopColor="#22C55E" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
         <XAxis
           dataKey="label"
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           tickFormatter={v => `${(v / 1e9).toFixed(1)}B`}
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
           width={42}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Legend wrapperStyle={{ fontSize: 11, color: "#7A9EC4", paddingTop: 8 }} iconType="circle" iconSize={8} />
-        <ReferenceLine x={data[5]?.label} stroke="#1A2540" strokeDasharray="4 2" label={{ value: "Hoy", fill: "#3E5C7A", fontSize: 10 }} />
+        <Legend wrapperStyle={{ fontSize: 11, color: "#7A9C7A", paddingTop: 8 }} iconType="circle" iconSize={8} />
+        <ReferenceLine x={data[5]?.label} stroke="#1A3D20" strokeDasharray="4 2" label={{ value: "Hoy", fill: "#3E5A3E", fontSize: 10 }} />
         <Area
           type="monotone"
           dataKey="actual"
           name="Real"
-          stroke="#1E6FDB"
+          stroke="#22C55E"
           strokeWidth={2}
           fill="url(#gradActual)"
           dot={false}
@@ -80,10 +80,10 @@ export function ForecastChart({ data, height = 280 }: Props) {
           type="monotone"
           dataKey="forecast_90d"
           name="Fcst 90d"
-          stroke="#06C8FF"
+          stroke="#A3E635"
           strokeWidth={1.5}
           strokeDasharray="5 3"
-          dot={{ r: 3, fill: "#06C8FF", strokeWidth: 0 }}
+          dot={{ r: 3, fill: "#A3E635", strokeWidth: 0 }}
           connectNulls={false}
         />
         <Line

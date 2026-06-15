@@ -35,7 +35,7 @@ function CustomTooltip({ active, payload, label, formatter }: any) {
 export function HorizontalBar({
   data,
   formatter,
-  colorDefault = "#1E6FDB",
+  colorDefault = "#22C55E",
   height,
   showTarget = false,
 }: Props) {
@@ -44,11 +44,11 @@ export function HorizontalBar({
   return (
     <ResponsiveContainer width="100%" height={h}>
       <BarChart data={data} layout="vertical" margin={{ top: 4, right: 48, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" horizontal={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" horizontal={false} />
         <XAxis
           type="number"
           tickFormatter={formatter}
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
         />
@@ -56,7 +56,7 @@ export function HorizontalBar({
           type="category"
           dataKey="name"
           width={130}
-          tick={{ fill: "#7A9EC4", fontSize: 11 }}
+          tick={{ fill: "#7A9C7A", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />

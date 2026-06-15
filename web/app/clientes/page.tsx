@@ -16,8 +16,8 @@ export default function ClientesPage() {
   const highRisk = clientes.filter(c => c.risk_level === "High");
   const recencyBins = [
     { name: "0–30d",   value: clientes.filter(c => c.recency_days <= 30).length,  color: "#0DB87E" },
-    { name: "31–90d",  value: clientes.filter(c => c.recency_days > 30 && c.recency_days <= 90).length, color: "#1E6FDB" },
-    { name: "91–180d", value: clientes.filter(c => c.recency_days > 90 && c.recency_days <= 180).length, color: "#06C8FF" },
+    { name: "31–90d",  value: clientes.filter(c => c.recency_days > 30 && c.recency_days <= 90).length, color: "#22C55E" },
+    { name: "91–180d", value: clientes.filter(c => c.recency_days > 90 && c.recency_days <= 180).length, color: "#A3E635" },
     { name: "181–365d",value: clientes.filter(c => c.recency_days > 180 && c.recency_days <= 365).length, color: "#E8A020" },
     { name: ">365d",   value: clientes.filter(c => c.recency_days > 365).length,  color: "#E03E3E" },
   ];

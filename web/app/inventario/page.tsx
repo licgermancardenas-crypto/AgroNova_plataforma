@@ -33,7 +33,7 @@ export default function InventarioPage() {
     name: cat,
     value: rotacionData.filter(r => r.categoria === cat).reduce((s, r) => s + r.rotacion, 0) / 3,
     color: rotacionData.filter(r => r.categoria === cat)[0]?.rotacion > 1.5 ? "#0DB87E" :
-           rotacionData.filter(r => r.categoria === cat)[0]?.rotacion > 0.8 ? "#1E6FDB" : "#E8A020",
+           rotacionData.filter(r => r.categoria === cat)[0]?.rotacion > 0.8 ? "#22C55E" : "#E8A020",
   }));
 
   return (
@@ -85,10 +85,10 @@ export default function InventarioPage() {
           <CardHeader title="Rotación por Categoría" subtitle="Índice promedio mensual" />
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={rotByCat} layout="vertical" margin={{ top: 4, right: 40, left: 0, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" horizontal={false} />
               <XAxis type="number" tickFormatter={v => `${v.toFixed(1)}x`} tick={{ fill: "#3E5C7A", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="name" width={92} tick={{ fill: "#7A9EC4", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: "#0C1220", border: "1px solid #1A2540", borderRadius: 8, fontSize: 11, color: "#DCE8F5" }} formatter={(v: any) => `${v.toFixed(2)}x/mes`} />
+              <YAxis type="category" dataKey="name" width={92} tick={{ fill: "#7A9C7A", fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: "#071209", border: "1px solid #1A3D20", borderRadius: 8, fontSize: 11, color: "#DCE8DC" }} formatter={(v: any) => `${v.toFixed(2)}x/mes`} />
               <Bar dataKey="value" radius={[0, 3, 3, 0]} maxBarSize={20}>
                 {rotByCat.map((r, i) => <Cell key={i} fill={r.color} fillOpacity={0.85} />)}
               </Bar>
@@ -100,7 +100,7 @@ export default function InventarioPage() {
             <p className="text-xs text-text-muted mb-3">Ocupación Depósitos</p>
             {[
               { name: "Rosario", pct: 78, color: "#0DB87E" },
-              { name: "Córdoba", pct: 52, color: "#1E6FDB" },
+              { name: "Córdoba", pct: 52, color: "#22C55E" },
               { name: "Salta",   pct: 91, color: "#E03E3E" },
             ].map(d => (
               <div key={d.name} className="mb-2.5">

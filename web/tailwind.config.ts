@@ -10,26 +10,27 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          base:     "#06080F",
-          surface:  "#0C1220",
-          elevated: "#111A2E",
-          overlay:  "#0F1626",
+          base:     "#030A04",
+          surface:  "#071209",
+          elevated: "#0C1E0F",
+          overlay:  "#091508",
         },
         border: {
-          DEFAULT: "#1A2540",
-          subtle:  "#0F1829",
-          accent:  "#1E3A6B",
+          DEFAULT: "#1A3D20",
+          subtle:  "#0F2412",
+          accent:  "#1E5628",
         },
         primary: {
-          DEFAULT: "#1E6FDB",
-          hover:   "#1A5FC4",
-          light:   "#4B9EF5",
-          dim:     "rgba(30,111,219,0.15)",
+          DEFAULT: "#22C55E",
+          hover:   "#16A34A",
+          light:   "#4ADE80",
+          dim:     "rgba(34,197,94,0.15)",
         },
+        // lime replaces cyan as secondary accent
         cyan: {
-          brand: "#06C8FF",
-          dim:   "#0494BE",
-          glow:  "rgba(6,200,255,0.15)",
+          brand: "#A3E635",
+          dim:   "#65A30D",
+          glow:  "rgba(163,230,53,0.15)",
         },
         success: {
           DEFAULT: "#0DB87E",
@@ -47,9 +48,9 @@ const config: Config = {
           bg:      "rgba(224,62,62,0.12)",
         },
         text: {
-          primary:   "#DCE8F5",
-          secondary: "#7A9EC4",
-          muted:     "#3E5C7A",
+          primary:   "#DCE8DC",
+          secondary: "#7A9C7A",
+          muted:     "#3E5A3E",
         },
       },
       fontFamily: {
@@ -64,20 +65,25 @@ const config: Config = {
         "slide-left": "slideLeft 0.25s ease-out",
         "pulse-slow": "pulse 3s cubic-bezier(0.4,0,0.6,1) infinite",
         "glow":       "glow 2s ease-in-out infinite alternate",
+        "scan":       "scan 3s linear infinite",
       },
       keyframes: {
         fadeIn:    { from: { opacity: "0" }, to: { opacity: "1" } },
         slideLeft: { from: { transform: "translateX(-8px)", opacity: "0" }, to: { transform: "translateX(0)", opacity: "1" } },
         glow: {
-          from: { boxShadow: "0 0 4px rgba(30,111,219,0.3)" },
-          to:   { boxShadow: "0 0 16px rgba(30,111,219,0.6)" },
+          from: { boxShadow: "0 0 4px rgba(34,197,94,0.3)" },
+          to:   { boxShadow: "0 0 16px rgba(34,197,94,0.6)" },
+        },
+        scan: {
+          "0%":   { transform: "translateY(0%)", opacity: "1" },
+          "100%": { transform: "translateY(100%)", opacity: "0" },
         },
       },
       backdropBlur: { xs: "2px" },
       boxShadow: {
-        card:    "0 2px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
-        glow:    "0 0 20px rgba(30,111,219,0.25)",
-        "glow-cyan": "0 0 20px rgba(6,200,255,0.2)",
+        card:       "0 2px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+        glow:       "0 0 20px rgba(34,197,94,0.25)",
+        "glow-lime":"0 0 20px rgba(163,230,53,0.2)",
       },
     },
   },

@@ -2,7 +2,7 @@
 
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer, ReferenceLine, Cell,
 } from "recharts";
 import type { Producto } from "@/types";
 
@@ -33,21 +33,22 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export function ParetoChart({ data, height = 260 }: Props) {
   const top15 = data.slice(0, 15).map(p => ({
-    name:      p.nombre.split(" ").slice(0, 2).join(" "),
-    revenue:   p.revenue_ars,
-    cumPct:    p.cumulative_pct,
-    abc:       p.abc,
+    name:    p.nombre.split(" ").slice(0, 2).join(" "),
+    revenue: p.revenue_ars,
+    cumPct:  p.cumulative_pct,
+    abc:     p.abc,
   }));
 
-  const barColor = (abc: string) => abc === "A" ? "#1E6FDB" : abc === "B" ? "#06C8FF" : "#3E5C7A";
+  const barColor = (abc: string) =>
+    abc === "A" ? "#22C55E" : abc === "B" ? "#A3E635" : "#3E5A3E";
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={top15} margin={{ top: 8, right: 40, left: -16, bottom: 40 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" vertical={false} />
         <XAxis
           dataKey="name"
-          tick={{ fill: "#3E5C7A", fontSize: 9 }}
+          tick={{ fill: "#3E5A3E", fontSize: 9 }}
           angle={-45}
           textAnchor="end"
           height={50}
@@ -57,7 +58,7 @@ export function ParetoChart({ data, height = 260 }: Props) {
         <YAxis
           yAxisId="rev"
           tickFormatter={v => `${(v / 1e6).toFixed(0)}M`}
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
           width={42}
@@ -67,7 +68,7 @@ export function ParetoChart({ data, height = 260 }: Props) {
           orientation="right"
           domain={[0, 100]}
           tickFormatter={v => `${v}%`}
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
           width={36}
@@ -76,7 +77,7 @@ export function ParetoChart({ data, height = 260 }: Props) {
         <ReferenceLine yAxisId="pct" y={80} stroke="#E8A020" strokeDasharray="4 2" strokeWidth={1.5} />
         <Bar yAxisId="rev" dataKey="revenue" name="Revenue ARS" radius={[3, 3, 0, 0]}>
           {top15.map((entry, i) => (
-            <rect key={i} fill={barColor(entry.abc)} />
+            <Cell key={i} fill={barColor(entry.abc)} />
           ))}
         </Bar>
         <Line

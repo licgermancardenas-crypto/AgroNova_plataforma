@@ -35,29 +35,29 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) {
-  const slice = data.filter((_, i) => i % 2 === 0); // every 2 months for cleaner axis
+  const slice = data.filter((_, i) => i % 2 === 0);
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={slice} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         <defs>
           <linearGradient id="gradARS" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor="#1E6FDB" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#1E6FDB" stopOpacity={0.0} />
+            <stop offset="5%"  stopColor="#22C55E" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#22C55E" stopOpacity={0.0} />
           </linearGradient>
           <linearGradient id="gradUSD" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor="#06C8FF" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#06C8FF" stopOpacity={0.0} />
+            <stop offset="5%"  stopColor="#A3E635" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#A3E635" stopOpacity={0.0} />
           </linearGradient>
           <linearGradient id="gradMargen" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%"  stopColor="#0DB87E" stopOpacity={0.2} />
             <stop offset="95%" stopColor="#0DB87E" stopOpacity={0.0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
         <XAxis
           dataKey="label"
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
           interval={5}
@@ -66,7 +66,7 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
           yAxisId="ars"
           orientation="left"
           tickFormatter={v => `${(v / 1e9).toFixed(1)}B`}
-          tick={{ fill: "#3E5C7A", fontSize: 10 }}
+          tick={{ fill: "#3E5A3E", fontSize: 10 }}
           axisLine={false}
           tickLine={false}
           width={40}
@@ -76,7 +76,7 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
             yAxisId="usd"
             orientation="right"
             tickFormatter={v => `${(v / 1e6).toFixed(0)}M`}
-            tick={{ fill: "#3E5C7A", fontSize: 10 }}
+            tick={{ fill: "#3E5A3E", fontSize: 10 }}
             axisLine={false}
             tickLine={false}
             width={42}
@@ -84,7 +84,7 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
         )}
         <Tooltip content={<CustomTooltip />} />
         <Legend
-          wrapperStyle={{ paddingTop: 8, fontSize: 11, color: "#7A9EC4" }}
+          wrapperStyle={{ paddingTop: 8, fontSize: 11, color: "#7A9C7A" }}
           iconType="circle"
           iconSize={8}
         />
@@ -93,11 +93,11 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
           type="monotone"
           dataKey="revenue_ars"
           name="Revenue ARS"
-          stroke="#1E6FDB"
+          stroke="#22C55E"
           strokeWidth={2}
           fill="url(#gradARS)"
           dot={false}
-          activeDot={{ r: 4, fill: "#1E6FDB", strokeWidth: 0 }}
+          activeDot={{ r: 4, fill: "#22C55E", strokeWidth: 0 }}
         />
         <Area
           yAxisId="ars"
@@ -116,12 +116,12 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
             type="monotone"
             dataKey="revenue_usd"
             name="Revenue USD"
-            stroke="#06C8FF"
+            stroke="#A3E635"
             strokeWidth={1.5}
             strokeDasharray="4 2"
             fill="url(#gradUSD)"
             dot={false}
-            activeDot={{ r: 3, fill: "#06C8FF", strokeWidth: 0 }}
+            activeDot={{ r: 3, fill: "#A3E635", strokeWidth: 0 }}
           />
         )}
       </AreaChart>

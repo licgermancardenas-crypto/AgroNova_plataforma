@@ -16,12 +16,12 @@ export default function ComercialPage() {
   const regionBar = regions.map(r => ({
     name:  r.region,
     value: r.revenue_ars,
-    color: "#1E6FDB",
+    color: "#22C55E",
   }));
   const vendedorBar = vendedores.map(v => ({
     name:  v.nombre.split(" ")[0] + " " + v.nombre.split(" ")[1][0] + ".",
     value: v.revenue_ars,
-    color: "#06C8FF",
+    color: "#A3E635",
   }));
 
   return (
@@ -42,7 +42,7 @@ export default function ComercialPage() {
         </GlassCard>
         <GlassCard>
           <CardHeader title="Top 8 Vendedores" subtitle="Revenue 2026 · ARS" />
-          <HorizontalBar data={vendedorBar} formatter={v => fmtARS(v, true)} height={200} colorDefault="#06C8FF" />
+          <HorizontalBar data={vendedorBar} formatter={v => fmtARS(v, true)} height={200} colorDefault="#A3E635" />
         </GlassCard>
       </div>
 

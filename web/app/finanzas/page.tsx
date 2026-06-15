@@ -37,14 +37,14 @@ export default function FinanzasPage() {
     r:           Math.sqrt(p.revenue_ars / 1e8),  // tamaño burbuja
   }));
 
-  const abcColors = { A: "#1E6FDB", B: "#06C8FF", C: "#3E5C7A" };
+  const abcColors = { A: "#22C55E", B: "#A3E635", C: "#3E5A3E" };
   const avgMargen = 19.8;
   const avgRevenue = productos.reduce((s, p) => s + p.revenue_ars, 0) / productos.length / 1e6;
 
   const sucursalBar = regions.map(r => ({
     name:  r.region,
     value: r.margen_pct,
-    color: r.margen_pct >= 20 ? "#0DB87E" : r.margen_pct >= 18 ? "#1E6FDB" : "#E8A020",
+    color: r.margen_pct >= 20 ? "#0DB87E" : r.margen_pct >= 18 ? "#22C55E" : "#E8A020",
   }));
 
   const ltvTop = clientes.slice(0, 8);
@@ -70,7 +70,7 @@ export default function FinanzasPage() {
             {[
               { label: "Estrellas", desc: "Alto R + Alto M", color: "#0DB87E" },
               { label: "Volumen",   desc: "Alto R + Bajo M", color: "#E8A020" },
-              { label: "Nicho",     desc: "Bajo R + Alto M", color: "#1E6FDB" },
+              { label: "Nicho",     desc: "Bajo R + Alto M", color: "#22C55E" },
               { label: "Revisar",   desc: "Bajo R + Bajo M", color: "#E03E3E" },
             ].map(q => (
               <div key={q.label} className="flex items-center gap-1.5">
@@ -81,12 +81,12 @@ export default function FinanzasPage() {
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <ScatterChart margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" />
-              <XAxis type="number" dataKey="x" name="Revenue" tickFormatter={v => `${v.toFixed(0)}M`} tick={{ fill: "#3E5C7A", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis type="number" dataKey="y" name="Margen" domain={[10, 32]} tickFormatter={v => `${v}%`} tick={{ fill: "#3E5C7A", fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
+              <XAxis type="number" dataKey="x" name="Revenue" tickFormatter={v => `${v.toFixed(0)}M`} tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis type="number" dataKey="y" name="Margen" domain={[10, 32]} tickFormatter={v => `${v}%`} tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
               <Tooltip content={<ScatterTooltip />} />
-              <ReferenceLine x={avgRevenue} stroke="#1A2540" strokeDasharray="4 2" />
-              <ReferenceLine y={avgMargen}  stroke="#1A2540" strokeDasharray="4 2" />
+              <ReferenceLine x={avgRevenue} stroke="#1A3D20" strokeDasharray="4 2" />
+              <ReferenceLine y={avgMargen}  stroke="#1A3D20" strokeDasharray="4 2" />
               <Scatter data={scatterData} name="Productos">
                 {scatterData.map((d, i) => (
                   <Cell key={i} fill={abcColors[d.abc as "A"|"B"|"C"]} fillOpacity={0.75} />

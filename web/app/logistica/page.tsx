@@ -64,12 +64,12 @@ export default function LogisticaPage() {
           <CardHeader title="Evolución OTIF — 12 Meses" subtitle="% global vs target 92%" />
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={otifTrend} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,37,64,0.4)" />
-              <XAxis dataKey="label" tick={{ fill: "#3E5C7A", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
-              <YAxis domain={[84, 98]} tickFormatter={v => `${v}%`} tick={{ fill: "#3E5C7A", fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
-              <Tooltip contentStyle={{ background: "#0C1220", border: "1px solid #1A2540", borderRadius: 8, fontSize: 11, color: "#DCE8F5" }} formatter={(v: any) => `${v.toFixed(1)}%`} />
-              <ReferenceLine y={92} stroke="#1E6FDB" strokeDasharray="4 2" strokeWidth={1.5} />
-              <Line type="monotone" dataKey="otif" name="OTIF%" stroke="#06C8FF" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#06C8FF" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
+              <XAxis dataKey="label" tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
+              <YAxis domain={[84, 98]} tickFormatter={v => `${v}%`} tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
+              <Tooltip contentStyle={{ background: "#071209", border: "1px solid #1A3D20", borderRadius: 8, fontSize: 11, color: "#DCE8DC" }} formatter={(v: any) => `${v.toFixed(1)}%`} />
+              <ReferenceLine y={92} stroke="#22C55E" strokeDasharray="4 2" strokeWidth={1.5} />
+              <Line type="monotone" dataKey="otif" name="OTIF%" stroke="#A3E635" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#A3E635" }} />
             </LineChart>
           </ResponsiveContainer>
         </GlassCard>

@@ -244,6 +244,28 @@ export interface NavItem {
   badge?: string | number;
 }
 
+// ── GIS Tactical ─────────────────────────────────────────────────────────────
+
+export interface ProvinceHeat {
+  nombre: string;
+  lat: number;
+  lng: number;
+  revenue_pct: number;
+  revenue_ars: number;
+  clientes: number;
+  radio_km: number;
+}
+
+export interface GISRoute {
+  id: number;
+  from: [number, number];
+  to: [number, number];
+  label: string;
+  color: string;
+  activo: boolean;
+  toneladas_mes?: number;
+}
+
 // ── Alert ────────────────────────────────────────────────────────────────────
 
 export interface AlertItem {

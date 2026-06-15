@@ -21,7 +21,7 @@ export default function HomePage() {
   const regionBarData = regions.map(r => ({
     name:  r.region,
     value: r.revenue_ars,
-    color: r.otif_pct >= 92 ? "#1E6FDB" : r.otif_pct >= 88 ? "#06C8FF" : "#E8A020",
+    color: r.otif_pct >= 92 ? "#22C55E" : r.otif_pct >= 88 ? "#A3E635" : "#E8A020",
   }));
 
   return (

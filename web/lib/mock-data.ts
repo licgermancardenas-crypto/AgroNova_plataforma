@@ -2,7 +2,7 @@ import type {
   KPISummary, MonthlyRevenue, Cliente, RFMSegmentData, ChurnDistribution,
   Producto, RegionData, StockAlert, RotacionData, OTIFData, TransportistaData,
   SucursalMarker, DepositoMarker, ClienteMapMarker, ForecastPoint,
-  RecommendationItem, Vendedor, AlertItem,
+  RecommendationItem, Vendedor, AlertItem, ProvinceHeat, GISRoute,
 } from "@/types";
 
 // ── KPI Summary ──────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ export const productos: Producto[] = PROD_NAMES.map((nombre, i) => {
 
 export const rfmSegments: RFMSegmentData[] = [
   { segment:"Campeones",  count:600,  pct:15.0, revenue_pct:38.0, color:"#0DB87E", accion:"Fidelización VIP — acceso anticipado a temporada" },
-  { segment:"Leales",     count:800,  pct:20.0, revenue_pct:28.0, color:"#1E6FDB", accion:"Cross-selling — programa de lealtad" },
+  { segment:"Leales",     count:800,  pct:20.0, revenue_pct:28.0, color:"#22C55E", accion:"Cross-selling — programa de lealtad" },
   { segment:"Alto_Valor", count:480,  pct:12.0, revenue_pct:18.0, color:"#9B59B6", accion:"Aumentar frecuencia — visita KAM personalizada" },
   { segment:"En_Riesgo",  count:920,  pct:23.0, revenue_pct:11.0, color:"#E8A020", accion:"Reactivación urgente — descuento recuperación" },
   { segment:"Dormidos",   count:1200, pct:30.0, revenue_pct: 5.0, color:"#E03E3E", accion:"Win-back — diagnóstico de causa de abandono" },
@@ -281,6 +281,29 @@ export const recommendations: RecommendationItem[] = clientes.slice(0, 6).map((c
     { producto: PROD_NAMES[(i * 3 + 2) % 20], categoria: CATS[(i + 3) % 8],     score: 0.76 - i * 0.04, type: "CF" },
   ],
 }));
+
+// ── GIS Tactical — Province Heat & Routes ────────────────────────────────────
+
+export const provinceHeat: ProvinceHeat[] = [
+  { nombre:"Buenos Aires", lat:-36.6, lng:-60.5, revenue_pct:38.2, revenue_ars:5_424_400_000, clientes:462, radio_km:220 },
+  { nombre:"Santa Fe",     lat:-30.7, lng:-60.7, revenue_pct:18.3, revenue_ars:2_598_600_000, clientes:185, radio_km:160 },
+  { nombre:"Córdoba",      lat:-31.4, lng:-64.1, revenue_pct:14.1, revenue_ars:2_002_200_000, clientes:142, radio_km:170 },
+  { nombre:"Entre Ríos",   lat:-32.0, lng:-59.2, revenue_pct: 7.8, revenue_ars:1_107_600_000, clientes: 88, radio_km:120 },
+  { nombre:"Chaco",        lat:-26.5, lng:-60.0, revenue_pct: 5.2, revenue_ars:  738_400_000, clientes: 64, radio_km:110 },
+  { nombre:"Salta",        lat:-24.8, lng:-65.4, revenue_pct: 4.9, revenue_ars:  695_800_000, clientes: 58, radio_km:130 },
+  { nombre:"Mendoza",      lat:-32.9, lng:-68.8, revenue_pct: 4.6, revenue_ars:  653_200_000, clientes: 52, radio_km:140 },
+  { nombre:"Tucumán",      lat:-27.0, lng:-65.2, revenue_pct: 3.4, revenue_ars:  482_800_000, clientes: 42, radio_km: 90 },
+  { nombre:"Santiago",     lat:-27.8, lng:-64.3, revenue_pct: 1.9, revenue_ars:  269_800_000, clientes: 24, radio_km: 80 },
+  { nombre:"Corrientes",   lat:-28.5, lng:-58.8, revenue_pct: 1.6, revenue_ars:  227_200_000, clientes: 20, radio_km: 90 },
+];
+
+export const gisRoutes: GISRoute[] = [
+  { id:1, from:[-32.95,-60.65], to:[-34.62,-58.38], label:"Rosario → CABA",    color:"#22C55E", activo:true,  toneladas_mes:4200 },
+  { id:2, from:[-32.95,-60.65], to:[-31.42,-64.18], label:"Rosario → Córdoba", color:"#22C55E", activo:true,  toneladas_mes:2800 },
+  { id:3, from:[-34.62,-58.38], to:[-36.6, -60.5],  label:"CABA → Bs.As. Sur", color:"#A3E635", activo:true,  toneladas_mes:1900 },
+  { id:4, from:[-31.42,-64.18], to:[-24.79,-65.41], label:"Córdoba → Salta",   color:"#A3E635", activo:true,  toneladas_mes:1100 },
+  { id:5, from:[-32.95,-60.65], to:[-32.89,-68.84], label:"Rosario → Mendoza", color:"#0DB87E", activo:false, toneladas_mes: 640 },
+];
 
 // ── Alerts ────────────────────────────────────────────────────────────────────
 
