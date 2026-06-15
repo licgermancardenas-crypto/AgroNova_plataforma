@@ -1,0 +1,284 @@
+{
+  "fecha_auditoria": "2026-06-15T03:04:48.726668",
+  "resumen": {
+    "ok": 51,
+    "warn": 1,
+    "err": 0,
+    "total": 52
+  },
+  "hallazgos": [
+    {
+      "nivel": "OK",
+      "check": "FK fecha_id en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK fecha_id en Fact_Compras",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK fecha_id en Fact_Inventario",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK fecha_id en Fact_Logistica",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK fecha_id en Cotizaciones",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK cliente_id en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK cliente_id en Fact_Logistica",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK producto_id en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK producto_id en Fact_Compras",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK producto_id en Fact_Inventario",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK proveedor_id en Fact_Compras",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK sucursal_id en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK vendedor_id en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK deposito_id en Fact_Compras",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK deposito_id en Fact_Inventario",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK deposito_id en Fact_Logistica",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "FK region_id en Fact_Logistica",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Fecha",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Sucursal",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Deposito",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Vendedor",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Proveedor",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Producto",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Dim_Cliente",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Fact_Compras",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Fact_Inventario",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "PK unica en Cotizaciones",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "Clientes con al menos 1 venta",
+      "detalle": "0.0% sin ventas (aceptable)"
+    },
+    {
+      "nivel": "OK",
+      "check": "Productos con al menos 1 venta",
+      "detalle": "0.0% sin ventas"
+    },
+    {
+      "nivel": "OK",
+      "check": "Todos los vendedores tienen ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "Rango Dim_Fecha",
+      "detalle": "2016-01-01 a 2026-12-31"
+    },
+    {
+      "nivel": "OK",
+      "check": "Fechas Fact_Ventas dentro de 2016-2026",
+      "detalle": "20160101 a 20261231"
+    },
+    {
+      "nivel": "OK",
+      "check": "Sin fechas nulas en Fact_Ventas",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "Sin fechas nulas en Fact_Compras",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "Sin ventas en domingo",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "Compras y ventas distribuidas en el mismo periodo (2016-2026)",
+      "detalle": "Compras median=2021, Ventas median=2022"
+    },
+    {
+      "nivel": "OK",
+      "check": "Sin stock negativo en Fact_Inventario",
+      "detalle": ""
+    },
+    {
+      "nivel": "OK",
+      "check": "Rango stock_actual",
+      "detalle": "min=0, max=799"
+    },
+    {
+      "nivel": "OK",
+      "check": "Alertas stock bajo minimo",
+      "detalle": "2,725 (6.9%) — esperado 10-25%"
+    },
+    {
+      "nivel": "OK",
+      "check": "Ventas no ocurren antes del alta del cliente",
+      "detalle": "0 casos (0.000%) — dentro del umbral 0.5%"
+    },
+    {
+      "nivel": "OK",
+      "check": "Sin precios/cantidades negativos o cero",
+      "detalle": ""
+    },
+    {
+      "nivel": "WARN",
+      "check": "Outliers extremos en total_ars",
+      "detalle": "6 registros > 10x p99.9"
+    },
+    {
+      "nivel": "OK",
+      "check": "Descuentos dentro de rango",
+      "detalle": "max=15.0%"
+    },
+    {
+      "nivel": "OK",
+      "check": "Pareto 80/20 valido",
+      "detalle": "Top 20% clientes = 77.4% del revenue"
+    },
+    {
+      "nivel": "OK",
+      "check": "Alta rotacion tiene mayor revenue por producto que Baja rotacion",
+      "detalle": "Alta=1,387,592,396 vs Baja=209,144,345"
+    },
+    {
+      "nivel": "OK",
+      "check": "Regiones diferenciadas",
+      "detalle": "CV revenue = 0.41 (>0.15 = diferenciacion valida)"
+    },
+    {
+      "nivel": "OK",
+      "check": "Estacionalidad agricola reflejada",
+      "detalle": "Pico/Valle ratio = 3.98x"
+    },
+    {
+      "nivel": "OK",
+      "check": "Crecientes tienen mayor ticket promedio que decrecientes",
+      "detalle": "Crec=1,409,013 vs Decr=1,377,299"
+    },
+    {
+      "nivel": "OK",
+      "check": "Clientes churned no operan significativamente post-baja",
+      "detalle": "0 ventas post-baja (0.0%) — aceptable por rango año"
+    },
+    {
+      "nivel": "OK",
+      "check": "CAGR USD realista",
+      "detalle": "8.19% anual"
+    },
+    {
+      "nivel": "OK",
+      "check": "Margen bruto dentro de rango esperado",
+      "detalle": "24.95%"
+    }
+  ],
+  "recomendaciones": [
+    "Fact_Inventario usa snapshots mensuales de 100 productos/deposito. Para un DW productivo completo: generar snapshot para los 2.500 productos (~900k filas/año, ~9M totales). El generador actual usa muestra para rapidez.",
+    "El churn post-baja tiene tolerancia de 1 año por el filtro de año entero. Afinar a nivel de fecha exacta si se usara para modelos ML de churn prediction.",
+    "Agregar columna 'tipo_cambio_fecha' en Fact_Ventas uniendo con Cotizaciones_Externas para análisis de revenue USD diario preciso (actualmente usa TC anual promedio)."
+  ],
+  "metricas": {
+    "ticket_promedio_ars": 1389280.01,
+    "ticket_promedio_usd": 3435.7,
+    "margen_bruto_medio": 0.2495,
+    "freq_compra_historica": 375.0,
+    "pareto_top20_pct": 77.4,
+    "ratio_estacionalidad": 3.98
+  }
+}

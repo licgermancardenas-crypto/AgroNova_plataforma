@@ -103,9 +103,50 @@ def generate():
             "email":              fake.email(),
             "telefono":           fake.phone_number(),
             "cuit":               fake.numerify("##-########-#"),
+            # volumen_factor y tier asignados post-loop segun distribucion Pareto
+            "volumen_factor":     None,
+            "tier_cliente":       None,
         })
 
     df = pd.DataFrame(rows)
+
+    # ── Distribucion Pareto de volumen para lograr 80/20 ──────────────
+    # Top 10% (tier A): factor 8-20x  → clientes grandes (cooperativas, agroindustrias)
+    # Sig 20% (tier B): factor 2-8x   → medianos
+    # Sig 30% (tier C): factor 0.5-2x → pequenos estables
+    # Bot 40% (tier D): factor 0.05-0.5x → muy pequenos o inactivos
+    n = len(df)
+    tier_breakpoints = [int(n * 0.10), int(n * 0.30), int(n * 0.60)]
+
+    # Samplear factores en bloques y asignar aleatoriamente
+    rng2 = np.random.default_rng(SEED + 99)
+    shuffled_idx = rng2.permutation(n)
+
+    factors = np.empty(n)
+    tiers   = np.empty(n, dtype=object)
+
+    idxA = shuffled_idx[:tier_breakpoints[0]]
+    idxB = shuffled_idx[tier_breakpoints[0]:tier_breakpoints[1]]
+    idxC = shuffled_idx[tier_breakpoints[1]:tier_breakpoints[2]]
+    idxD = shuffled_idx[tier_breakpoints[2]:]
+
+    factors[idxA] = rng2.uniform(8.0,  20.0, len(idxA))
+    factors[idxB] = rng2.uniform(2.0,   8.0, len(idxB))
+    factors[idxC] = rng2.uniform(0.5,   2.0, len(idxC))
+    factors[idxD] = rng2.uniform(0.05,  0.5, len(idxD))
+
+    tiers[idxA] = "A"
+    tiers[idxB] = "B"
+    tiers[idxC] = "C"
+    tiers[idxD] = "D"
+
+    # Clientes churned: reducir su factor adicional (compraban menos antes de irse)
+    churned_mask = df["ciclo_vida"] == "Churned"
+    factors[churned_mask.values] *= 0.35
+
+    df["volumen_factor"] = np.round(factors, 4)
+    df["tier_cliente"]   = tiers
+
     out = os.path.join(CSV_DIR, "Dim_Cliente.csv")
     df.to_csv(out, index=False, encoding="utf-8-sig")
     print(f"[OK] Dim_Cliente: {len(df):,} filas -> {out}")

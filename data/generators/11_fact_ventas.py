@@ -51,12 +51,15 @@ def generate(df_cliente=None, df_producto=None):
         cli_altas  = df_cliente["año_alta"].fillna(2016).astype(int).values
         cli_bajas  = df_cliente["año_baja"].fillna(2027).astype(int).values
         cli_suc    = df_cliente["sucursal_id_asignada"].values
+        # Pareto volume factor: escala cantidades por cliente
+        cli_vol_factor = df_cliente["volumen_factor"].fillna(1.0).values.astype(float)
     else:
-        cli_ids   = np.array([f"C{i:05d}" for i in range(1, N_CLIENTES+1)])
-        cli_ciclos = np.full(N_CLIENTES, "Activo estable")
-        cli_altas  = np.full(N_CLIENTES, 2016)
-        cli_bajas  = np.full(N_CLIENTES, 2027)
-        cli_suc    = rng.integers(1, 6, N_CLIENTES)
+        cli_ids       = np.array([f"C{i:05d}" for i in range(1, N_CLIENTES+1)])
+        cli_ciclos    = np.full(N_CLIENTES, "Activo estable")
+        cli_altas     = np.full(N_CLIENTES, 2016)
+        cli_bajas     = np.full(N_CLIENTES, 2027)
+        cli_suc       = rng.integers(1, 6, N_CLIENTES)
+        cli_vol_factor = np.ones(N_CLIENTES)
 
     if df_producto is not None:
         prod_ids   = df_producto["producto_id"].values
@@ -104,9 +107,11 @@ def generate(df_cliente=None, df_producto=None):
         # Samplear productos
         idx_prod = rng.choice(N_PRODUCTOS, size=n, p=prod_weights)
 
-        # Cantidad vendida (log-normal -> realista)
-        cantidad = np.round(np.exp(rng.normal(1.8, 0.9, n))).astype(int)
-        cantidad = np.clip(cantidad, 1, 500)
+        # Cantidad vendida: log-normal base * volumen_factor del cliente (Pareto 80/20)
+        cantidad_base = np.exp(rng.normal(1.5, 0.7, n))
+        vol_scale = cli_vol_factor[idx_cli]
+        cantidad = np.round(cantidad_base * vol_scale).astype(int)
+        cantidad = np.clip(cantidad, 1, 5_000)
 
         # Precio USD base escalado por inflación ARS
         precio_usd_base = prod_precios_usd[idx_prod]
