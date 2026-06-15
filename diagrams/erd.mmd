@@ -1,0 +1,184 @@
+---
+title: "AgroNova Argentina S.A. — Entity Relationship Diagram"
+---
+erDiagram
+    DIM_FECHA {
+        int     fecha_id PK
+        date    fecha UK
+        int16   anio
+        int8    semestre
+        int8    trimestre
+        int8    mes
+        string  mes_nombre
+        int8    dia_semana
+        bool    es_feriado
+        bool    es_dia_habil
+        float   factor_estacional
+        string  temporada_agricola
+    }
+
+    DIM_REGION {
+        int16   region_id PK
+        string  nombre_region
+        string  provincia_principal
+        float   area_km2
+        string  potencial_agricola
+    }
+
+    DIM_SUCURSAL {
+        int16   sucursal_id PK
+        string  nombre UK
+        string  provincia
+        int16   region_id FK
+        float   lat
+        float   lon
+    }
+
+    DIM_DEPOSITO {
+        int16   deposito_id PK
+        string  nombre
+        int16   sucursal_id FK
+        int     capacidad_ton
+    }
+
+    DIM_VENDEDOR {
+        int16   vendedor_id PK
+        string  nombre
+        string  email UK
+        int16   sucursal_id FK
+        string  categoria
+    }
+
+    DIM_PROVEEDOR {
+        int16   proveedor_id PK
+        string  nombre_proveedor UK
+        string  tipo
+        string  pais
+    }
+
+    DIM_PRODUCTO {
+        char5   producto_id PK
+        string  nombre_producto UK
+        string  categoria
+        string  subcategoria
+        int16   proveedor_id FK
+        float   precio_usd_base_2016
+        float   margen_bruto_pct
+        string  rotacion
+        bool    requiere_frio
+    }
+
+    DIM_CLIENTE {
+        char6   cliente_id PK
+        string  razon_social
+        string  cuit UK
+        string  segmento
+        string  ciclo_vida
+        int16   region_id FK
+        int16   anio_alta
+        int16   anio_baja
+        bool    activo
+        string  riesgo_crediticio
+        float   volumen_factor
+        string  tier_cliente
+    }
+
+    COTIZACIONES_EXTERNAS {
+        date    fecha PK
+        int     fecha_id FK
+        float   usd_ars_oficial
+        float   usd_ars_blue
+        float   soja_cbot_usd_ton
+        float   urea_fob_usd_ton
+    }
+
+    FACT_VENTAS {
+        bigint  venta_id PK
+        int     fecha_id FK
+        char6   cliente_id FK
+        char5   producto_id FK
+        int16   sucursal_id FK
+        int16   vendedor_id FK
+        string  canal_venta
+        string  estado
+        int     cantidad
+        float   precio_unitario_ars
+        float   precio_unitario_usd
+        float   descuento_pct
+        float   total_ars
+        float   total_usd
+        float   margen_bruto_ars
+    }
+
+    FACT_COMPRAS {
+        int     compra_id PK
+        int     fecha_id FK
+        int16   proveedor_id FK
+        char5   producto_id FK
+        int16   deposito_destino_id FK
+        string  estado
+        int     cantidad
+        float   precio_compra_ars
+        float   total_ars
+        float   total_usd
+    }
+
+    FACT_INVENTARIO {
+        bigint  inventario_id PK
+        int     fecha_id FK
+        char5   producto_id FK
+        int16   deposito_id FK
+        int     stock_actual
+        int     stock_minimo
+        int     stock_maximo
+        float   valor_stock_ars
+        bool    bajo_minimo
+    }
+
+    FACT_LOGISTICA {
+        bigint  logistica_id PK
+        int     fecha_despacho_id FK
+        int     fecha_entrega_id FK
+        char6   cliente_id FK
+        int16   deposito_origen_id FK
+        int16   region_destino_id FK
+        string  estado
+        int16   dias_transito_base
+        int16   dias_transito_real
+        float   costo_flete_ars
+    }
+
+    %% Relaciones Dimension -> Dimension
+    DIM_REGION       ||--o{ DIM_SUCURSAL   : "tiene"
+    DIM_REGION       ||--o{ DIM_CLIENTE    : "pertenece"
+    DIM_SUCURSAL     ||--o{ DIM_DEPOSITO   : "alberga"
+    DIM_SUCURSAL     ||--o{ DIM_VENDEDOR   : "emplea"
+    DIM_PROVEEDOR    ||--o{ DIM_PRODUCTO   : "suministra"
+
+    %% Dimension -> Fact_Ventas
+    DIM_FECHA        ||--o{ FACT_VENTAS    : "fecha_id"
+    DIM_CLIENTE      ||--o{ FACT_VENTAS    : "cliente_id"
+    DIM_PRODUCTO     ||--o{ FACT_VENTAS    : "producto_id"
+    DIM_SUCURSAL     ||--o{ FACT_VENTAS    : "sucursal_id"
+    DIM_VENDEDOR     ||--o{ FACT_VENTAS    : "vendedor_id"
+
+    %% Dimension -> Fact_Compras
+    DIM_FECHA        ||--o{ FACT_COMPRAS   : "fecha_id"
+    DIM_PROVEEDOR    ||--o{ FACT_COMPRAS   : "proveedor_id"
+    DIM_PRODUCTO     ||--o{ FACT_COMPRAS   : "producto_id"
+    DIM_DEPOSITO     ||--o{ FACT_COMPRAS   : "deposito_destino_id"
+
+    %% Dimension -> Fact_Inventario
+    DIM_FECHA        ||--o{ FACT_INVENTARIO : "fecha_id"
+    DIM_PRODUCTO     ||--o{ FACT_INVENTARIO : "producto_id"
+    DIM_DEPOSITO     ||--o{ FACT_INVENTARIO : "deposito_id"
+
+    %% Dimension -> Fact_Logistica
+    DIM_FECHA        ||--o{ FACT_LOGISTICA  : "fecha_despacho_id"
+    DIM_FECHA        ||--o{ FACT_LOGISTICA  : "fecha_entrega_id"
+    DIM_CLIENTE      ||--o{ FACT_LOGISTICA  : "cliente_id"
+    DIM_DEPOSITO     ||--o{ FACT_LOGISTICA  : "deposito_origen_id"
+    DIM_REGION       ||--o{ FACT_LOGISTICA  : "region_destino_id"
+
+    %% Cotizaciones
+    DIM_FECHA        ||--o{ COTIZACIONES_EXTERNAS : "fecha_id"

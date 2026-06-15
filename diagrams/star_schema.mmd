@@ -1,0 +1,68 @@
+---
+title: "AgroNova — Star Schema (Fact_Ventas centrada)"
+---
+flowchart TB
+    %% ── Tabla de hechos central ──────────────────────────────────────────
+    FV["**FACT_VENTAS**\n━━━━━━━━━━━━━━━━\n🔑 venta_id PK\n📅 fecha_id FK\n👤 cliente_id FK\n📦 producto_id FK\n🏢 sucursal_id FK\n🧑 vendedor_id FK\n─────────────────\ncantidad\nprecio_unitario_ars\nprecio_unitario_usd\ndescuento_pct\ntotal_ars  ◀ METRICA\ntotal_usd  ◀ METRICA\nmargen_bruto_ars ◀ METRICA\nestado · canal_venta"]
+
+    %% ── Dimensiones ──────────────────────────────────────────────────────
+    DF["**DIM_FECHA**\n━━━━━━━━━━━━━━━━\n🔑 fecha_id PK\nfecha · año · mes\ntrimestre · semestre\ndia_semana · semana_iso\nes_feriado · es_dia_habil\ntemporada_agricola\nfactor_estacional"]
+
+    DC["**DIM_CLIENTE**\n━━━━━━━━━━━━━━━━\n🔑 cliente_id PK\nrazon_social · cuit\nsegmento · ciclo_vida\ntier_cliente (A/B/C/D)\nvolumen_factor\nriesgo_crediticio\nregion_id · provincia\naño_alta · año_baja"]
+
+    DP["**DIM_PRODUCTO**\n━━━━━━━━━━━━━━━━\n🔑 producto_id PK\nnombre_producto\ncategoria · subcategoria\nproveedor_id\nprecio_usd_base_2016\nmargen_bruto_pct\nrotacion (Alta/Media/Baja)\nrequiere_frio · activo"]
+
+    DS["**DIM_SUCURSAL**\n━━━━━━━━━━━━━━━━\n🔑 sucursal_id PK\nnombre · ciudad · provincia\nregion_id · lat · lon"]
+
+    DV["**DIM_VENDEDOR**\n━━━━━━━━━━━━━━━━\n🔑 vendedor_id PK\nnombre · apellido · email\nsucursal_id · categoria\nfecha_ingreso · activo"]
+
+    %% ── Hechos secundarios ───────────────────────────────────────────────
+    FC["**FACT_COMPRAS**\n━━━━━━━━━━━━━━━━\n🔑 compra_id PK\nfecha_id · proveedor_id\nproducto_id · deposito_id\ncantidad · total_ars\ntotal_usd · estado"]
+
+    FI["**FACT_INVENTARIO**\n━━━━━━━━━━━━━━━━\n🔑 inventario_id PK\nfecha_id · producto_id\ndeposito_id\nstock_actual / min / max\nvalor_stock_ars\nbajo_minimo [GENERATED]"]
+
+    FL["**FACT_LOGISTICA**\n━━━━━━━━━━━━━━━━\n🔑 logistica_id PK\nfecha_despacho_id\ncliente_id · deposito_id\nregion_destino_id\ndias_transito_real [GEN]\ncosto_flete_ars · estado"]
+
+    CE["**COTIZACIONES**\n**EXTERNAS**\n━━━━━━━━━━━━━━━━\n🔑 fecha PK\nusd_ars_oficial\nusd_ars_blue\nsoja_cbot_usd_ton\nurea_fob_usd_ton"]
+
+    %% ── Dimensiones compartidas ──────────────────────────────────────────
+    DR["**DIM_REGION**\n━━━━━━━━━━━━━━━━\n🔑 region_id PK\nnombre_region\nprovincia_principal\narea_km2"]
+
+    DD["**DIM_DEPOSITO**\n━━━━━━━━━━━━━━━━\n🔑 deposito_id PK\nnombre · sucursal_id\ncapacidad_ton · lat · lon"]
+
+    DPR["**DIM_PROVEEDOR**\n━━━━━━━━━━━━━━━━\n🔑 proveedor_id PK\nnombre_proveedor\ntipo (Nac/Int) · pais\nmoneda_facturacion"]
+
+    %% ── Conexiones: Fact_Ventas <-> Dimensiones ──────────────────────────
+    DF  -- fecha_id --> FV
+    DC  -- cliente_id --> FV
+    DP  -- producto_id --> FV
+    DS  -- sucursal_id --> FV
+    DV  -- vendedor_id --> FV
+
+    %% ── Conexiones: Hechos secundarios ───────────────────────────────────
+    DF  -. fecha_id .- FC
+    DF  -. fecha_id .- FI
+    DF  -. fecha_id .- FL
+    DF  -. fecha_id .- CE
+    DP  -. producto_id .- FC
+    DP  -. producto_id .- FI
+    DC  -. cliente_id .- FL
+    DD  -. deposito_id .- FC
+    DD  -. deposito_id .- FI
+    DD  -. deposito_id .- FL
+    DR  -. region_id .- DS
+    DR  -. region_id .- DC
+    DR  -. region_destino_id .- FL
+    DPR -. proveedor_id .- FC
+    DPR -. proveedor_id .- DP
+    DS  -. sucursal_id .- DD
+    DS  -. sucursal_id .- DV
+
+    %% ── Estilos ──────────────────────────────────────────────────────────
+    classDef fact fill:#1e3a5f,stroke:#4a9eff,color:#fff,rx:4
+    classDef dim  fill:#0d4f2e,stroke:#2ecc71,color:#fff,rx:4
+    classDef ext  fill:#4a2c00,stroke:#f39c12,color:#fff,rx:4
+
+    class FV,FC,FI,FL fact
+    class DF,DC,DP,DS,DV,DR,DD,DPR dim
+    class CE ext

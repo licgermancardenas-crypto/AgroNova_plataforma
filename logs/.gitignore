@@ -1,0 +1,6 @@
+# Ignorar todos los archivos de log y reportes generados en runtime
+*.log
+report_*.json
+
+# Mantener el directorio en git
+!.gitignore

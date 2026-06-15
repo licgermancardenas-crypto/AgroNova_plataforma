@@ -1,0 +1,87 @@
+---
+title: "AgroNova — Arquitectura de la Plataforma de Datos"
+---
+flowchart TB
+    %% ── Capa 0: Generacion de datos ──────────────────────────────────────
+    subgraph GEN["🔧 DATA GENERATION  (SEED=42, reproducible)"]
+        direction LR
+        G1["00_config.py\nConstantes, TC, Estacionalidad"]
+        G2["01..07 — Dimensiones\n(Fecha/Region/Sucursal/\nDeposito/Vendedor/\nProveedor/Producto)"]
+        G3["08_dim_cliente.py\n4,000 clientes\nTier A-D + volumen_factor"]
+        G4["09..10 — Compras/Inventario"]
+        G5["11_fact_ventas.py\n1,500,000 ventas\nPareto 80/20 + Estacionalidad"]
+        G6["12_fact_logistica.py\n13_cotizaciones.py"]
+        G7["generate_all.py\nOrquestador FK-safe"]
+        G1 --> G2 --> G3 --> G4 --> G5 --> G6
+        G7 -.-> G1
+    end
+
+    %% ── Capa 1: Raw data (CSV) ───────────────────────────────────────────
+    subgraph CSV["📁 DATA / CSV  (13 archivos, ~250MB)"]
+        direction LR
+        C1["8 Dimensiones\nDim_Fecha · Dim_Region\nDim_Sucursal · Dim_Deposito\nDim_Vendedor · Dim_Proveedor\nDim_Producto · Dim_Cliente"]
+        C2["4 Hechos\nFact_Ventas (1.5M)\nFact_Compras\nFact_Inventario\nFact_Logistica"]
+        C3["Cotizaciones_Externas\nTC BNA + Commodities CBOT"]
+    end
+
+    %% ── Capa 2: Pipeline ETL ─────────────────────────────────────────────
+    subgraph ETL["⚙️ ETL PIPELINE  (Python + SQLAlchemy)"]
+        direction LR
+        E1["extract.py\nLee CSVs\nValida schema\nAlias acentos"]
+        E2["transform.py\nTipado eficiente\nLimpieza strings\nEnriquecimiento\nBR-01..06 checks"]
+        E3["load.py\nFK-safe order\nExclude GENERATED cols\nChunked INSERT\nVerificacion conteos"]
+        E4["run_pipeline.py\nOrquestador\nLogging estructurado\nJSON report"]
+        E1 --> E2 --> E3
+        E4 -.-> E1
+    end
+
+    %% ── Capa 3: Base de datos ────────────────────────────────────────────
+    subgraph DB["🗄️ PostgreSQL / NEON SERVERLESS"]
+        direction TB
+        D1["Schema: agronova\n8 Dims + 4 Facts\n+ cotizaciones"]
+        D2["ENUMs\nestado_venta · canal_venta\nestado_compra · tier_cliente\nrotacion_producto · riesgo_tipo"]
+        D3["Constraints\nCHECK + FK + UK\nGENERATED columns\nbajo_minimo · dias_transito_real"]
+        D4["Indexes (25+)\nCovering · Composite\nPartial (activos/completadas)"]
+        D5["10 Vistas Analiticas\nv_ventas_diarias · v_clientes_rfm\nv_pareto_clientes · v_abc_productos\nv_kpi_ejecutivo · ..."]
+        D1 --- D2 --- D3 --- D4 --- D5
+    end
+
+    %% ── Capa 4: Calidad y testing ────────────────────────────────────────
+    subgraph TEST["🧪 QUALITY ASSURANCE"]
+        direction LR
+        T1["audit_calidad.py\n52 checks / 14 dimensiones\n51 OK · 1 WARN · 0 ERR"]
+        T2["pytest (111 tests)\nPKs · FKs · Duplicados\nNulls · Business Rules\n10.7s · 100% pass"]
+        T3["logs/\nrun_pipeline_YYYYMMDD.log\nreport_YYYYMMDD.json"]
+    end
+
+    %% ── Capa 5: Consumo ──────────────────────────────────────────────────
+    subgraph CONSUME["📊 CONSUMO / FRONTEND  (proxima fase)"]
+        direction LR
+        P1["Power BI\nDirectQuery via Neon\n10 vistas analiticas"]
+        P2["Next.js 15 + shadcn/ui\nDashboard web\nAPI Routes -> Neon"]
+        P3["Metabase / Grafana\nBI self-service\nConexion directa SQL"]
+    end
+
+    %% ── Flujo principal ──────────────────────────────────────────────────
+    GEN ==> CSV
+    CSV ==> ETL
+    ETL ==> DB
+    DB  ==> CONSUME
+    ETL -.-> TEST
+    CSV -.-> TEST
+
+    %% ── Tech stack labels ────────────────────────────────────────────────
+    TECH["Tech Stack:\nnumpy · pandas · Faker · SQLAlchemy\npytest · psycopg2 · pathlib\nPostgreSQL 16 / Neon serverless"]
+
+    %% Estilos
+    classDef layer fill:#1a1a2e,stroke:#4a9eff,color:#e0e0ff,rx:6
+    classDef db    fill:#0d2137,stroke:#00b4d8,color:#e0f0ff,rx:6
+    classDef test  fill:#1a0d2e,stroke:#9b59b6,color:#f0e0ff,rx:6
+    classDef cons  fill:#0d1a0d,stroke:#2ecc71,color:#e0ffe0,rx:6
+    classDef tech  fill:#2e1a0d,stroke:#f39c12,color:#fff3e0,rx:4
+
+    class GEN,CSV,ETL layer
+    class DB db
+    class TEST test
+    class CONSUME cons
+    class TECH tech
