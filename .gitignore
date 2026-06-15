@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Data — generada localmente con generate_all.py
+data/csv/*.csv
+
+# Node / Next.js
+node_modules/
+.next/
+.vercel/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
