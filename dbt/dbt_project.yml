@@ -1,0 +1,49 @@
+name: 'agronova'
+version: '1.0.0'
+config-version: 2
+
+profile: 'agronova'
+
+model-paths:    ["models"]
+test-paths:     ["tests"]
+macro-paths:    ["macros"]
+seed-paths:     ["seeds"]
+snapshot-paths: ["snapshots"]
+docs-paths:     ["docs"]
+
+target-path:    "target"
+clean-targets:  ["target", "dbt_packages"]
+
+vars:
+  raw_schema:        'agronova'
+  start_date:        '2016-01-01'
+  end_date:          '2026-12-31'
+  pareto_threshold:  0.80
+  rfm_recency_days:  365
+  churn_days:        365
+
+models:
+  agronova:
+    staging:
+      +materialized: view
+      +schema:       staging
+      +tags:         ['staging']
+
+    marts:
+      +materialized: table
+      +tags:         ['mart']
+      core:
+        +schema: core
+        +tags:   ['core', 'dimensions']
+      sales:
+        +schema: sales
+        +tags:   ['sales']
+      finance:
+        +schema: finance
+        +tags:   ['finance']
+      inventory:
+        +schema: inventory
+        +tags:   ['inventory']
+      customer:
+        +schema: customer
+        +tags:   ['customer']

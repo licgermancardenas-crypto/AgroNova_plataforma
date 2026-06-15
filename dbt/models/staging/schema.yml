@@ -1,0 +1,167 @@
+version: 2
+
+models:
+  - name: stg_clientes
+    description: >
+      Vista de staging sobre dim_cliente. Limpieza de nombres de columnas,
+      derivacion de is_churned y antiguedad_anos. Una fila por cliente.
+    columns:
+      - name: cliente_id
+        description: "PK — formato C##### (ej: C00001)"
+        tests: [unique, not_null]
+      - name: cuit
+        description: "CUIT unico en formato XX-XXXXXXXX-X"
+        tests: [unique, not_null]
+      - name: tier_cliente
+        description: "Clasificacion Pareto: A (top 10%), B (20%), C (30%), D (40%)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['A', 'B', 'C', 'D']
+      - name: volumen_factor
+        description: "Multiplicador de cantidad base. A: 8-20x, B: 2-8x, C: 0.5-2x, D: 0.05-0.5x"
+        tests: [not_null]
+      - name: is_churned
+        description: "TRUE si el cliente tiene año_baja"
+        tests: [not_null]
+      - name: activo
+        description: "Estado actual del cliente"
+        tests: [not_null]
+      - name: region_id
+        description: "FK a dim_region"
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_region')
+              field: region_id
+
+  - name: stg_productos
+    description: >
+      Vista de staging sobre dim_producto. Agrega segmento_precio y es_alto_margen.
+      Una fila por SKU.
+    columns:
+      - name: producto_id
+        description: "PK — formato P#### (ej: P0001)"
+        tests: [unique, not_null]
+      - name: categoria
+        description: "Categoria principal del producto"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Herbicidas', 'Fertilizantes', 'Fungicidas', 'Insecticidas', 'Semillas']
+      - name: rotacion
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Alta', 'Media', 'Baja']
+      - name: margen_bruto_pct
+        description: "Margen sobre precio de venta (0.10 a 0.45)"
+        tests: [not_null]
+      - name: precio_usd_base_2016
+        description: "Precio de referencia en USD (año base 2016)"
+        tests: [not_null]
+
+  - name: stg_ventas
+    description: >
+      Vista de staging sobre fact_ventas, enriquecida con atributos de fecha.
+      Una fila por linea de venta. Incluye columnas derivadas: es_completada,
+      tiene_descuento, revenue_neto_ars/usd.
+    columns:
+      - name: venta_id
+        description: "PK — secuencial 1 a 1.500.000"
+        tests: [unique, not_null]
+      - name: cliente_id
+        description: "FK a dim_cliente"
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_cliente')
+              field: cliente_id
+      - name: producto_id
+        description: "FK a dim_producto"
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_producto')
+              field: producto_id
+      - name: sucursal_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_sucursal')
+              field: sucursal_id
+      - name: vendedor_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_vendedor')
+              field: vendedor_id
+      - name: estado
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Completada', 'Cancelada', 'Devuelta', 'Pendiente']
+      - name: total_ars
+        description: "Revenue bruto en ARS"
+        tests: [not_null]
+      - name: es_completada
+        tests: [not_null]
+
+  - name: stg_compras
+    description: >
+      Vista de staging sobre fact_compras, enriquecida con fecha.
+      Una fila por orden de compra. Flag es_importacion basado en puerto_ingreso.
+    columns:
+      - name: compra_id
+        tests: [unique, not_null]
+      - name: proveedor_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_proveedor')
+              field: proveedor_id
+      - name: producto_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_producto')
+              field: producto_id
+      - name: estado
+        tests:
+          - accepted_values:
+              values: ['Recibida', 'Pendiente', 'Cancelada', 'En_transito']
+
+  - name: stg_inventario
+    description: >
+      Vista de staging sobre fact_inventario. Agrega estado_stock (Normal/Alerta/Bajo_Minimo/Sin_Stock)
+      y pct_ocupacion. Una fila por dia x producto x deposito.
+    columns:
+      - name: inventario_id
+        tests: [unique, not_null]
+      - name: estado_stock
+        description: "Normal / Alerta / Bajo_Minimo / Sin_Stock"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Normal', 'Alerta', 'Bajo_Minimo', 'Sin_Stock']
+      - name: stock_actual
+        tests: [not_null]
+
+  - name: stg_logistica
+    description: >
+      Vista de staging sobre fact_logistica. Calcula dias_demora y resultado_entrega
+      (A_Tiempo / Demorado / En_Transito / Cancelado). Una fila por despacho.
+    columns:
+      - name: logistica_id
+        tests: [unique, not_null]
+      - name: resultado_entrega
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['A_Tiempo', 'Demorado', 'En_Transito', 'Cancelado']
+      - name: cliente_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_cliente')
+              field: cliente_id

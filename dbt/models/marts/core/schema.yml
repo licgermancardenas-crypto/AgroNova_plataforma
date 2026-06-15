@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: dim_clientes
+    description: >
+      Dimension de clientes enriquecida con metricas de compra historicas.
+      Combina stg_clientes con agregados de ventas: revenue total, ultima compra,
+      dias desde ultima compra, flag VIP activo. Una fila por cliente.
+    columns:
+      - name: cliente_id
+        description: "PK — formato C#####"
+        tests: [unique, not_null]
+      - name: tier_cliente
+        description: "A/B/C/D segun distribucion Pareto de volumen"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['A', 'B', 'C', 'D']
+      - name: region_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_region')
+              field: region_id
+      - name: nombre_region
+        tests: [not_null]
+      - name: is_churned
+        tests: [not_null]
+      - name: es_cliente_vip_activo
+        description: "TRUE si tier A/B, activo y compro en el ultimo año"
+        tests: [not_null]
+
+  - name: dim_productos
+    description: >
+      Dimension de productos enriquecida con clasificacion ABC calculada en dbt,
+      metricas de ventas historicas y datos del proveedor. Una fila por SKU.
+    columns:
+      - name: producto_id
+        description: "PK — formato P####"
+        tests: [unique, not_null]
+      - name: clasificacion_abc
+        description: "A=top 70% revenue, B=siguiente 20%, C=restante 10%"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['A', 'B', 'C']
+      - name: categoria
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Herbicidas', 'Fertilizantes', 'Fungicidas', 'Insecticidas', 'Semillas']
+      - name: nombre_proveedor
+        description: "Nombre del proveedor principal (join desde dim_proveedor)"
+
+  - name: dim_vendedores
+    description: >
+      Dimension de vendedores enriquecida con datos de sucursal, region y metricas
+      de performance historica. Incluye ranking por revenue dentro de la sucursal.
+      Una fila por vendedor.
+    columns:
+      - name: vendedor_id
+        tests: [unique, not_null]
+      - name: nombre_completo
+        description: "nombre + apellido concatenados"
+        tests: [not_null]
+      - name: sucursal_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_sucursal')
+              field: sucursal_id
+      - name: rank_revenue_en_sucursal
+        description: "Posicion del vendedor por revenue dentro de su sucursal (1 = mejor)"
+        tests: [not_null]

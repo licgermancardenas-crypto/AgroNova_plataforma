@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: margen_por_producto
+    description: >
+      Margen bruto anual por producto. Incluye tendencia YoY de margen, clasificacion
+      de rentabilidad (Alta/Media/Baja/Bajo_Umbral), precio USD promedio y TC promedio.
+      Granularidad: producto_id x anio.
+    columns:
+      - name: producto_id
+        tests: [not_null]
+      - name: anio
+        tests: [not_null]
+      - name: margen_pct
+        description: "Margen bruto como % del revenue del periodo"
+        tests: [not_null]
+      - name: clasificacion_rentabilidad
+        tests:
+          - accepted_values:
+              values: ['Alta_Rentabilidad', 'Rentabilidad_Media', 'Rentabilidad_Baja', 'Bajo_Umbral']
+
+  - name: margen_por_cliente
+    description: >
+      Rentabilidad por cliente y año. Incluye LTV historico total, comparacion del
+      margen del cliente vs el promedio de su tier (benchmark), y clasificacion
+      de rentabilidad. Granularidad: cliente_id x anio.
+    columns:
+      - name: cliente_id
+        tests: [not_null]
+      - name: anio
+        tests: [not_null]
+      - name: margen_pct
+        description: "Margen bruto % del cliente en el periodo"
+        tests: [not_null]
+      - name: delta_vs_tier_pct
+        description: "Diferencia de margen vs promedio de su tier (positivo = mejor que el tier)"
+      - name: clasificacion_rentabilidad
+        tests:
+          - accepted_values:
+              values: ['Muy_Rentable', 'Rentable', 'Margen_Bajo', 'No_Rentable']
+      - name: ltv_total_usd
+        description: "Lifetime Value total en USD (suma historica de revenue_usd_tc_real)"

@@ -1,0 +1,95 @@
+version: 2
+
+sources:
+  - name: agronova_raw
+    description: "Tablas fuente del Data Warehouse AgroNova (cargadas via ETL Python/SQLAlchemy)"
+    schema: "{{ var('raw_schema') }}"
+    tags: ['raw', 'source']
+
+    tables:
+      - name: dim_fecha
+        description: "Dimension calendario con atributos agricolas argentinos (2016-2026)"
+        columns:
+          - name: fecha_id
+            description: "PK en formato YYYYMMDD"
+            tests: [unique, not_null]
+          - name: fecha
+            tests: [unique, not_null]
+          - name: factor_estacional
+            description: "Indice estacional mensual (0.70 en Jul, 1.65 en Nov)"
+
+      - name: dim_region
+        description: "5 regiones geograficas: PAM, NOA, NEA, CUY, PAT"
+        columns:
+          - name: region_id
+            tests: [unique, not_null]
+          - name: nombre_region
+            tests: [unique, not_null]
+
+      - name: dim_sucursal
+        description: "5 sucursales fisicas (Rosario, CABA, Cordoba, Mendoza, Salta)"
+        columns:
+          - name: sucursal_id
+            tests: [unique, not_null]
+
+      - name: dim_deposito
+        description: "3 centros logisticos con capacidad en toneladas"
+        columns:
+          - name: deposito_id
+            tests: [unique, not_null]
+
+      - name: dim_vendedor
+        description: "Fuerza de ventas por sucursal"
+        columns:
+          - name: vendedor_id
+            tests: [unique, not_null]
+
+      - name: dim_proveedor
+        description: "15 proveedores: 9 nacionales + 6 internacionales"
+        columns:
+          - name: proveedor_id
+            tests: [unique, not_null]
+
+      - name: dim_producto
+        description: "2500 SKUs agroquimicos y semillas"
+        columns:
+          - name: producto_id
+            tests: [unique, not_null]
+
+      - name: dim_cliente
+        description: "4000 clientes con Pareto Tier A-D y volumen_factor"
+        columns:
+          - name: cliente_id
+            tests: [unique, not_null]
+          - name: cuit
+            tests: [unique, not_null]
+
+      - name: fact_ventas
+        description: "1.5M transacciones de venta 2016-2026"
+        columns:
+          - name: venta_id
+            tests: [unique, not_null]
+
+      - name: fact_compras
+        description: "Ordenes de compra a los 15 proveedores"
+        columns:
+          - name: compra_id
+            tests: [unique, not_null]
+
+      - name: fact_inventario
+        description: "Snapshot diario de inventario por producto y deposito"
+        columns:
+          - name: inventario_id
+            tests: [unique, not_null]
+
+      - name: fact_logistica
+        description: "Despachos y entregas con seguimiento de transito"
+        columns:
+          - name: logistica_id
+            tests: [unique, not_null]
+
+      - name: cotizaciones_externas
+        description: "TC BNA oficial + commodities CBOT por dia"
+        columns:
+          - name: fecha
+            tests: [unique, not_null]

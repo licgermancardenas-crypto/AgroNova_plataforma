@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: rotacion_stock
+    description: >
+      Indicadores de rotacion de inventario por producto x deposito x mes.
+      Calcula indice_rotacion (veces/mes), dias_de_inventario, y clasifica
+      la rotacion real (Muy_Alta/Alta/Media/Baja/Sin_Movimiento).
+      Granularidad: producto_id x deposito_id x anio x mes.
+    columns:
+      - name: producto_id
+        tests: [not_null]
+      - name: deposito_id
+        tests: [not_null]
+      - name: anio
+        tests: [not_null]
+      - name: mes
+        tests: [not_null]
+      - name: indice_rotacion
+        description: "Unidades vendidas / stock promedio del mes. Mayor es mejor."
+      - name: dias_de_inventario
+        description: "Dias que dura el stock al ritmo de ventas del mes. NULL si sin ventas."
+      - name: clasificacion_rotacion
+        tests:
+          - accepted_values:
+              values: ['Muy_Alta', 'Alta', 'Media', 'Baja', 'Sin_Movimiento', 'Sin_Stock']
+
+  - name: stock_critico
+    description: >
+      Alertas de stock: productos con estado_stock != Normal en el snapshot mas reciente.
+      Incluye prioridad de reposicion (1_Sin_Stock hasta 5_Alerta), dias de cobertura
+      y punto de reorden sugerido basado en velocidad de ventas de los ultimos 90 dias.
+      Pensado como input para ordenes de compra urgentes.
+    columns:
+      - name: producto_id
+        tests: [not_null]
+      - name: deposito_id
+        tests: [not_null]
+      - name: estado_stock
+        description: "Valor de staging: Bajo_Minimo, Alerta o Sin_Stock"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Sin_Stock', 'Bajo_Minimo', 'Alerta']
+      - name: prioridad_reposicion
+        description: "1_Sin_Stock (urgente) hasta 5_Alerta (moderado)"
+        tests: [not_null]
+      - name: dias_cobertura
+        description: "Dias que dura el stock al ritmo actual. NULL si sin historial de ventas."
+      - name: unidades_a_comprar
+        description: "Cantidad necesaria para llegar al stock_maximo"
+        tests: [not_null]

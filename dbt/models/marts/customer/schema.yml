@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: rfm_clientes
+    description: >
+      Scoring RFM (Recencia/Frecuencia/Monetario) para todos los clientes con
+      historial de compras. Scores 1-5 por dimension via NTILE(5).
+      Segmentos: Champions, Loyal_Customers, At_Risk, Lost, New_Customers, etc.
+      Una fila por cliente (incluye churned para analisis historico).
+    columns:
+      - name: cliente_id
+        description: "PK — un cliente, un registro"
+        tests: [unique, not_null]
+      - name: r_score
+        description: "Score de recencia 1-5 (5 = compro mas recientemente)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 5
+      - name: f_score
+        description: "Score de frecuencia 1-5 (5 = mas transacciones)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 5
+      - name: m_score
+        description: "Score monetario 1-5 (5 = mayor revenue)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 5
+      - name: rfm_score_total
+        description: "Suma de r+f+m (3-15)"
+        tests: [not_null]
+      - name: segmento_rfm
+        description: "Champions / Loyal_Customers / At_Risk / Lost / New_Customers / etc."
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - Champions
+                - Loyal_Customers
+                - Potential_Loyalists
+                - New_Customers
+                - Promising
+                - At_Risk
+                - Cant_Lose_Them
+                - Hibernating
+                - Lost
+                - Needs_Attention
+      - name: monetario_ars
+        tests: [not_null]
+      - name: ultima_compra
+        tests: [not_null]
+
+  - name: churn_candidates
+    description: >
+      Clientes activos (is_churned=false) con señales de abandono.
+      Calcula churn_risk_score (0-100) combinando recencia, frecuencia y
+      caida de revenue YoY. Priorizado por nivel_riesgo_churn (Critico/Alto/Medio/Bajo)
+      y tier del cliente. Incluye accion_retencion sugerida.
+    columns:
+      - name: cliente_id
+        tests: [unique, not_null]
+      - name: nivel_riesgo_churn
+        description: "Critico / Alto / Medio / Bajo"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Critico', 'Alto', 'Medio', 'Bajo']
+      - name: churn_risk_score
+        description: "Score 0-100 de riesgo de abandono (mayor = mas riesgo)"
+        tests: [not_null]
+      - name: recencia_dias
+        description: "Dias desde la ultima compra completada"
+        tests: [not_null]
+      - name: accion_retencion
+        description: "Accion comercial recomendada segun tier y recencia"
+        tests: [not_null]
+      - name: revenue_anual_estimado_ars
+        description: "Revenue anual promedio del cliente (impacto estimado de perdida)"

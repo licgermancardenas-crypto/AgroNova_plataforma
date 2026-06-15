@@ -1,0 +1,26 @@
+agronova:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host:     "{{ env_var('DBT_HOST', 'localhost') }}"
+      port:     5432
+      user:     "{{ env_var('DBT_USER', 'postgres') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      dbname:   "{{ env_var('DBT_DBNAME', 'postgres') }}"
+      schema:   agronova
+      threads:  4
+
+    # Neon Serverless (produccion / demo)
+    neon:
+      type: postgres
+      host:     "{{ env_var('NEON_HOST') }}"
+      port:     5432
+      user:     "{{ env_var('NEON_USER') }}"
+      password: "{{ env_var('NEON_PASSWORD') }}"
+      dbname:   "{{ env_var('NEON_DBNAME', 'neondb') }}"
+      schema:   agronova
+      threads:  2
+      # Neon requiere SSL
+      connect_timeout: 10
+      sslmode: require

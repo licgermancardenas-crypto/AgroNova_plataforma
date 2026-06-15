@@ -1,0 +1,116 @@
+version: 2
+
+models:
+  - name: fct_ventas
+    description: >
+      Tabla de hechos principal "wide": 1.5M filas, totalmente desnormalizada para
+      consumo directo desde Power BI / Metabase / Next.js. Incluye atributos de cliente,
+      producto, sucursal y vendedor sin necesidad de joins adicionales.
+      Contiene revenue_usd_tc_real usando el TC BNA del dia de la venta.
+    columns:
+      - name: venta_id
+        description: "PK — secuencial 1 a 1.500.000"
+        tests: [unique, not_null]
+      - name: fecha_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_fecha')
+              field: fecha_id
+      - name: cliente_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_cliente')
+              field: cliente_id
+      - name: producto_id
+        tests:
+          - not_null
+          - relationships:
+              to: source('agronova_raw', 'dim_producto')
+              field: producto_id
+      - name: tier_cliente
+        description: "Copiado de dim_clientes para facilitar filtros"
+        tests:
+          - accepted_values:
+              values: ['A', 'B', 'C', 'D']
+      - name: producto_abc
+        description: "Clasificacion ABC copiada de dim_productos"
+        tests:
+          - accepted_values:
+              values: ['A', 'B', 'C']
+      - name: total_ars
+        description: "Revenue bruto en ARS"
+        tests: [not_null]
+      - name: es_completada
+        tests: [not_null]
+      - name: margen_bruto_pct
+        description: "Margen bruto calculado en dbt (puede diferir de margen_bruto_pct base por descuentos)"
+
+  - name: ventas_mensuales
+    description: >
+      Ventas agregadas por anio x mes x sucursal. Incluye comparativas YoY
+      (vs mismo mes del año anterior) y MoM (vs mes previo). Listo para
+      graficos de tendencia y tablas de performance mensual.
+    columns:
+      - name: anio
+        tests: [not_null]
+      - name: mes
+        tests: [not_null]
+      - name: nombre_sucursal
+        tests: [not_null]
+      - name: revenue_ars
+        tests: [not_null]
+      - name: revenue_ars_crecimiento_yoy_pct
+        description: "NULL para el año base (2016, sin dato previo)"
+      - name: margen_pct
+        description: "Margen bruto % del periodo"
+
+  - name: ventas_por_region
+    description: >
+      Revenue por region geografica x año x categoria de producto. Permite
+      analisis de penetracion regional y contribucion al revenue total.
+    columns:
+      - name: region
+        tests: [not_null]
+      - name: anio
+        tests: [not_null]
+      - name: pct_revenue_total
+        description: "% de participacion en el revenue total del año"
+        tests: [not_null]
+
+  - name: pareto_clientes
+    description: >
+      Curva de Pareto de clientes ordenados por revenue total descendente.
+      Incluye revenue acumulado (%), ranking, segmento Pareto y tier.
+      Resultado esperado: top 20% = ~77% revenue (verificado en tests).
+    columns:
+      - name: cliente_id
+        tests: [unique, not_null]
+      - name: rank_revenue
+        description: "Posicion por revenue (1 = mayor comprador historico)"
+        tests: [unique, not_null]
+      - name: pct_revenue_acumulado
+        description: "% acumulado al incluir este cliente"
+        tests: [not_null]
+      - name: segmento_pareto
+        tests:
+          - accepted_values:
+              values: ['Top 50%', 'Top 70%', 'Top 80%', 'Top 90%', 'Long Tail']
+
+  - name: abc_productos
+    description: >
+      Clasificacion ABC de productos calculada en dbt sobre revenue real.
+      A: top 70% revenue (prioridad maxima), B: siguiente 20%, C: cola.
+      Incluye comparacion con la clasificacion ABC original de la dimension.
+    columns:
+      - name: producto_id
+        tests: [unique, not_null]
+      - name: clasificacion_abc
+        description: "Clasificacion autoritativa calculada en dbt"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['A', 'B', 'C']
+      - name: rank_revenue
+        tests: [unique, not_null]
