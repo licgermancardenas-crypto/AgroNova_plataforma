@@ -33,19 +33,23 @@
 
 ---
 
-## 3. Compatibilidad Vercel
+## 3. Compatibilidad y Deploy Vercel
 
 | Check | Estado | Detalle |
 |-------|--------|---------|
 | `web/vercel.json` presente | ✅ OK | framework: nextjs, buildCommand: npm run build |
 | `web/package.json` con scripts | ✅ OK | dev, build, start, lint |
 | `web/next.config.ts` válido | ✅ OK | reactStrictMode: true, transpilePackages leaflet |
-| Root directory configurado | ✅ OK | Configurar `web/` como root en Vercel dashboard |
 | Variables de entorno requeridas | ✅ Ninguna | v1.0 usa solo mock data, sin DB connection |
 | Output directory | ✅ OK | `.next/` (auto-detectado por Vercel) |
 | Node.js version | ✅ OK | Compatible 18.17+ |
 | SSR / Static pages | ✅ OK | 12 rutas estáticas (○ Static) |
 | React Leaflet SSR | ✅ OK | `dynamic(..., { ssr: false })` en gis/page.tsx |
+| **Primer deploy ejecutado** | ✅ OK | `vercel --yes --scope licgermancardenas-7293s-projects` |
+| **Build en Vercel** | ✅ OK | `Compiled successfully in 15.1s` · 0 errores |
+| **URL producción** | ✅ LIVE | https://web-seven-flame-31.vercel.app |
+| **URL única** | ✅ LIVE | https://web-hu7w0njh5-licgermancardenas-7293s-projects.vercel.app |
+| **Inspector Vercel** | ✅ OK | https://vercel.com/licgermancardenas-7293s-projects/web/4R5jckAiidL53XGAGhVHvj3obERY |
 
 ---
 
@@ -126,8 +130,8 @@
 
 | Check | Estado | Detalle |
 |-------|--------|---------|
-| Tag `v1.0.0` creado | ⬜ Pendiente | Ejecutar tras validar checklist |
-| Tag pusheado a origin | ⬜ Pendiente | `git push origin v1.0.0` |
+| Tag `v1.0.0` creado | ✅ OK | `git tag -a v1.0.0` |
+| Tag pusheado a origin | ✅ OK | `git push origin v1.0.0` |
 | GitHub Release creado | ⬜ Opcional | Via GitHub UI con RELEASE_NOTES.md |
 
 ---

@@ -3,11 +3,14 @@
 > Plataforma de inteligencia de datos end-to-end para una distribuidora de insumos agropecuarios argentina. Construida como referencia de arquitectura de datos moderna: desde generación sintética hasta interfaz web corporativa con Machine Learning integrado.
 
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/licgermancardenas-crypto/AgroNova_plataforma)
+[![Demo](https://img.shields.io/badge/demo-live-06C8FF)](https://web-seven-flame-31.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org)
 [![Python](https://img.shields.io/badge/Python-3.11-yellow)](https://python.org)
 [![dbt](https://img.shields.io/badge/dbt-Medallion-orange)](https://getdbt.com)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+**[→ Ver demo en vivo](https://web-seven-flame-31.vercel.app)**
 
 ---
 
