@@ -6,6 +6,7 @@ import {
   CartesianGrid, Cell, ReferenceLine,
 } from "recharts";
 import type { OTIFData } from "@/types";
+import { CHART_GRID, AXIS_TICK, AXIS_TICK_LABEL, REF_DASH } from "@/lib/chart-theme";
 
 interface RadarProps { data: OTIFData[]; height?: number; }
 interface BarProps   { data: OTIFData[]; height?: number; }
@@ -29,11 +30,11 @@ export function OTIFBarChart({ data, height = 200 }: BarProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" vertical={false} />
-        <XAxis dataKey="region" tick={{ fill: "#7A9C7A", fontSize: 11 }} axisLine={false} tickLine={false} />
-        <YAxis domain={[80, 100]} tickFormatter={v => `${v}%`} tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
+        <CartesianGrid {...CHART_GRID} vertical={false} />
+        <XAxis dataKey="region" tick={AXIS_TICK_LABEL} axisLine={false} tickLine={false} />
+        <YAxis domain={[80, 100]} tickFormatter={v => `${v}%`} tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} />
         <Tooltip content={<CustomTooltip />} />
-        <ReferenceLine y={92} stroke="#22C55E" strokeDasharray="4 2" strokeWidth={1.5} label={{ value: "Target 92%", fill: "#3E5A3E", fontSize: 10, position: "right" }} />
+        <ReferenceLine y={92} stroke="#22C55E" strokeDasharray={REF_DASH} strokeWidth={1.5} label={{ value: "Target 92%", fill: "#3E5A3E", fontSize: 10, position: "right" }} />
         <Bar dataKey="otif_pct" name="OTIF%" radius={[3, 3, 0, 0]} maxBarSize={36}>
           {data.map((d, i) => (
             <Cell key={i} fill={d.otif_pct >= d.target_pct ? "#0DB87E" : "#E03E3E"} fillOpacity={0.85} />

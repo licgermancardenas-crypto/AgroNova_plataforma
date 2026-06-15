@@ -12,6 +12,7 @@ import { clientes, productos, kpiSummary, regions } from "@/lib/mock-data";
 import { fmtARS, fmtUSD, fmtPctAbs, tierColor } from "@/lib/formatters";
 import { DollarSign, BarChart3, TrendingUp, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SimpleTable } from "@/components/ui/simple-table";
 
 function ScatterTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
@@ -117,16 +118,7 @@ export default function FinanzasPage() {
       {/* LTV Table */}
       <GlassCard>
         <CardHeader title="Top Clientes por LTV" subtitle="Lifetime Value histórico · USD y ARS" />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border text-text-muted">
-                {["#","Cliente","Tier","LTV USD","LTV ARS","Margen%","Delta vs Tier","Risk"].map(h => (
-                  <th key={h} className="text-left py-2 px-3 font-medium first:pl-0">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+        <SimpleTable headers={["#","Cliente","Tier","LTV USD","LTV ARS","Margen%","Delta vs Tier","Risk"]}>
               {ltvTop.map((c, i) => {
                 const tierAvgLTV = c.tier === "A" ? 180000 : c.tier === "B" ? 60000 : 20000;
                 const delta = ((c.ltv_usd - tierAvgLTV) / tierAvgLTV) * 100;
@@ -152,9 +144,7 @@ export default function FinanzasPage() {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+        </SimpleTable>
       </GlassCard>
     </AppLayout>
   );

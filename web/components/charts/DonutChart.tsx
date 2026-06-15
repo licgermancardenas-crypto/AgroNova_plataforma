@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Slice {
@@ -40,7 +41,7 @@ export function DonutChart({
   centerLabel,
   centerValue,
 }: Props) {
-  const total = data.reduce((s, d) => s + d.value, 0);
+  const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
   const enriched = data.map(d => ({ ...d, total }));
 
   return (

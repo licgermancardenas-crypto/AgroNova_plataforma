@@ -143,7 +143,7 @@ export const productos: Producto[] = PROD_NAMES.map((nombre, i) => {
 export const rfmSegments: RFMSegmentData[] = [
   { segment:"Campeones",  count:600,  pct:15.0, revenue_pct:38.0, color:"#0DB87E", accion:"Fidelización VIP — acceso anticipado a temporada" },
   { segment:"Leales",     count:800,  pct:20.0, revenue_pct:28.0, color:"#22C55E", accion:"Cross-selling — programa de lealtad" },
-  { segment:"Alto_Valor", count:480,  pct:12.0, revenue_pct:18.0, color:"#9B59B6", accion:"Aumentar frecuencia — visita KAM personalizada" },
+  { segment:"Alto_Valor", count:480,  pct:12.0, revenue_pct:18.0, color:"#0DB87E", accion:"Aumentar frecuencia — visita KAM personalizada" },
   { segment:"En_Riesgo",  count:920,  pct:23.0, revenue_pct:11.0, color:"#E8A020", accion:"Reactivación urgente — descuento recuperación" },
   { segment:"Dormidos",   count:1200, pct:30.0, revenue_pct: 5.0, color:"#E03E3E", accion:"Win-back — diagnóstico de causa de abandono" },
 ];

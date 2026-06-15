@@ -7,7 +7,14 @@ import { sucursales, depositos, clienteMarkers, provinceHeat, gisRoutes } from "
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 import type { ProvinceHeat } from "@/types";
 
-const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), { ssr: false });
+const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center text-text-muted tactical-text">
+      Cargando mapa…
+    </div>
+  ),
+});
 
 // ── Tactical stat chip ────────────────────────────────────────────────────────
 function TacStat({ label, value, unit = "", accent = false }: {

@@ -40,7 +40,10 @@ export function Header({ title, subtitle }: HeaderProps) {
           </div>
 
           {/* Notifications */}
-          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors">
+          <button
+            aria-label="Ver notificaciones"
+            className="relative w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
+          >
             <Bell size={15} />
             {criticalCount > 0 && (
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-DEFAULT" />

@@ -10,6 +10,7 @@ import { clientes, productos, regions, vendedores, monthlyRevenue, kpiSummary } 
 import { fmtARS, fmtPctAbs, tierColor } from "@/lib/formatters";
 import { TrendingUp, Users, ShoppingCart, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SimpleTable } from "@/components/ui/simple-table";
 
 export default function ComercialPage() {
   const topClientes = clientes.slice(0, 10);
@@ -64,16 +65,7 @@ export default function ComercialPage() {
       {/* Top clients table */}
       <GlassCard>
         <CardHeader title="Top 10 Clientes por Revenue" subtitle="2026 · Completadas" />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border text-text-muted">
-                {["#","Cliente","Tier","Región","Revenue ARS","Margen %","Frec.","Risk"].map(h => (
-                  <th key={h} className="text-left py-2 px-3 font-medium first:pl-0 last:pr-0">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+        <SimpleTable headers={["#","Cliente","Tier","Región","Revenue ARS","Margen %","Frec.","Risk"]}>
               {topClientes.map((c, i) => (
                 <tr key={c.cliente_id} className="tr-hover border-b border-border-subtle last:border-0">
                   <td className="py-2.5 px-3 first:pl-0 text-text-muted font-mono">{i + 1}</td>
@@ -102,9 +94,7 @@ export default function ComercialPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+        </SimpleTable>
       </GlassCard>
     </AppLayout>
   );

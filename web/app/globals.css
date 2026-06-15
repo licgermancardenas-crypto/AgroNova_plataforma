@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 /* Leaflet CSS */
 @import 'leaflet/dist/leaflet.css';
+
+/* Fonts loaded via next/font/google in app/layout.tsx (Inter + JetBrains Mono) */
 
 :root {
   --sidebar-w: 240px;
@@ -20,7 +20,7 @@ html { font-size: 14px; }
 body {
   background-color: #030A04;
   color: #DCE8DC;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -83,14 +83,14 @@ body {
 
   /* Tactical HUD elements */
   .tactical-text {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono), monospace;
     font-size: 0.625rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #3E5A3E;
   }
   .tactical-value {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono), monospace;
     color: #22C55E;
   }
   .scan-line {

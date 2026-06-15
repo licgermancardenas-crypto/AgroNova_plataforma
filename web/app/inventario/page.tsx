@@ -7,6 +7,8 @@ import { stockAlerts, rotacionData } from "@/lib/mock-data";
 import { fmtARS, fmtNumber, priorityColor } from "@/lib/formatters";
 import { Boxes, AlertTriangle, TrendingDown, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SimpleTable } from "@/components/ui/simple-table";
+import { TOOLTIP_STYLE } from "@/lib/chart-theme";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -88,7 +90,7 @@ export default function InventarioPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" horizontal={false} />
               <XAxis type="number" tickFormatter={v => `${v.toFixed(1)}x`} tick={{ fill: "#3E5C7A", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="name" width={92} tick={{ fill: "#7A9C7A", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: "#071209", border: "1px solid #1A3D20", borderRadius: 8, fontSize: 11, color: "#DCE8DC" }} formatter={(v: any) => `${v.toFixed(2)}x/mes`} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any) => `${v.toFixed(2)}x/mes`} />
               <Bar dataKey="value" radius={[0, 3, 3, 0]} maxBarSize={20}>
                 {rotByCat.map((r, i) => <Cell key={i} fill={r.color} fillOpacity={0.85} />)}
               </Bar>
@@ -120,16 +122,7 @@ export default function InventarioPage() {
       {/* Capital inmovilizado */}
       <GlassCard>
         <CardHeader title="Capital Inmovilizado por Depósito × Categoría" subtitle="Productos con rotación baja o sin movimiento · ARS" />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border text-text-muted">
-                {["Categoría","Depósito","Índice Rot.","Días Inventario","Valor Stock","Estado"].map(h => (
-                  <th key={h} className="text-left py-2 px-3 font-medium first:pl-0">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+        <SimpleTable headers={["Categoría","Depósito","Índice Rot.","Días Inventario","Valor Stock","Estado"]}>
               {rotacionData.filter(r => r.rotacion < 1.0).map((r, i) => (
                 <tr key={i} className="tr-hover border-b border-border-subtle last:border-0">
                   <td className="py-2 px-3 first:pl-0 text-text-primary">{r.categoria}</td>
@@ -144,9 +137,7 @@ export default function InventarioPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+        </SimpleTable>
       </GlassCard>
     </AppLayout>
   );

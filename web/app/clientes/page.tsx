@@ -8,6 +8,8 @@ import { clientes, rfmSegments, churnDistribution, kpiSummary } from "@/lib/mock
 import { fmtNumber, fmtPctAbs, fmtARS } from "@/lib/formatters";
 import { Users, AlertTriangle, TrendingDown, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SimpleTable } from "@/components/ui/simple-table";
+import { TOOLTIP_STYLE } from "@/lib/chart-theme";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -72,7 +74,7 @@ export default function ClientesPage() {
               <BarChart data={recencyBins} margin={{ top: 0, right: 0, left: -24, bottom: 0 }}>
                 <XAxis dataKey="name" tick={{ fill: "#3E5C7A", fontSize: 9 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#3E5C7A", fontSize: 9 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "#0C1220", border: "1px solid #1A2540", borderRadius: 8, fontSize: 11 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar dataKey="value" radius={[2, 2, 0, 0]}>
                   {recencyBins.map((b, i) => <Cell key={i} fill={b.color} fillOpacity={0.85} />)}
                 </Bar>
@@ -89,16 +91,7 @@ export default function ClientesPage() {
           subtitle="P(churn) > 60% — acción urgente requerida"
           action={<span className="text-2xs text-danger-DEFAULT font-medium">{highRisk.length} clientes</span>}
         />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border text-text-muted">
-                {["Cliente","Tier","Región","Días Inactivo","P(Churn)","Segment RFM","Revenue","Acción"].map(h => (
-                  <th key={h} className="text-left py-2 px-3 font-medium first:pl-0">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+        <SimpleTable headers={["Cliente","Tier","Región","Días Inactivo","P(Churn)","Segment RFM","Revenue","Acción"]}>
               {highRisk.map(c => (
                 <tr key={c.cliente_id} className="tr-hover border-b border-border-subtle last:border-0">
                   <td className="py-2.5 px-3 first:pl-0 text-text-primary font-medium">{c.razon_social}</td>
@@ -128,9 +121,7 @@ export default function ClientesPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+        </SimpleTable>
       </GlassCard>
     </AppLayout>
   );

@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
 } from "recharts";
+import { CHART_GRID, AXIS_TICK, AXIS_TICK_LABEL } from "@/lib/chart-theme";
 
 interface DataItem {
   name: string;
@@ -44,11 +45,11 @@ export function HorizontalBar({
   return (
     <ResponsiveContainer width="100%" height={h}>
       <BarChart data={data} layout="vertical" margin={{ top: 4, right: 48, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" horizontal={false} />
+        <CartesianGrid {...CHART_GRID} horizontal={false} />
         <XAxis
           type="number"
           tickFormatter={formatter}
-          tick={{ fill: "#3E5A3E", fontSize: 10 }}
+          tick={AXIS_TICK}
           axisLine={false}
           tickLine={false}
         />
@@ -56,7 +57,7 @@ export function HorizontalBar({
           type="category"
           dataKey="name"
           width={130}
-          tick={{ fill: "#7A9C7A", fontSize: 11 }}
+          tick={AXIS_TICK_LABEL}
           axisLine={false}
           tickLine={false}
         />

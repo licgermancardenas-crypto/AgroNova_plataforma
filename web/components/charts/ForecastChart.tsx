@@ -5,6 +5,7 @@ import {
   Tooltip, ResponsiveContainer, Legend, ReferenceLine,
 } from "recharts";
 import type { ForecastPoint } from "@/types";
+import { CHART_GRID, AXIS_TICK, LEGEND_STYLE, REF_DASH } from "@/lib/chart-theme";
 
 interface Props {
   data: ForecastPoint[];
@@ -39,23 +40,23 @@ export function ForecastChart({ data, height = 280 }: Props) {
             <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
+        <CartesianGrid {...CHART_GRID} />
         <XAxis
           dataKey="label"
-          tick={{ fill: "#3E5A3E", fontSize: 10 }}
+          tick={AXIS_TICK}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           tickFormatter={v => `${(v / 1e9).toFixed(1)}B`}
-          tick={{ fill: "#3E5A3E", fontSize: 10 }}
+          tick={AXIS_TICK}
           axisLine={false}
           tickLine={false}
           width={42}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Legend wrapperStyle={{ fontSize: 11, color: "#7A9C7A", paddingTop: 8 }} iconType="circle" iconSize={8} />
-        <ReferenceLine x={data[5]?.label} stroke="#1A3D20" strokeDasharray="4 2" label={{ value: "Hoy", fill: "#3E5A3E", fontSize: 10 }} />
+        <Legend wrapperStyle={LEGEND_STYLE} iconType="circle" iconSize={8} />
+        <ReferenceLine x={data[5]?.label} stroke="#1A3D20" strokeDasharray={REF_DASH} label={{ value: "Hoy", fill: "#3E5A3E", fontSize: 10 }} />
         <Area
           type="monotone"
           dataKey="actual"

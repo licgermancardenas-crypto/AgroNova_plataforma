@@ -8,6 +8,8 @@ import { otifData, transportistas, monthlyRevenue, kpiSummary } from "@/lib/mock
 import { fmtARS, fmtPctAbs, fmtNumber } from "@/lib/formatters";
 import { Truck, CheckCircle, Clock, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SimpleTable } from "@/components/ui/simple-table";
+import { TOOLTIP_STYLE, REF_DASH } from "@/lib/chart-theme";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
@@ -67,8 +69,8 @@ export default function LogisticaPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
               <XAxis dataKey="label" tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
               <YAxis domain={[84, 98]} tickFormatter={v => `${v}%`} tick={{ fill: "#3E5A3E", fontSize: 10 }} axisLine={false} tickLine={false} width={36} />
-              <Tooltip contentStyle={{ background: "#071209", border: "1px solid #1A3D20", borderRadius: 8, fontSize: 11, color: "#DCE8DC" }} formatter={(v: any) => `${v.toFixed(1)}%`} />
-              <ReferenceLine y={92} stroke="#22C55E" strokeDasharray="4 2" strokeWidth={1.5} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any) => `${v.toFixed(1)}%`} />
+              <ReferenceLine y={92} stroke="#22C55E" strokeDasharray={REF_DASH} strokeWidth={1.5} />
               <Line type="monotone" dataKey="otif" name="OTIF%" stroke="#A3E635" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#A3E635" }} />
             </LineChart>
           </ResponsiveContainer>
@@ -76,16 +78,7 @@ export default function LogisticaPage() {
 
         <GlassCard>
           <CardHeader title="Detalle por Región" subtitle="Tiempos, demoras y costos" />
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border text-text-muted">
-                  {["Región","OTIF","Días Tr.","Demora","Costo Flete"].map(h => (
-                    <th key={h} className="text-left py-2 px-2 font-medium first:pl-0">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
+          <SimpleTable headers={["Región","OTIF","Días Tr.","Demora","Costo Flete"]}>
                 {otifData.map(d => (
                   <tr key={d.region} className="tr-hover border-b border-border-subtle last:border-0">
                     <td className="py-2 px-2 first:pl-0 text-text-primary font-medium">{d.region}</td>
@@ -99,25 +92,14 @@ export default function LogisticaPage() {
                     <td className="py-2 px-2 font-mono text-text-primary">{fmtARS(d.costo_flete_ars, true)}</td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+          </SimpleTable>
         </GlassCard>
       </div>
 
       {/* Transportistas ranking */}
       <GlassCard>
         <CardHeader title="Ranking Transportistas" subtitle="OTIF × Costo × Despachos" />
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border text-text-muted">
-                {["#","Transportista","Despachos","OTIF%","Costo/Kg ARS","Demora Prom.","Cuadrante"].map(h => (
-                  <th key={h} className="text-left py-2 px-3 font-medium first:pl-0">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+        <SimpleTable headers={["#","Transportista","Despachos","OTIF%","Costo/Kg ARS","Demora Prom.","Cuadrante"]}>
               {transportistas.map((t, i) => {
                 const q = t.otif_pct >= 92 && t.costo_kg_ars <= 88 ? "Socio Clave" :
                           t.otif_pct >= 92 ? "Alto OTIF" :
@@ -144,9 +126,7 @@ export default function LogisticaPage() {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+        </SimpleTable>
       </GlassCard>
     </AppLayout>
   );

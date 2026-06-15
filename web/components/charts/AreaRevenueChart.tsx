@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, Legend,
 } from "recharts";
 import type { MonthlyRevenue } from "@/types";
+import { CHART_GRID, AXIS_TICK, LEGEND_STYLE } from "@/lib/chart-theme";
 
 interface Props {
   data: MonthlyRevenue[];
@@ -54,10 +55,10 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
             <stop offset="95%" stopColor="#0DB87E" stopOpacity={0.0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,61,32,0.4)" />
+        <CartesianGrid {...CHART_GRID} />
         <XAxis
           dataKey="label"
-          tick={{ fill: "#3E5A3E", fontSize: 10 }}
+          tick={AXIS_TICK}
           axisLine={false}
           tickLine={false}
           interval={5}
@@ -66,7 +67,7 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
           yAxisId="ars"
           orientation="left"
           tickFormatter={v => `${(v / 1e9).toFixed(1)}B`}
-          tick={{ fill: "#3E5A3E", fontSize: 10 }}
+          tick={AXIS_TICK}
           axisLine={false}
           tickLine={false}
           width={40}
@@ -76,7 +77,7 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
             yAxisId="usd"
             orientation="right"
             tickFormatter={v => `${(v / 1e6).toFixed(0)}M`}
-            tick={{ fill: "#3E5A3E", fontSize: 10 }}
+            tick={AXIS_TICK}
             axisLine={false}
             tickLine={false}
             width={42}
@@ -84,7 +85,7 @@ export function AreaRevenueChart({ data, showUSD = true, height = 260 }: Props) 
         )}
         <Tooltip content={<CustomTooltip />} />
         <Legend
-          wrapperStyle={{ paddingTop: 8, fontSize: 11, color: "#7A9C7A" }}
+          wrapperStyle={LEGEND_STYLE}
           iconType="circle"
           iconSize={8}
         />

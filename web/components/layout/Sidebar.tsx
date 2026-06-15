@@ -52,7 +52,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {NAV.map(({ label, href, icon: Icon, badge }) => {
           const active = pathname === href || (href !== "/" && pathname.startsWith(href));
           return (
@@ -111,6 +111,7 @@ export function Sidebar() {
         )}
         <button
           onClick={toggle}
+          aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
           className={cn(
             "w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-text-muted",
             "hover:bg-bg-elevated hover:text-text-secondary transition-colors"
