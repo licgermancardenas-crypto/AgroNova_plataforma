@@ -62,20 +62,40 @@ def load_table(
     if_exists: str = "append",
 ) -> int:
     df_load = df.drop(columns=[c for c in exclude_cols if c in df.columns], errors="ignore")
-    df_load = df_load.where(pd.notna(df_load), None)
 
     chunk = CHUNKSIZE.get(table, None)
 
-    df_load.to_sql(
-        name=table,
-        con=engine,
-        schema=schema,
-        if_exists=if_exists,
-        index=False,
-        chunksize=chunk,
-        method="multi",
-    )
-    return len(df_load)
+    if chunk and len(df_load) > chunk:
+        # Process where-None conversion per chunk to avoid duplicating full DF in memory
+        import gc
+        total = 0
+        for i in range(0, len(df_load), chunk):
+            batch = df_load.iloc[i : i + chunk].copy()
+            batch = batch.where(pd.notna(batch), None)
+            batch.to_sql(
+                name=table,
+                con=engine,
+                schema=schema,
+                if_exists="append",
+                index=False,
+                method="multi",
+            )
+            total += len(batch)
+            del batch
+            gc.collect()
+        return total
+    else:
+        df_load = df_load.where(pd.notna(df_load), None)
+        df_load.to_sql(
+            name=table,
+            con=engine,
+            schema=schema,
+            if_exists=if_exists,
+            index=False,
+            chunksize=chunk,
+            method="multi",
+        )
+        return len(df_load)
 
 
 def load_all(

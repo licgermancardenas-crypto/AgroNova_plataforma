@@ -63,7 +63,7 @@ WITH ultima_compra AS (
         SUM(total_usd)           AS valor_total_usd,
         AVG(total_ars)           AS ticket_promedio_ars,
         COUNT(DISTINCT producto_id) AS productos_distintos,
-        COUNT(DISTINCT CAST(CAST(fecha_id AS TEXT) AS TEXT)::TEXT[1..4]::INT) AS años_activo
+        COUNT(DISTINCT LEFT(CAST(fecha_id AS TEXT), 4)::INT) AS años_activo
     FROM fact_ventas
     WHERE estado NOT IN ('Cancelada')
     GROUP BY cliente_id

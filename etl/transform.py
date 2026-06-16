@@ -34,6 +34,15 @@ DTYPES = {
         "requiere_frio": "bool",
         "activo": "bool",
     },
+    "Dim_Depósito": {
+        "temperatura_controlada": "bool",
+    },
+    "Dim_Vendedor": {
+        "activo": "bool",
+    },
+    "Dim_Proveedor": {
+        "activo": "bool",
+    },
     "Dim_Cliente": {
         "activo": "bool",
         "volumen_factor": "float32",
