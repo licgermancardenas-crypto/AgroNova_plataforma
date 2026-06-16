@@ -21,6 +21,9 @@ from .expansion_analysis import expansion_index_by_province
 from .network_analysis import distance_matrix, nearest_branch_assignment
 from .logistics_analysis import coverage_radius_distribution, logistics_efficiency_score
 from .territorial_clustering import territorial_clusters, expansion_recommendations
+from .spatial_operations import coverage_buffers, real_coverage_by_client
+from .voronoi_analysis import voronoi_territories
+from .hotspot_analysis import commercial_hotspots, candidate_branches
 
 ROOT    = Path(__file__).parent.parent
 OUT_DIR = ROOT / "data" / "gis_outputs"
@@ -84,6 +87,26 @@ def generate_expansion_recommendations() -> None:
     _write("expansion_recommendations.json", expansion_recommendations())
 
 
+def generate_coverage_buffers() -> None:
+    _write("coverage_buffers.geojson", coverage_buffers())
+
+
+def generate_real_coverage() -> None:
+    _write("real_coverage.json", real_coverage_by_client())
+
+
+def generate_voronoi_territories() -> None:
+    _write("territories.geojson", voronoi_territories())
+
+
+def generate_hotspots() -> None:
+    _write("hotspots.geojson", commercial_hotspots())
+
+
+def generate_candidate_branches() -> None:
+    _write("candidate_branches.geojson", candidate_branches())
+
+
 def run_all() -> None:
     print("AgroNova GIS — Generating analytics JSON files")
     print(f"Output: {OUT_DIR}")
@@ -99,6 +122,11 @@ def run_all() -> None:
     generate_logistics_score()
     generate_territorial_clusters()
     generate_expansion_recommendations()
+    generate_coverage_buffers()
+    generate_real_coverage()
+    generate_voronoi_territories()
+    generate_hotspots()
+    generate_candidate_branches()
     print("-" * 55)
     print("Done.")
 
