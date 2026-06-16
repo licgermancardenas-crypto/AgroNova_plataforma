@@ -1,0 +1,57 @@
+[
+  {
+    "sucursal_id": 4,
+    "nombre": "Río Cuarto",
+    "provincia": "Córdoba",
+    "n_clientes": 1051,
+    "km_promedio": 159.3,
+    "otif_pct": 88.0,
+    "dias_transito_prom": 3.5,
+    "logistics_score": 83.1,
+    "logistics_label": "Excelente"
+  },
+  {
+    "sucursal_id": 2,
+    "nombre": "Pergamino",
+    "provincia": "Buenos Aires",
+    "n_clientes": 0,
+    "km_promedio": 0.0,
+    "otif_pct": 88.1,
+    "dias_transito_prom": 2.6,
+    "logistics_score": 70.6,
+    "logistics_label": "Buena"
+  },
+  {
+    "sucursal_id": 1,
+    "nombre": "Rosario",
+    "provincia": "Santa Fe",
+    "n_clientes": 0,
+    "km_promedio": 0.0,
+    "otif_pct": 87.9,
+    "dias_transito_prom": 2.8,
+    "logistics_score": 70.2,
+    "logistics_label": "Buena"
+  },
+  {
+    "sucursal_id": 3,
+    "nombre": "Tandil",
+    "provincia": "Buenos Aires",
+    "n_clientes": 1564,
+    "km_promedio": 145.4,
+    "otif_pct": null,
+    "dias_transito_prom": null,
+    "logistics_score": null,
+    "logistics_label": "Sin Datos Logísticos"
+  },
+  {
+    "sucursal_id": 5,
+    "nombre": "Paraná",
+    "provincia": "Entre Ríos",
+    "n_clientes": 1385,
+    "km_promedio": 123.4,
+    "otif_pct": null,
+    "dias_transito_prom": null,
+    "logistics_score": null,
+    "logistics_label": "Sin Datos Logísticos"
+  }
+]

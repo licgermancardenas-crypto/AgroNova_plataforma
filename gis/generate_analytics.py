@@ -18,6 +18,9 @@ from .spatial_scores import (
 )
 from .opportunity_analysis import opportunity_score_by_province
 from .expansion_analysis import expansion_index_by_province
+from .network_analysis import distance_matrix, nearest_branch_assignment
+from .logistics_analysis import coverage_radius_distribution, logistics_efficiency_score
+from .territorial_clustering import territorial_clusters, expansion_recommendations
 
 ROOT    = Path(__file__).parent.parent
 OUT_DIR = ROOT / "data" / "gis_outputs"
@@ -56,8 +59,33 @@ def generate_churn_by_province() -> None:
     _write("churn_by_province.json", df.to_dict("records"))
 
 
+def generate_distance_matrix() -> None:
+    _write("distance_matrix.json", distance_matrix())
+
+
+def generate_nearest_branch() -> None:
+    _write("nearest_branch.json", nearest_branch_assignment())
+
+
+def generate_coverage_distribution() -> None:
+    _write("coverage_distribution.json", coverage_radius_distribution())
+
+
+def generate_logistics_score() -> None:
+    df = logistics_efficiency_score()
+    _write("logistics_score.json", df.to_dict("records"))
+
+
+def generate_territorial_clusters() -> None:
+    _write("territorial_clusters.json", territorial_clusters())
+
+
+def generate_expansion_recommendations() -> None:
+    _write("expansion_recommendations.json", expansion_recommendations())
+
+
 def run_all() -> None:
-    print("AgroNova GIS-02 — Generating analytics JSON files")
+    print("AgroNova GIS — Generating analytics JSON files")
     print(f"Output: {OUT_DIR}")
     print("-" * 55)
     generate_coverage_score()
@@ -65,6 +93,12 @@ def run_all() -> None:
     generate_expansion_targets()
     generate_revenue_density()
     generate_churn_by_province()
+    generate_distance_matrix()
+    generate_nearest_branch()
+    generate_coverage_distribution()
+    generate_logistics_score()
+    generate_territorial_clusters()
+    generate_expansion_recommendations()
     print("-" * 55)
     print("Done.")
 

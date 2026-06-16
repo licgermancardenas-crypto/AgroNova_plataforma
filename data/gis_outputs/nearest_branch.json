@@ -1,0 +1,67 @@
+{
+  "by_sucursal": [
+    {
+      "sucursal_id": 3,
+      "nombre": "Tandil",
+      "n_clientes": 1564,
+      "km_promedio": 145.4,
+      "km_maximo": 145.4,
+      "n_clientes_real": 629
+    },
+    {
+      "sucursal_id": 5,
+      "nombre": "Paraná",
+      "n_clientes": 1385,
+      "km_promedio": 123.4,
+      "km_maximo": 130.0,
+      "n_clientes_real": 317
+    },
+    {
+      "sucursal_id": 4,
+      "nombre": "Río Cuarto",
+      "n_clientes": 1051,
+      "km_promedio": 159.3,
+      "km_maximo": 456.3,
+      "n_clientes_real": 943
+    },
+    {
+      "sucursal_id": 1,
+      "nombre": "Rosario",
+      "n_clientes": 0,
+      "km_promedio": 0.0,
+      "km_maximo": 0.0,
+      "n_clientes_real": 1099
+    },
+    {
+      "sucursal_id": 2,
+      "nombre": "Pergamino",
+      "n_clientes": 0,
+      "km_promedio": 0.0,
+      "km_maximo": 0.0,
+      "n_clientes_real": 1012
+    }
+  ],
+  "by_deposito": [
+    {
+      "deposito_id": 2,
+      "nombre": "CL Pergamino",
+      "n_clientes": 1564,
+      "km_promedio": 310.0,
+      "km_maximo": 310.0
+    },
+    {
+      "deposito_id": 1,
+      "nombre": "CL Rosario",
+      "n_clientes": 1385,
+      "km_promedio": 226.7,
+      "km_maximo": 250.2
+    },
+    {
+      "deposito_id": 3,
+      "nombre": "CL Río Cuarto",
+      "n_clientes": 1051,
+      "km_promedio": 159.3,
+      "km_maximo": 456.3
+    }
+  ]
+}

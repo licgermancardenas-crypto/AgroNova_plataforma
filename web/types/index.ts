@@ -338,6 +338,112 @@ export interface ChurnByProvinceRecord {
   churn_level: ChurnLevel;
 }
 
+// ── GIS-03 Network Intelligence ─────────────────────────────────────────────
+
+export interface DistanceLeg {
+  provincia?: string;
+  sucursal_id?: number;
+  sucursal?: string;
+  deposito_id?: number;
+  deposito?: string;
+  distance_km: number;
+}
+
+export interface DistanceMatrix {
+  provincia_sucursal: DistanceLeg[];
+  provincia_deposito: DistanceLeg[];
+  deposito_sucursal: DistanceLeg[];
+}
+
+export interface NearestBranchSucursal {
+  sucursal_id: number;
+  nombre: string;
+  n_clientes: number;
+  km_promedio: number;
+  km_maximo: number;
+  n_clientes_real: number;
+}
+
+export interface NearestBranchDeposito {
+  deposito_id: number;
+  nombre: string;
+  n_clientes: number;
+  km_promedio: number;
+  km_maximo: number;
+}
+
+export interface NearestBranch {
+  by_sucursal: NearestBranchSucursal[];
+  by_deposito: NearestBranchDeposito[];
+}
+
+export type CoverageBucketLabel = "0-50 km" | "50-100 km" | "100-200 km" | "> 200 km";
+
+export interface CoverageBucket {
+  bucket: CoverageBucketLabel;
+  n_clientes: number;
+  pct: number;
+}
+
+export interface CoverageByProvincia {
+  provincia: string;
+  macro_region: string;
+  distance_km: number;
+  bucket: CoverageBucketLabel;
+  n_clientes: number;
+}
+
+export interface CoverageDistribution {
+  national: CoverageBucket[];
+  by_provincia: CoverageByProvincia[];
+}
+
+export type LogisticsLabel = "Excelente" | "Buena" | "Mejorable" | "Crítica" | "Sin Datos Logísticos";
+
+export interface LogisticsScoreRecord {
+  sucursal_id: number;
+  nombre: string;
+  provincia: string;
+  n_clientes: number;
+  km_promedio: number;
+  otif_pct: number | null;
+  dias_transito_prom: number | null;
+  logistics_score: number | null;
+  logistics_label: LogisticsLabel;
+}
+
+export type ClusterLabel =
+  | "Cluster Comercial Activo"
+  | "Zona Aislada de Alto Potencial"
+  | "Zona Periférica de Bajo Potencial";
+
+export interface TerritorialCluster {
+  cluster_id: number;
+  label: ClusterLabel;
+  provincias: string[];
+  n_provincias: number;
+  center_lat: number;
+  center_lon: number;
+  n_activos_total: number;
+  agr_ha_m_total: number;
+  avg_dist_sucursal_km: number;
+}
+
+export interface ExpansionRecommendation {
+  provincia: string;
+  ciudad_candidata: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  agr_ha_m: number;
+  opportunity_score: number;
+  gap_score: number;
+  expansion_score: number;
+  dist_sucursal_mas_cercana_km: number;
+  cluster: string;
+  justificacion: string;
+}
+
 // ── GIS Tactical (v1 — kept for compatibility) ────────────────────────────────
 
 export interface ProvinceHeat {

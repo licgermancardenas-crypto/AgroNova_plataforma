@@ -307,5 +307,10 @@ def load_sucursales() -> pd.DataFrame:
     return _read_csv("Dim_Sucursal.csv")
 
 
+def load_depositos() -> pd.DataFrame:
+    """Dim_Depósito.csv — only 3 real depósitos (vs. 5 sucursales); not 1:1."""
+    return _read_csv("Dim_Depósito.csv")
+
+
 def load_regiones() -> pd.DataFrame:
     return _read_csv("Dim_Región.csv")

@@ -1,0 +1,86 @@
+[
+  {
+    "cluster_id": 4,
+    "label": "Cluster Comercial Activo",
+    "provincias": [
+      "Ciudad Autónoma de Buenos Aires",
+      "Buenos Aires",
+      "Corrientes",
+      "Entre Ríos",
+      "Misiones",
+      "Santa Fe"
+    ],
+    "n_provincias": 6,
+    "center_lat": -31.6182,
+    "center_lon": -58.6015,
+    "n_activos_total": 2508,
+    "agr_ha_m_total": 30.5,
+    "avg_dist_sucursal_km": 302.1
+  },
+  {
+    "cluster_id": 3,
+    "label": "Cluster Comercial Activo",
+    "provincias": [
+      "Córdoba",
+      "La Rioja",
+      "Mendoza",
+      "San Juan",
+      "San Luis"
+    ],
+    "n_provincias": 5,
+    "center_lat": -32.2174,
+    "center_lon": -66.896,
+    "n_activos_total": 784,
+    "agr_ha_m_total": 10.8,
+    "avg_dist_sucursal_km": 336.2
+  },
+  {
+    "cluster_id": 2,
+    "label": "Cluster Comercial Activo",
+    "provincias": [
+      "Chubut",
+      "La Pampa",
+      "Neuquén",
+      "Río Negro"
+    ],
+    "n_provincias": 4,
+    "center_lat": -39.9927,
+    "center_lon": -67.831,
+    "n_activos_total": 95,
+    "agr_ha_m_total": 5.3,
+    "avg_dist_sucursal_km": 777.3
+  },
+  {
+    "cluster_id": 0,
+    "label": "Zona Aislada de Alto Potencial",
+    "provincias": [
+      "Catamarca",
+      "Chaco",
+      "Formosa",
+      "Jujuy",
+      "Salta",
+      "Santiago del Estero",
+      "Tucumán"
+    ],
+    "n_provincias": 7,
+    "center_lat": -25.8527,
+    "center_lon": -63.8345,
+    "n_activos_total": 0,
+    "agr_ha_m_total": 10.8,
+    "avg_dist_sucursal_km": 750.0
+  },
+  {
+    "cluster_id": 1,
+    "label": "Zona Periférica de Bajo Potencial",
+    "provincias": [
+      "Santa Cruz",
+      "Tierra del Fuego"
+    ],
+    "n_provincias": 2,
+    "center_lat": -51.8077,
+    "center_lon": -69.1279,
+    "n_activos_total": 0,
+    "agr_ha_m_total": 0.25,
+    "avg_dist_sucursal_km": 1806.0
+  }
+]
