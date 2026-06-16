@@ -264,6 +264,80 @@ export interface ProvinceKPI {
   otif_pct: number;
 }
 
+// ── GIS-02 Spatial Analytics ────────────────────────────────────────────────
+
+export type CoverageLabel = "Sólida" | "Media" | "Incipiente" | "Sin Cobertura";
+export type OpportunityLabel = "Alta Oportunidad" | "Oportunidad Moderada" | "Oportunidad Baja" | "Mercado Maduro";
+export type ExpansionPriority = "Alta" | "Media" | "Baja";
+export type ChurnLevel = "Low" | "Medium" | "High" | "Sin Datos";
+
+export interface CoverageScoreRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  coverage_score: number;
+  active_ratio_pct: number;
+  min_dist_suc_km: number;
+  n_activos: number;
+  n_total: number;
+  coverage_label: CoverageLabel;
+}
+
+export interface OpportunityScoreRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  agr_ha_m: number;
+  revenue_ars: number;
+  n_activos: number;
+  n_total: number;
+  penetracion_idx: number;
+  opportunity_score: number;
+  opportunity_label: OpportunityLabel;
+}
+
+export interface ExpansionTargetRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  agr_ha_m: number;
+  gap_score: number;
+  opportunity_score: number;
+  expansion_score: number;
+  expansion_priority: ExpansionPriority;
+  n_activos: number;
+  rationale: string;
+}
+
+export interface RevenueDensityRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  revenue_ars: number;
+  area_km2: number;
+  revenue_density: number;
+  revenue_density_m: number;
+  density_score: number;
+}
+
+export interface ChurnByProvinceRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  n_total: number;
+  n_activos: number;
+  n_en_riesgo: number;
+  n_churned: number;
+  churn_rate: number;
+  churn_score: number;
+  churn_level: ChurnLevel;
+}
+
 // ── GIS Tactical (v1 — kept for compatibility) ────────────────────────────────
 
 export interface ProvinceHeat {

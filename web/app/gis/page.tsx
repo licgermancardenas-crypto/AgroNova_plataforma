@@ -12,6 +12,7 @@ import type { ProvinceKPI, GisMetric } from "@/types";
 import {
   PROVINCE_KPIS, NATIONAL_TOTALS, getLowCoverageProvinces, getMetricValue,
 } from "@/lib/geo-data";
+import SpatialAnalyticsPanel from "@/components/gis/SpatialAnalyticsPanel";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -311,6 +312,7 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
 export default function GISPage() {
   const [metric,   setMetric]   = useState<GisMetric>("revenue");
   const [selected, setSelected] = useState<ProvinceKPI | null>(null);
+  const [rightTab, setRightTab] = useState<"ops" | "analytics">("ops");
   const [geoData,  setGeoData]  = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading, setGeoLoading] = useState(true);
   const [geoError,   setGeoError]   = useState<string | null>(null);
@@ -467,8 +469,28 @@ export default function GISPage() {
         </div>
 
         {/* Right panel */}
-        <div className="w-[190px] flex-shrink-0">
-          <RightPanel selected={selected} />
+        <div className="w-[190px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+          <div className="glass rounded-xl p-1 flex gap-1 flex-shrink-0">
+            {([
+              { id: "ops", label: "Operaciones" },
+              { id: "analytics", label: "Análisis" },
+            ] as const).map(t => (
+              <button
+                key={t.id}
+                onClick={() => setRightTab(t.id)}
+                className={`flex-1 py-1 rounded text-2xs font-mono transition-all ${
+                  rightTab === t.id
+                    ? "bg-primary-dim text-primary border border-primary/30"
+                    : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
+            {rightTab === "ops" ? <RightPanel selected={selected} /> : <SpatialAnalyticsPanel />}
+          </div>
         </div>
       </div>
 
