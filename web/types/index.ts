@@ -244,7 +244,27 @@ export interface NavItem {
   badge?: string | number;
 }
 
-// ── GIS Tactical ─────────────────────────────────────────────────────────────
+// ── GIS v2.0 ─────────────────────────────────────────────────────────────────
+
+export type GisMetric = "revenue" | "clientes" | "margen" | "churn";
+
+export interface ProvinceKPI {
+  nombre: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  revenue_ars: number;
+  revenue_pct: number;
+  n_clientes: number;
+  n_activos: number;
+  margen_pct: number;
+  churn_score: number;
+  agr_ha_m: number;
+  gap_score: number;
+  otif_pct: number;
+}
+
+// ── GIS Tactical (v1 — kept for compatibility) ────────────────────────────────
 
 export interface ProvinceHeat {
   nombre: string;
