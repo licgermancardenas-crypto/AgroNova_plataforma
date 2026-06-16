@@ -11,6 +11,10 @@ venv/
 # Data — generada localmente con generate_all.py
 data/csv/*.csv
 
+# Raw IGN provincias polygon — 106 MB, excede el límite de 100MB de GitHub.
+# Regenerar con: python -m gis.download_geodata --layer provincias_poly
+data/geojson/provincias_poly.geojson
+
 # Node / Next.js
 node_modules/
 .next/
