@@ -14,6 +14,7 @@ import {
 } from "@/lib/geo-data";
 import SpatialAnalyticsPanel from "@/components/gis/SpatialAnalyticsPanel";
 import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel";
+import RoutingPanel from "@/components/gis/RoutingPanel";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -313,7 +314,7 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
 export default function GISPage() {
   const [metric,   setMetric]   = useState<GisMetric>("revenue");
   const [selected, setSelected] = useState<ProvinceKPI | null>(null);
-  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network">("ops");
+  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network" | "routing">("ops");
   const [geoData,  setGeoData]  = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading, setGeoLoading] = useState(true);
   const [geoError,   setGeoError]   = useState<string | null>(null);
@@ -476,6 +477,7 @@ export default function GISPage() {
               { id: "ops", label: "Operaciones" },
               { id: "analytics", label: "Análisis" },
               { id: "network", label: "Network" },
+              { id: "routing", label: "Routing" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -493,7 +495,8 @@ export default function GISPage() {
           <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
             {rightTab === "ops" ? <RightPanel selected={selected} />
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
-              : <NetworkIntelligencePanel />}
+              : rightTab === "network" ? <NetworkIntelligencePanel />
+              : <RoutingPanel />}
           </div>
         </div>
       </div>

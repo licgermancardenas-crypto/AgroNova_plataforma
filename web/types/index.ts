@@ -444,6 +444,93 @@ export interface ExpansionRecommendation {
   justificacion: string;
 }
 
+// ── Routing & Logistics Optimization (Sprint GIS-06) ──────────────────────────
+
+export interface TransportCostRoute {
+  sucursal_id?: number;
+  deposito_id?: number;
+  nombre: string;
+  n_clientes: number;
+  distancia_km: number;
+  peso_kg_envio_prom: number;
+  costo_estimado_ars: number;
+  tiempo_estimado_horas: number;
+}
+
+export interface TransportCosts {
+  cost_per_kg_ars: number;
+  avg_speed_kmh: number;
+  by_sucursal: TransportCostRoute[];
+  by_deposito: TransportCostRoute[];
+}
+
+export type EstadoCarga = "Saturado (relativo)" | "Subutilizado (relativo)" | "Equilibrado";
+
+export interface DepotLoadRecord {
+  deposito_id: number;
+  nombre: string;
+  sucursal_id: number | null;
+  capacidad_ton: number;
+  peso_diario_promedio_ton: number;
+  turnover_ratio: number | null;
+  dias_para_llenar_capacidad: number | null;
+  utilizacion_flota_pct: number;
+  estado_carga: EstadoCarga;
+}
+
+export interface DepotLoad {
+  by_deposito: DepotLoadRecord[];
+}
+
+export type RiskLevel = "Alto" | "Medio" | "Bajo";
+
+export interface RouteRiskByDeposito {
+  deposito_id: number;
+  nombre: string;
+  sucursal_id: number | null;
+  n_envios: number;
+  pct_demorado: number;
+  pct_devuelto: number;
+  pct_entregado: number;
+  pct_en_transito: number;
+  dias_demora_prom: number;
+  incidencia_score: number;
+  risk_level: RiskLevel;
+}
+
+export interface RouteRiskByTipoEnvio {
+  tipo_envio: string;
+  n_envios: number;
+  pct_demorado: number;
+  pct_devuelto: number;
+  pct_entregado: number;
+  pct_en_transito: number;
+  dias_demora_prom: number;
+  incidencia_score: number;
+  risk_level: RiskLevel;
+}
+
+export interface RouteRisk {
+  by_deposito: RouteRiskByDeposito[];
+  by_tipo_envio: RouteRiskByTipoEnvio[];
+}
+
+export interface ExpansionSimulation {
+  provincia: string;
+  ciudad_candidata: string;
+  macro_region: string;
+  sucursal_actual_mas_cercana: string;
+  ahorro_km: number;
+  reduccion_tiempo_horas: number;
+  mejora_proximidad_pts: number;
+  nuevos_clientes_potenciales: number;
+  envios_potenciales_anio: number;
+  reduccion_costos_ars_anual: number;
+  agr_ha_m: number;
+  gap_score: number;
+  opportunity_score: number;
+}
+
 // ── GIS Tactical (v1 — kept for compatibility) ────────────────────────────────
 
 export interface ProvinceHeat {

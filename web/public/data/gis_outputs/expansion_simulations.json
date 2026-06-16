@@ -1,0 +1,62 @@
+[
+  {
+    "provincia": "Chaco",
+    "ciudad_candidata": "Resistencia",
+    "macro_region": "NEA",
+    "sucursal_actual_mas_cercana": "Paraná",
+    "ahorro_km": 594.8,
+    "reduccion_tiempo_horas": 9.9,
+    "mejora_proximidad_pts": 21.2,
+    "nuevos_clientes_potenciales": 273,
+    "envios_potenciales_anio": 1242,
+    "reduccion_costos_ars_anual": 25168926.0,
+    "agr_ha_m": 3.2,
+    "gap_score": 3.2,
+    "opportunity_score": 64.0
+  },
+  {
+    "provincia": "Salta",
+    "ciudad_candidata": "Salta",
+    "macro_region": "NOA",
+    "sucursal_actual_mas_cercana": "Paraná",
+    "ahorro_km": 927.3,
+    "reduccion_tiempo_horas": 15.5,
+    "mejora_proximidad_pts": 25.0,
+    "nuevos_clientes_potenciales": 154,
+    "envios_potenciales_anio": 701,
+    "reduccion_costos_ars_anual": 22146771.0,
+    "agr_ha_m": 1.8,
+    "gap_score": 1.8,
+    "opportunity_score": 60.1
+  },
+  {
+    "provincia": "Santiago del Estero",
+    "ciudad_candidata": "Santiago del Estero",
+    "macro_region": "NOA",
+    "sucursal_actual_mas_cercana": "Paraná",
+    "ahorro_km": 512.0,
+    "reduccion_tiempo_horas": 8.5,
+    "mejora_proximidad_pts": 18.3,
+    "nuevos_clientes_potenciales": 239,
+    "envios_potenciales_anio": 1087,
+    "reduccion_costos_ars_anual": 18961454.0,
+    "agr_ha_m": 2.8,
+    "gap_score": 2.8,
+    "opportunity_score": 62.9
+  },
+  {
+    "provincia": "Corrientes",
+    "ciudad_candidata": "Corrientes",
+    "macro_region": "NEA",
+    "sucursal_actual_mas_cercana": "Paraná",
+    "ahorro_km": 420.1,
+    "reduccion_tiempo_horas": 7.0,
+    "mejora_proximidad_pts": 15.0,
+    "nuevos_clientes_potenciales": 171,
+    "envios_potenciales_anio": 778,
+    "reduccion_costos_ars_anual": 11135364.0,
+    "agr_ha_m": 2.0,
+    "gap_score": 2.0,
+    "opportunity_score": 60.6
+  }
+]

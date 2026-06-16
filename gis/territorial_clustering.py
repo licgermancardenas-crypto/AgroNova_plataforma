@@ -9,36 +9,12 @@ import pandas as pd
 from sklearn.cluster import KMeans
 
 from . import geo_utils as gu
+from .geo_utils import PROVINCE_CAPITAL
 from .network_analysis import _sucursales
 from .expansion_analysis import expansion_index_by_province
 
 N_CLUSTERS = 5
 RANDOM_STATE = 42
-
-# Provincial capital (or principal city) — used as the recommended expansion
-# point. Coordinates reuse the province centroid (geo_utils.PROVINCE_CATALOGUE);
-# no new geocoding source was introduced, so the candidate point is an
-# approximation of the capital's true location, not a precise geocode.
-PROVINCE_CAPITAL: dict[str, str] = {
-    "Catamarca":            "San Fernando del Valle de Catamarca",
-    "Corrientes":            "Corrientes",
-    "Chaco":                 "Resistencia",
-    "Chubut":                "Rawson",
-    "Formosa":               "Formosa",
-    "Jujuy":                 "San Salvador de Jujuy",
-    "La Rioja":              "La Rioja",
-    "Mendoza":               "Mendoza",
-    "Misiones":              "Posadas",
-    "Neuquén":               "Neuquén",
-    "Río Negro":             "Viedma",
-    "Salta":                 "Salta",
-    "San Juan":              "San Juan",
-    "San Luis":              "San Luis",
-    "Santa Cruz":            "Río Gallegos",
-    "Santiago del Estero":   "Santiago del Estero",
-    "Tucumán":               "San Miguel de Tucumán",
-    "Tierra del Fuego":      "Ushuaia",
-}
 
 
 def _nearest_sucursal_km(lat: float, lon: float) -> float:

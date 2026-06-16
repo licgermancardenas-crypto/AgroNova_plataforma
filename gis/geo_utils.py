@@ -159,6 +159,33 @@ PROVINCE_REGION_ID: dict[str, int] = {
     "La Pampa":     3,  # Pampa Sur
 }
 
+# Provincial capital (or principal city) — used as the recommended expansion
+# point. Coordinates reuse the province centroid (PROVINCE_CATALOGUE above);
+# no new geocoding source was introduced, so the candidate point is an
+# approximation of the capital's true location, not a precise geocode.
+# Lives here (not in territorial_clustering.py) so modules that just need
+# the city name don't have to import sklearn to get it.
+PROVINCE_CAPITAL: dict[str, str] = {
+    "Catamarca":            "San Fernando del Valle de Catamarca",
+    "Corrientes":            "Corrientes",
+    "Chaco":                 "Resistencia",
+    "Chubut":                "Rawson",
+    "Formosa":               "Formosa",
+    "Jujuy":                 "San Salvador de Jujuy",
+    "La Rioja":              "La Rioja",
+    "Mendoza":               "Mendoza",
+    "Misiones":              "Posadas",
+    "Neuquén":               "Neuquén",
+    "Río Negro":             "Viedma",
+    "Salta":                 "Salta",
+    "San Juan":              "San Juan",
+    "San Luis":              "San Luis",
+    "Santa Cruz":            "Río Gallegos",
+    "Santiago del Estero":   "Santiago del Estero",
+    "Tucumán":               "San Miguel de Tucumán",
+    "Tierra del Fuego":      "Ushuaia",
+}
+
 
 # ---------------------------------------------------------------------------
 # Lookup helpers
