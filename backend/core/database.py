@@ -44,3 +44,17 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_db_or_none():
+    """FastAPI dependency that yields None when DATABASE_URL isn't configured.
+    Use this in endpoints that have a CSV/JSON fallback — they degrade
+    gracefully instead of returning 500 when the DB is unavailable."""
+    if SessionLocal is None:
+        yield None
+        return
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
