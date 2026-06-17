@@ -1,0 +1,353 @@
+{
+  "provincia_sucursal": [
+    {
+      "provincia": "Buenos Aires",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 415.2
+    },
+    {
+      "provincia": "Buenos Aires",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 310.0
+    },
+    {
+      "provincia": "Buenos Aires",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 145.4
+    },
+    {
+      "provincia": "Buenos Aires",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 524.4
+    },
+    {
+      "provincia": "Buenos Aires",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 549.9
+    },
+    {
+      "provincia": "Córdoba",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 308.5
+    },
+    {
+      "provincia": "Córdoba",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 358.1
+    },
+    {
+      "provincia": "Córdoba",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 716.3
+    },
+    {
+      "provincia": "Córdoba",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 121.0
+    },
+    {
+      "provincia": "Córdoba",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 312.7
+    },
+    {
+      "provincia": "Entre Ríos",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 167.8
+    },
+    {
+      "provincia": "Entre Ríos",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 240.5
+    },
+    {
+      "provincia": "Entre Ríos",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 585.2
+    },
+    {
+      "provincia": "Entre Ríos",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 496.8
+    },
+    {
+      "provincia": "Entre Ríos",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 130.0
+    },
+    {
+      "provincia": "La Pampa",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 638.5
+    },
+    {
+      "provincia": "La Pampa",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 569.8
+    },
+    {
+      "provincia": "La Pampa",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 559.3
+    },
+    {
+      "provincia": "La Pampa",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 456.3
+    },
+    {
+      "provincia": "La Pampa",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 751.3
+    },
+    {
+      "provincia": "Santa Fe",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 250.2
+    },
+    {
+      "provincia": "Santa Fe",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 355.4
+    },
+    {
+      "provincia": "Santa Fe",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 754.1
+    },
+    {
+      "provincia": "Santa Fe",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 418.8
+    },
+    {
+      "provincia": "Santa Fe",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 120.8
+    }
+  ],
+  "provincia_deposito": [
+    {
+      "provincia": "Buenos Aires",
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "distance_km": 415.2
+    },
+    {
+      "provincia": "Buenos Aires",
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "distance_km": 310.0
+    },
+    {
+      "provincia": "Buenos Aires",
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "distance_km": 524.4
+    },
+    {
+      "provincia": "Córdoba",
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "distance_km": 308.5
+    },
+    {
+      "provincia": "Córdoba",
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "distance_km": 358.1
+    },
+    {
+      "provincia": "Córdoba",
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "distance_km": 121.0
+    },
+    {
+      "provincia": "Entre Ríos",
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "distance_km": 167.8
+    },
+    {
+      "provincia": "Entre Ríos",
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "distance_km": 240.5
+    },
+    {
+      "provincia": "Entre Ríos",
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "distance_km": 496.8
+    },
+    {
+      "provincia": "La Pampa",
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "distance_km": 638.5
+    },
+    {
+      "provincia": "La Pampa",
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "distance_km": 569.8
+    },
+    {
+      "provincia": "La Pampa",
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "distance_km": 456.3
+    },
+    {
+      "provincia": "Santa Fe",
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "distance_km": 250.2
+    },
+    {
+      "provincia": "Santa Fe",
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "distance_km": 355.4
+    },
+    {
+      "provincia": "Santa Fe",
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "distance_km": 418.8
+    }
+  ],
+  "deposito_sucursal": [
+    {
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 0.0
+    },
+    {
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 105.4
+    },
+    {
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 505.9
+    },
+    {
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 345.4
+    },
+    {
+      "deposito_id": 1,
+      "deposito": "CL Rosario",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 135.3
+    },
+    {
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 105.4
+    },
+    {
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 0.0
+    },
+    {
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 403.2
+    },
+    {
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 360.1
+    },
+    {
+      "deposito_id": 2,
+      "deposito": "CL Pergamino",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 240.0
+    },
+    {
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "sucursal_id": 1,
+      "sucursal": "Rosario",
+      "distance_km": 345.4
+    },
+    {
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "sucursal_id": 2,
+      "sucursal": "Pergamino",
+      "distance_km": 360.1
+    },
+    {
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "sucursal_id": 3,
+      "sucursal": "Tandil",
+      "distance_km": 664.4
+    },
+    {
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "sucursal_id": 4,
+      "sucursal": "Río Cuarto",
+      "distance_km": 0.0
+    },
+    {
+      "deposito_id": 3,
+      "deposito": "CL Río Cuarto",
+      "sucursal_id": 5,
+      "sucursal": "Paraná",
+      "distance_km": 391.3
+    }
+  ]
+}

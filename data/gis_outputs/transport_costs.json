@@ -1,0 +1,80 @@
+{
+  "cost_per_kg_ars": 21.52,
+  "avg_speed_kmh": 60.0,
+  "by_sucursal": [
+    {
+      "sucursal_id": 3,
+      "nombre": "Tandil",
+      "n_clientes": 1564,
+      "distancia_km": 145.4,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 2.4
+    },
+    {
+      "sucursal_id": 5,
+      "nombre": "Paraná",
+      "n_clientes": 1385,
+      "distancia_km": 123.4,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 2.1
+    },
+    {
+      "sucursal_id": 4,
+      "nombre": "Río Cuarto",
+      "n_clientes": 1051,
+      "distancia_km": 159.3,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 2.7
+    },
+    {
+      "sucursal_id": 1,
+      "nombre": "Rosario",
+      "n_clientes": 0,
+      "distancia_km": 0.0,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 0.0
+    },
+    {
+      "sucursal_id": 2,
+      "nombre": "Pergamino",
+      "n_clientes": 0,
+      "distancia_km": 0.0,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 0.0
+    }
+  ],
+  "by_deposito": [
+    {
+      "deposito_id": 2,
+      "nombre": "CL Pergamino",
+      "n_clientes": 1564,
+      "distancia_km": 310.0,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 5.2
+    },
+    {
+      "deposito_id": 1,
+      "nombre": "CL Rosario",
+      "n_clientes": 1385,
+      "distancia_km": 226.7,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 3.8
+    },
+    {
+      "deposito_id": 3,
+      "nombre": "CL Río Cuarto",
+      "n_clientes": 1051,
+      "distancia_km": 159.3,
+      "peso_kg_envio_prom": 502.4,
+      "costo_estimado_ars": 10811.6,
+      "tiempo_estimado_horas": 2.7
+    }
+  ]
+}

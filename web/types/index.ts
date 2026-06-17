@@ -244,7 +244,294 @@ export interface NavItem {
   badge?: string | number;
 }
 
-// ── GIS Tactical ─────────────────────────────────────────────────────────────
+// ── GIS v2.0 ─────────────────────────────────────────────────────────────────
+
+export type GisMetric = "revenue" | "clientes" | "margen" | "churn" | "otif";
+
+export interface ProvinceKPI {
+  nombre: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  revenue_ars: number;
+  revenue_pct: number;
+  n_clientes: number;
+  n_activos: number;
+  margen_pct: number;
+  churn_score: number;
+  agr_ha_m: number;
+  gap_score: number;
+  otif_pct: number;
+}
+
+// ── GIS-02 Spatial Analytics ────────────────────────────────────────────────
+
+export type CoverageLabel = "Sólida" | "Media" | "Incipiente" | "Sin Cobertura";
+export type OpportunityLabel = "Alta Oportunidad" | "Oportunidad Moderada" | "Oportunidad Baja" | "Mercado Maduro";
+export type ExpansionPriority = "Alta" | "Media" | "Baja";
+export type ChurnLevel = "Low" | "Medium" | "High" | "Sin Datos";
+
+export interface CoverageScoreRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  coverage_score: number;
+  active_ratio_pct: number;
+  min_dist_suc_km: number;
+  n_activos: number;
+  n_total: number;
+  coverage_label: CoverageLabel;
+}
+
+export interface OpportunityScoreRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  agr_ha_m: number;
+  revenue_ars: number;
+  n_activos: number;
+  n_total: number;
+  penetracion_idx: number;
+  opportunity_score: number;
+  opportunity_label: OpportunityLabel;
+}
+
+export interface ExpansionTargetRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  agr_ha_m: number;
+  gap_score: number;
+  opportunity_score: number;
+  expansion_score: number;
+  expansion_priority: ExpansionPriority;
+  n_activos: number;
+  rationale: string;
+}
+
+export interface RevenueDensityRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  revenue_ars: number;
+  area_km2: number;
+  revenue_density: number;
+  revenue_density_m: number;
+  density_score: number;
+}
+
+export interface ChurnByProvinceRecord {
+  provincia: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  n_total: number;
+  n_activos: number;
+  n_en_riesgo: number;
+  n_churned: number;
+  churn_rate: number;
+  churn_score: number;
+  churn_level: ChurnLevel;
+}
+
+// ── GIS-03 Network Intelligence ─────────────────────────────────────────────
+
+export interface DistanceLeg {
+  provincia?: string;
+  sucursal_id?: number;
+  sucursal?: string;
+  deposito_id?: number;
+  deposito?: string;
+  distance_km: number;
+}
+
+export interface DistanceMatrix {
+  provincia_sucursal: DistanceLeg[];
+  provincia_deposito: DistanceLeg[];
+  deposito_sucursal: DistanceLeg[];
+}
+
+export interface NearestBranchSucursal {
+  sucursal_id: number;
+  nombre: string;
+  n_clientes: number;
+  km_promedio: number;
+  km_maximo: number;
+  n_clientes_real: number;
+}
+
+export interface NearestBranchDeposito {
+  deposito_id: number;
+  nombre: string;
+  n_clientes: number;
+  km_promedio: number;
+  km_maximo: number;
+}
+
+export interface NearestBranch {
+  by_sucursal: NearestBranchSucursal[];
+  by_deposito: NearestBranchDeposito[];
+}
+
+export type CoverageBucketLabel = "0-50 km" | "50-100 km" | "100-200 km" | "> 200 km";
+
+export interface CoverageBucket {
+  bucket: CoverageBucketLabel;
+  n_clientes: number;
+  pct: number;
+}
+
+export interface CoverageByProvincia {
+  provincia: string;
+  macro_region: string;
+  distance_km: number;
+  bucket: CoverageBucketLabel;
+  n_clientes: number;
+}
+
+export interface CoverageDistribution {
+  national: CoverageBucket[];
+  by_provincia: CoverageByProvincia[];
+}
+
+export type LogisticsLabel = "Excelente" | "Buena" | "Mejorable" | "Crítica" | "Sin Datos Logísticos";
+
+export interface LogisticsScoreRecord {
+  sucursal_id: number;
+  nombre: string;
+  provincia: string;
+  n_clientes: number;
+  km_promedio: number;
+  otif_pct: number | null;
+  dias_transito_prom: number | null;
+  logistics_score: number | null;
+  logistics_label: LogisticsLabel;
+}
+
+export type ClusterLabel =
+  | "Cluster Comercial Activo"
+  | "Zona Aislada de Alto Potencial"
+  | "Zona Periférica de Bajo Potencial";
+
+export interface TerritorialCluster {
+  cluster_id: number;
+  label: ClusterLabel;
+  provincias: string[];
+  n_provincias: number;
+  center_lat: number;
+  center_lon: number;
+  n_activos_total: number;
+  agr_ha_m_total: number;
+  avg_dist_sucursal_km: number;
+}
+
+export interface ExpansionRecommendation {
+  provincia: string;
+  ciudad_candidata: string;
+  macro_region: string;
+  lat: number;
+  lon: number;
+  agr_ha_m: number;
+  opportunity_score: number;
+  gap_score: number;
+  expansion_score: number;
+  dist_sucursal_mas_cercana_km: number;
+  cluster: string;
+  justificacion: string;
+}
+
+// ── Routing & Logistics Optimization (Sprint GIS-06) ──────────────────────────
+
+export interface TransportCostRoute {
+  sucursal_id?: number;
+  deposito_id?: number;
+  nombre: string;
+  n_clientes: number;
+  distancia_km: number;
+  peso_kg_envio_prom: number;
+  costo_estimado_ars: number;
+  tiempo_estimado_horas: number;
+}
+
+export interface TransportCosts {
+  cost_per_kg_ars: number;
+  avg_speed_kmh: number;
+  by_sucursal: TransportCostRoute[];
+  by_deposito: TransportCostRoute[];
+}
+
+export type EstadoCarga = "Saturado (relativo)" | "Subutilizado (relativo)" | "Equilibrado";
+
+export interface DepotLoadRecord {
+  deposito_id: number;
+  nombre: string;
+  sucursal_id: number | null;
+  capacidad_ton: number;
+  peso_diario_promedio_ton: number;
+  turnover_ratio: number | null;
+  dias_para_llenar_capacidad: number | null;
+  utilizacion_flota_pct: number;
+  estado_carga: EstadoCarga;
+}
+
+export interface DepotLoad {
+  by_deposito: DepotLoadRecord[];
+}
+
+export type RouteRiskLevel = "Alto" | "Medio" | "Bajo";
+
+export interface RouteRiskByDeposito {
+  deposito_id: number;
+  nombre: string;
+  sucursal_id: number | null;
+  n_envios: number;
+  pct_demorado: number;
+  pct_devuelto: number;
+  pct_entregado: number;
+  pct_en_transito: number;
+  dias_demora_prom: number;
+  incidencia_score: number;
+  risk_level: RouteRiskLevel;
+}
+
+export interface RouteRiskByTipoEnvio {
+  tipo_envio: string;
+  n_envios: number;
+  pct_demorado: number;
+  pct_devuelto: number;
+  pct_entregado: number;
+  pct_en_transito: number;
+  dias_demora_prom: number;
+  incidencia_score: number;
+  risk_level: RouteRiskLevel;
+}
+
+export interface RouteRisk {
+  by_deposito: RouteRiskByDeposito[];
+  by_tipo_envio: RouteRiskByTipoEnvio[];
+}
+
+export interface ExpansionSimulation {
+  provincia: string;
+  ciudad_candidata: string;
+  macro_region: string;
+  sucursal_actual_mas_cercana: string;
+  ahorro_km: number;
+  reduccion_tiempo_horas: number;
+  mejora_proximidad_pts: number;
+  nuevos_clientes_potenciales: number;
+  envios_potenciales_anio: number;
+  reduccion_costos_ars_anual: number;
+  agr_ha_m: number;
+  gap_score: number;
+  opportunity_score: number;
+}
+
+// ── GIS Tactical (v1 — kept for compatibility) ────────────────────────────────
 
 export interface ProvinceHeat {
   nombre: string;

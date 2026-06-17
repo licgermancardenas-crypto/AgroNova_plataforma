@@ -1,0 +1,37 @@
+{
+  "by_deposito": [
+    {
+      "deposito_id": 1,
+      "nombre": "CL Rosario",
+      "sucursal_id": 1,
+      "capacidad_ton": 12000.0,
+      "peso_diario_promedio_ton": 11.13,
+      "turnover_ratio": 0.000928,
+      "dias_para_llenar_capacidad": 1077.7,
+      "utilizacion_flota_pct": 1.66,
+      "estado_carga": "Equilibrado"
+    },
+    {
+      "deposito_id": 2,
+      "nombre": "CL Pergamino",
+      "sucursal_id": 2,
+      "capacidad_ton": 8000.0,
+      "peso_diario_promedio_ton": 7.61,
+      "turnover_ratio": 0.000951,
+      "dias_para_llenar_capacidad": 1051.6,
+      "utilizacion_flota_pct": 1.7,
+      "estado_carga": "Saturado (relativo)"
+    },
+    {
+      "deposito_id": 3,
+      "nombre": "CL Río Cuarto",
+      "sucursal_id": 4,
+      "capacidad_ton": 7500.0,
+      "peso_diario_promedio_ton": 6.26,
+      "turnover_ratio": 0.000835,
+      "dias_para_llenar_capacidad": 1197.2,
+      "utilizacion_flota_pct": 1.6,
+      "estado_carga": "Subutilizado (relativo)"
+    }
+  ]
+}

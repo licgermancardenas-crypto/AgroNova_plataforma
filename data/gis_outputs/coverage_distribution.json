@@ -1,0 +1,61 @@
+{
+  "national": [
+    {
+      "bucket": "0-50 km",
+      "n_clientes": 0,
+      "pct": 0.0
+    },
+    {
+      "bucket": "50-100 km",
+      "n_clientes": 0,
+      "pct": 0.0
+    },
+    {
+      "bucket": "100-200 km",
+      "n_clientes": 3880,
+      "pct": 97.0
+    },
+    {
+      "bucket": "> 200 km",
+      "n_clientes": 120,
+      "pct": 3.0
+    }
+  ],
+  "by_provincia": [
+    {
+      "provincia": "Santa Fe",
+      "macro_region": "PAM",
+      "distance_km": 120.8,
+      "bucket": "100-200 km",
+      "n_clientes": 990
+    },
+    {
+      "provincia": "Córdoba",
+      "macro_region": "PAM",
+      "distance_km": 121.0,
+      "bucket": "100-200 km",
+      "n_clientes": 931
+    },
+    {
+      "provincia": "Entre Ríos",
+      "macro_region": "PAM",
+      "distance_km": 130.0,
+      "bucket": "100-200 km",
+      "n_clientes": 395
+    },
+    {
+      "provincia": "Buenos Aires",
+      "macro_region": "PAM",
+      "distance_km": 145.4,
+      "bucket": "100-200 km",
+      "n_clientes": 1564
+    },
+    {
+      "provincia": "La Pampa",
+      "macro_region": "PAM",
+      "distance_km": 456.3,
+      "bucket": "> 200 km",
+      "n_clientes": 120
+    }
+  ]
+}

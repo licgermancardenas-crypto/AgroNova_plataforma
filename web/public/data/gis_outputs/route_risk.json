@@ -1,0 +1,78 @@
+{
+  "by_deposito": [
+    {
+      "deposito_id": 3,
+      "nombre": "CL Río Cuarto",
+      "sucursal_id": 4,
+      "n_envios": 50200,
+      "pct_demorado": 4.01,
+      "pct_devuelto": 1.02,
+      "pct_entregado": 88.02,
+      "pct_en_transito": 6.96,
+      "dias_demora_prom": 0.16,
+      "incidencia_score": 6.05,
+      "risk_level": "Alto"
+    },
+    {
+      "deposito_id": 1,
+      "nombre": "CL Rosario",
+      "sucursal_id": 1,
+      "n_envios": 89992,
+      "pct_demorado": 4.01,
+      "pct_devuelto": 0.98,
+      "pct_entregado": 87.92,
+      "pct_en_transito": 7.09,
+      "dias_demora_prom": 0.16,
+      "incidencia_score": 5.97,
+      "risk_level": "Medio"
+    },
+    {
+      "deposito_id": 2,
+      "nombre": "CL Pergamino",
+      "sucursal_id": 2,
+      "n_envios": 59808,
+      "pct_demorado": 3.84,
+      "pct_devuelto": 1.05,
+      "pct_entregado": 88.1,
+      "pct_en_transito": 7.02,
+      "dias_demora_prom": 0.15,
+      "incidencia_score": 5.94,
+      "risk_level": "Bajo"
+    }
+  ],
+  "by_tipo_envio": [
+    {
+      "tipo_envio": "Ferroviario",
+      "n_envios": 23963,
+      "pct_demorado": 4.26,
+      "pct_devuelto": 1.05,
+      "pct_entregado": 87.9,
+      "pct_en_transito": 6.79,
+      "dias_demora_prom": 0.17,
+      "incidencia_score": 6.36,
+      "risk_level": "Alto"
+    },
+    {
+      "tipo_envio": "Fluvial",
+      "n_envios": 12119,
+      "pct_demorado": 3.88,
+      "pct_devuelto": 1.11,
+      "pct_entregado": 87.64,
+      "pct_en_transito": 7.38,
+      "dias_demora_prom": 0.15,
+      "incidencia_score": 6.1,
+      "risk_level": "Medio"
+    },
+    {
+      "tipo_envio": "Terrestre",
+      "n_envios": 163918,
+      "pct_demorado": 3.92,
+      "pct_devuelto": 1.0,
+      "pct_entregado": 88.04,
+      "pct_en_transito": 7.04,
+      "dias_demora_prom": 0.16,
+      "incidencia_score": 5.92,
+      "risk_level": "Bajo"
+    }
+  ]
+}
