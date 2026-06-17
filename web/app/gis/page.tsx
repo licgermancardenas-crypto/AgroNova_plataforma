@@ -4,17 +4,18 @@ import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
-  AlertTriangle, ChevronRight, RefreshCw, BarChart2,
+  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
-import type { ProvinceKPI, GisMetric } from "@/types";
+import type { ProvinceKPI, GisMetric, BasemapId } from "@/types";
 import {
   PROVINCE_KPIS, NATIONAL_TOTALS, getLowCoverageProvinces, getMetricValue,
 } from "@/lib/geo-data";
 import SpatialAnalyticsPanel from "@/components/gis/SpatialAnalyticsPanel";
 import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel";
 import RoutingPanel from "@/components/gis/RoutingPanel";
+import MapLegendAdvanced from "@/components/gis/MapLegendAdvanced";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -26,7 +27,8 @@ const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ),
 });
 
-// ── Metric selector ───────────────────────────────────────────────────────────
+// ── Metrics ───────────────────────────────────────────────────────────────────
+
 const METRICS: { id: GisMetric; label: string; color: string }[] = [
   { id: "revenue",  label: "Revenue",  color: "#22C55E" },
   { id: "clientes", label: "Clientes", color: "#4ADE80" },
@@ -34,27 +36,96 @@ const METRICS: { id: GisMetric; label: string; color: string }[] = [
   { id: "churn",    label: "Churn",    color: "#E03E3E" },
 ];
 
-// ── Stat chip ────────────────────────────────────────────────────────────────
-function TacStat({ label, value, unit = "", accent = false }: {
-  label: string; value: string | number; unit?: string; accent?: boolean;
+// ── Basemaps ──────────────────────────────────────────────────────────────────
+
+const BASEMAP_OPTS: { id: BasemapId; label: string; dot: string }[] = [
+  { id: "dark",          label: "Dark Matter",     dot: "#22C55E" },
+  { id: "voyager",       label: "Carto Voyager",   dot: "#4ADE80" },
+  { id: "esri_gray",     label: "Esri Gray",       dot: "#A3E635" },
+  { id: "osm_hot",       label: "OSM Humanitario", dot: "#0EA5E9" },
+  { id: "esri_imagery",  label: "Esri Satélite",   dot: "#E8A020" },
+];
+
+// ── Layer definitions ─────────────────────────────────────────────────────────
+
+const ANALYSIS_LAYERS = [
+  { key: "choropleth",    label: "Coroplético",      color: "#22C55E" },
+  { key: "heatmap",       label: "Heatmap",           color: "#4ADE80" },
+  { key: "radios",        label: "Radios Cobertura",  color: "#A3E635" },
+];
+
+const TERRITORY_LAYERS = [
+  { key: "departamentos", label: "Departamentos",     color: "#4ADE80" },
+  { key: "municipios",    label: "Municipios",         color: "#0EA5E9" },
+  { key: "vial",          label: "Red Vial",           color: "#E8A020" },
+  { key: "puertos",       label: "Puertos / Nodos",    color: "#A3E635" },
+];
+
+const MARKER_LAYERS = [
+  { key: "sucursales",    label: "Sucursales",         color: "#22C55E" },
+  { key: "depositos",     label: "Depósitos",          color: "#0EA5E9" },
+  { key: "clientes",      label: "Clientes",           color: "#F97316" },
+];
+
+// ── Stat chip ─────────────────────────────────────────────────────────────────
+
+function TacStat({ label, value, accent = false }: {
+  label: string; value: string | number; accent?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center px-3 py-1 border-r border-border last:border-0">
+    <div className="flex flex-col items-center px-3 py-1.5 border-r border-border last:border-0">
       <span className="tactical-text mb-0.5">{label}</span>
       <span className={`font-mono text-sm font-semibold ${accent ? "text-primary" : "text-text-primary"}`}>
-        {value}<span className="text-text-muted text-xs ml-0.5">{unit}</span>
+        {value}
       </span>
     </div>
   );
 }
 
+// ── Layer toggle button ───────────────────────────────────────────────────────
+
+function LayerBtn({
+  layerKey, label, color, active, onToggle,
+}: {
+  layerKey: string; label: string; color: string; active: boolean; onToggle: () => void;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-all border ${
+        active
+          ? "border-opacity-40 text-text-primary"
+          : "bg-bg-elevated border-border text-text-muted hover:border-border-accent"
+      }`}
+      style={active ? { background: `${color}14`, borderColor: `${color}50` } : {}}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className="w-2 h-2 rounded-full flex-shrink-0 transition-all"
+          style={{ background: active ? color : "#3E5A3E", boxShadow: active ? `0 0 5px ${color}80` : "none" }}
+        />
+        <span>{label}</span>
+      </div>
+      <span
+        className="text-2xs font-mono"
+        style={{ color: active ? color : "#4B6B4B" }}
+      >
+        {active ? "ON" : "—"}
+      </span>
+    </button>
+  );
+}
+
 // ── Left panel ────────────────────────────────────────────────────────────────
+
 function LeftPanel({
   metric, setMetric,
+  basemap, setBasemap,
   layers, toggleLayer,
   selected,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
+  basemap: BasemapId; setBasemap: (b: BasemapId) => void;
   layers: Record<string, boolean>; toggleLayer: (k: string) => void;
   selected: ProvinceKPI | null;
 }) {
@@ -71,21 +142,13 @@ function LeftPanel({
     return `${(v * 100).toFixed(0)}%`;
   };
 
-  const LAYER_DEFS = [
-    { key: "choropleth", label: "Coroplético",    color: "#22C55E" },
-    { key: "heatmap",    label: "Heatmap",         color: "#4ADE80" },
-    { key: "sucursales", label: "Sucursales",      color: "#22C55E" },
-    { key: "depositos",  label: "Depósitos",       color: "#E8A020" },
-    { key: "clientes",   label: "Clientes",        color: "#0DB87E" },
-    { key: "radios",     label: "Radios Cobertura",color: "#A3E635" },
-  ];
-
   return (
-    <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-0.5">
+    <div className="flex flex-col gap-2 h-full overflow-y-auto pr-0.5">
+
       {/* Metric selector */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
-          <BarChart2 size={10} /><span>Métrica</span>
+          <BarChart2 size={10} /><span>Métrica KPI</span>
         </p>
         <div className="grid grid-cols-2 gap-1.5">
           {METRICS.map(m => (
@@ -93,11 +156,9 @@ function LeftPanel({
               key={m.id}
               onClick={() => setMetric(m.id)}
               className={`px-2 py-1.5 rounded text-2xs font-mono transition-all border ${
-                metric === m.id
-                  ? "text-text-primary border-opacity-60"
-                  : "bg-bg-elevated border-border text-text-muted hover:border-border-accent"
+                metric === m.id ? "" : "bg-bg-elevated border-border text-text-muted hover:border-border-accent"
               }`}
-              style={metric === m.id ? { background: `${m.color}22`, borderColor: m.color, color: m.color } : {}}
+              style={metric === m.id ? { background: `${m.color}18`, borderColor: `${m.color}60`, color: m.color } : {}}
             >
               {m.label}
             </button>
@@ -105,29 +166,66 @@ function LeftPanel({
         </div>
       </div>
 
-      {/* Layer toggles */}
+      {/* Analysis layers */}
       <div className="glass rounded-xl p-3">
-        <p className="tactical-text mb-2.5 flex items-center gap-1.5">
-          <Layers size={10} /><span>Capas</span>
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Layers size={10} /><span>Análisis</span>
         </p>
         <div className="space-y-1.5">
-          {LAYER_DEFS.map(l => (
+          {ANALYSIS_LAYERS.map(l => (
+            <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
+              active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
+          ))}
+        </div>
+      </div>
+
+      {/* Territory layers */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Globe size={10} /><span>Territorio Real</span>
+        </p>
+        <div className="space-y-1.5">
+          {TERRITORY_LAYERS.map(l => (
+            <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
+              active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
+          ))}
+        </div>
+      </div>
+
+      {/* Marker layers */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <MapPin size={10} /><span>Marcadores</span>
+        </p>
+        <div className="space-y-1.5">
+          {MARKER_LAYERS.map(l => (
+            <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
+              active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
+          ))}
+        </div>
+      </div>
+
+      {/* Basemap selector */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Globe size={10} /><span>Basemap</span>
+        </p>
+        <div className="space-y-1">
+          {BASEMAP_OPTS.map(b => (
             <button
-              key={l.key}
-              onClick={() => toggleLayer(l.key)}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-all border ${
-                layers[l.key]
-                  ? "bg-primary-dim border-primary/30 text-text-primary"
+              key={b.id}
+              onClick={() => setBasemap(b.id)}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-2xs transition-all border ${
+                basemap === b.id
+                  ? "text-text-primary"
                   : "bg-bg-elevated border-border text-text-muted hover:border-border-accent"
               }`}
+              style={basemap === b.id ? { background: `${b.dot}14`, borderColor: `${b.dot}50` } : {}}
             >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ background: layers[l.key] ? l.color : "#3E5A3E" }} />
-                <span>{l.label}</span>
-              </div>
-              <span className={`text-2xs font-mono ${layers[l.key] ? "text-primary" : "text-text-muted"}`}>
-                {layers[l.key] ? "ON" : "OFF"}
-              </span>
+              <span className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ background: basemap === b.id ? b.dot : "#3E5A3E" }} />
+              <span>{b.label}</span>
+              {basemap === b.id && <span className="ml-auto font-mono" style={{ color: b.dot }}>✓</span>}
             </button>
           ))}
         </div>
@@ -160,33 +258,33 @@ function LeftPanel({
         </div>
       </div>
 
-      {/* Selected province detail */}
+      {/* Selected province */}
       {selected && (
-        <div className="glass rounded-xl p-3 border border-primary/30">
+        <div className="glass rounded-xl p-3" style={{ border: "1px solid rgba(34,197,94,0.25)", boxShadow: "0 0 14px rgba(34,197,94,0.06)" }}>
           <p className="tactical-text mb-2 flex items-center gap-1.5">
-            <Activity size={10} /><span>Provincia Seleccionada</span>
+            <Activity size={10} /><span>Provincia</span>
           </p>
-          <p className="text-xs text-text-primary font-semibold mb-2 truncate">{selected.nombre}</p>
+          <p className="text-xs text-text-primary font-semibold mb-1 truncate">{selected.nombre}</p>
           <span className="tactical-text text-2xs mb-2 block">{selected.macro_region}</span>
           <div className="space-y-1.5 text-2xs">
             {[
-              ["Revenue",  fmtARS(selected.revenue_ars, true), "text-primary"],
-              ["Part. %",  `${selected.revenue_pct.toFixed(1)}%`, "text-cyan-brand"],
-              ["Activos",  fmtNumber(selected.n_activos), "text-text-primary"],
-              ["Margen",   `${selected.margen_pct.toFixed(1)}%`, "text-text-primary"],
-              ["OTIF",     `${selected.otif_pct.toFixed(1)}%`, selected.otif_pct >= 90 ? "text-success-DEFAULT" : "text-warning-DEFAULT"],
-              ["Churn",    `${(selected.churn_score * 100).toFixed(0)}%`, selected.churn_score > 0.35 ? "text-danger-DEFAULT" : "text-warning-DEFAULT"],
+              ["Revenue",  fmtARS(selected.revenue_ars, true), "#22C55E"],
+              ["Part. %",  `${selected.revenue_pct.toFixed(1)}%`, "#0EA5E9"],
+              ["Activos",  fmtNumber(selected.n_activos), "#DCE8DC"],
+              ["Margen",   `${selected.margen_pct.toFixed(1)}%`, "#DCE8DC"],
+              ["OTIF",     `${selected.otif_pct.toFixed(1)}%`, selected.otif_pct >= 90 ? "#22C55E" : "#E8A020"],
+              ["Churn",    `${(selected.churn_score * 100).toFixed(0)}%`, selected.churn_score > 0.35 ? "#E03E3E" : "#E8A020"],
             ].map(([label, val, color]) => (
               <div key={label} className="flex justify-between">
                 <span className="text-text-muted">{label}</span>
-                <span className={`font-mono ${color}`}>{val}</span>
+                <span className="font-mono" style={{ color }}>{val}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Sucursales list */}
+      {/* Sucursales quick list */}
       <div className="glass rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Crosshair size={10} /><span>Sucursales</span>
@@ -195,7 +293,7 @@ function LeftPanel({
           {sucursales.map(s => (
             <div key={s.id} className="flex items-center justify-between text-2xs">
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" style={{ boxShadow: "0 0 4px rgba(34,197,94,0.6)" }} />
                 <span className="text-text-secondary truncate max-w-[80px]">{s.nombre}</span>
               </div>
               <span className="font-mono text-primary">{s.clientes} cli.</span>
@@ -208,44 +306,40 @@ function LeftPanel({
 }
 
 // ── Right panel ───────────────────────────────────────────────────────────────
-function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
+
+function RightPanel({ selected, layers }: { selected: ProvinceKPI | null; layers: Record<string, boolean> }) {
   const lowCoverage = getLowCoverageProvinces();
   const activeRoutes = gisRoutes.filter(r => r.activo).length;
+  const activeLayers = Object.values(layers).filter(Boolean).length;
 
   return (
-    <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-0.5">
+    <div className="flex flex-col gap-2 h-full overflow-y-auto pr-0.5">
+
       {/* National KPIs */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
           <Activity size={10} /><span>Nacional</span>
         </p>
         <div className="space-y-2 text-2xs">
-          <div className="flex justify-between">
-            <span className="text-text-muted">Revenue Total</span>
-            <span className="font-mono text-primary">{fmtARS(NATIONAL_TOTALS.revenue_ars, true)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-muted">Clientes Activos</span>
-            <span className="font-mono text-text-primary">{fmtNumber(NATIONAL_TOTALS.n_activos)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-muted">Total Clientes</span>
-            <span className="font-mono text-text-muted">{fmtNumber(NATIONAL_TOTALS.n_clientes)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-muted">Provincias</span>
-            <span className="font-mono text-text-primary">{NATIONAL_TOTALS.provincias}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-text-muted">Rutas Activas</span>
-            <span className="font-mono text-text-primary">{activeRoutes}/{gisRoutes.length}</span>
-          </div>
+          {[
+            ["Revenue Total",   fmtARS(NATIONAL_TOTALS.revenue_ars, true), "#22C55E"],
+            ["Cli. Activos",    fmtNumber(NATIONAL_TOTALS.n_activos), "#DCE8DC"],
+            ["Total Clientes",  fmtNumber(NATIONAL_TOTALS.n_clientes), "#7A9C7A"],
+            ["Provincias",      String(NATIONAL_TOTALS.provincias), "#DCE8DC"],
+            ["Rutas Activas",   `${activeRoutes}/${gisRoutes.length}`, "#A3E635"],
+            ["Capas Activas",   String(activeLayers), "#0EA5E9"],
+          ].map(([l, v, c]) => (
+            <div key={l} className="flex justify-between">
+              <span className="text-text-muted">{l}</span>
+              <span className="font-mono" style={{ color: c }}>{v}</span>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Depósitos */}
       <div className="glass rounded-xl p-3">
-        <p className="tactical-text mb-2.5 flex items-center gap-1.5">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Radio size={10} /><span>Depósitos</span>
         </p>
         <div className="space-y-2">
@@ -254,11 +348,14 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
             return (
               <div key={d.id}>
                 <div className="flex justify-between text-2xs mb-0.5">
-                  <span className="text-text-secondary truncate max-w-[82px]">{d.nombre.replace("Depósito ", "")}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded flex-shrink-0" style={{ background: "#0EA5E9", boxShadow: "0 0 4px rgba(14,165,233,0.5)" }} />
+                    <span className="text-text-secondary truncate max-w-[78px]">{d.nombre.replace("Depósito ", "")}</span>
+                  </div>
                   <span className="font-mono font-bold" style={{ color: c }}>{d.ocupacion_pct}%</span>
                 </div>
                 <div className="h-1 bg-bg-elevated rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${d.ocupacion_pct}%`, background: c }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${d.ocupacion_pct}%`, background: c }} />
                 </div>
               </div>
             );
@@ -266,12 +363,37 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
         </div>
       </div>
 
-      {/* Low coverage provinces */}
+      {/* Puertos summary */}
       <div className="glass rounded-xl p-3">
-        <p className="tactical-text mb-2.5 flex items-center gap-1.5">
-          <ChevronRight size={10} /><span>Menor Cobertura</span>
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Anchor size={10} /><span>Nodos Logísticos</span>
         </p>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
+          {[
+            { n: "Rosario / Up-River",   cap: "80M ton", c: "#A3E635" },
+            { n: "San Lorenzo",          cap: "60M ton", c: "#A3E635" },
+            { n: "Bahía Blanca",         cap: "25M ton", c: "#0EA5E9" },
+            { n: "Quequén",              cap: "12M ton", c: "#38BDF8" },
+            { n: "Buenos Aires",         cap: "15M ton", c: "#0EA5E9" },
+          ].map(p => (
+            <div key={p.n} className="flex justify-between text-2xs">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 flex-shrink-0"
+                  style={{ background: `${p.c}44`, border: `1px solid ${p.c}`, transform: "rotate(45deg)" }} />
+                <span className="text-text-secondary truncate max-w-[95px]">{p.n}</span>
+              </div>
+              <span className="font-mono" style={{ color: p.c }}>{p.cap}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Low coverage */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <ChevronRight size={10} /><span>Baja Cobertura</span>
+        </p>
+        <div className="space-y-1.5">
           {lowCoverage.map(p => (
             <div key={p.nombre}>
               <div className="flex justify-between text-2xs mb-0.5">
@@ -279,8 +401,7 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
                 <span className="font-mono text-warning-DEFAULT">{p.n_activos} cli.</span>
               </div>
               <div className="flex justify-between text-2xs">
-                <span className="text-text-muted">{p.agr_ha_m.toFixed(1)}M ha</span>
-                <span className="font-mono text-text-muted">{p.macro_region}</span>
+                <span className="text-text-muted">{p.agr_ha_m.toFixed(1)}M ha · {p.macro_region}</span>
               </div>
             </div>
           ))}
@@ -289,15 +410,16 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
 
       {/* GIS alerts */}
       <div className="glass rounded-xl p-3">
-        <p className="tactical-text mb-2.5 flex items-center gap-1.5">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
           <AlertTriangle size={10} /><span>Alertas GIS</span>
         </p>
         <div className="space-y-2">
           {[
-            { msg: "Depósito Rosario 87% cap.",   c: "#E8A020" },
-            { msg: "OTIF NEA por debajo target",  c: "#E03E3E" },
-            { msg: "Chaco: alto gap territorial", c: "#E8A020" },
-            { msg: "Churn > 40% en NOA periférico", c: "#E03E3E" },
+            { msg: "Depósito Rosario 87% capacidad",  c: "#E8A020" },
+            { msg: "OTIF NEA por debajo de target",   c: "#E03E3E" },
+            { msg: "Chaco: alto gap territorial",     c: "#E8A020" },
+            { msg: "Churn >40% en NOA periférico",    c: "#E03E3E" },
+            { msg: "Municipios: zoom ≥8 para detalle",c: "#0EA5E9" },
           ].map((a, i) => (
             <div key={i} className="flex items-start gap-1.5 text-2xs">
               <span className="w-1.5 h-1.5 rounded-full mt-0.5 flex-shrink-0" style={{ background: a.c }} />
@@ -311,6 +433,7 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function GISPage() {
   const [metric,   setMetric]   = useState<GisMetric>("revenue");
   const [selected, setSelected] = useState<ProvinceKPI | null>(null);
@@ -319,13 +442,19 @@ export default function GISPage() {
   const [geoLoading, setGeoLoading] = useState(true);
   const [geoError,   setGeoError]   = useState<string | null>(null);
   const [clock,    setClock]    = useState("");
+  const [basemap,  setBasemap]  = useState<BasemapId>("dark");
   const [layers,   setLayers]   = useState({
-    choropleth: true,
-    heatmap:    false,
-    sucursales: true,
-    depositos:  true,
-    clientes:   true,
-    radios:     false,
+    choropleth:    true,
+    heatmap:       false,
+    radios:        false,
+    departamentos: false,
+    municipios:    false,
+    vial:          false,
+    puertos:       false,
+    sucursales:    true,
+    depositos:     true,
+    clientes:      true,
+    coords:        true,
   });
 
   // Clock
@@ -352,24 +481,29 @@ export default function GISPage() {
     setLayers(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
   }, []);
 
-  const totalRevenue = NATIONAL_TOTALS.revenue_ars;
+  const totalRevenue  = NATIONAL_TOTALS.revenue_ars;
   const activeClients = NATIONAL_TOTALS.n_activos;
   const pamShare = PROVINCE_KPIS
     .filter(p => p.macro_region === "PAM")
     .reduce((s, p) => s + p.revenue_pct, 0);
+  const activeLayers = Object.values(layers).filter(Boolean).length;
+  const currentBasemap = BASEMAP_OPTS.find(b => b.id === basemap)?.label ?? basemap;
 
   return (
     <div className="flex flex-col h-[calc(100vh-76px)] animate-fade-in gap-0 -m-5 p-5 pt-3">
 
-      {/* Tactical header */}
-      <div className="glass rounded-xl mb-2 px-2 flex items-center justify-between flex-shrink-0">
+      {/* ── Tactical header ────────────────────────────────────────── */}
+      <div
+        className="glass rounded-xl mb-2 px-2 flex items-center justify-between flex-shrink-0"
+        style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
+      >
         <div className="flex items-center">
           <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
           <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
           <TacStat label="Provincias"    value={NATIONAL_TOTALS.provincias} />
-          <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`} accent />
+          <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`}  accent />
           <TacStat label="Sucursales"    value={sucursales.length} />
-          <TacStat label="Depósitos"     value={depositos.length} />
+          <TacStat label="Capas ON"      value={activeLayers} />
         </div>
         <div className="flex items-center gap-3 pr-2">
           {geoLoading && (
@@ -385,7 +519,8 @@ export default function GISPage() {
             </button>
           )}
           <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${geoLoading ? "bg-warning-DEFAULT animate-pulse" : geoError ? "bg-danger-DEFAULT" : "bg-primary blink"}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${geoLoading ? "bg-warning-DEFAULT animate-pulse" : geoError ? "bg-danger-DEFAULT" : "bg-primary"}`}
+              style={!geoLoading && !geoError ? { boxShadow: "0 0 5px rgba(34,197,94,0.8)" } : {}} />
             <span className="tactical-text">{geoLoading ? "LOADING" : geoError ? "ERROR" : "LIVE"}</span>
           </div>
           <span className="font-mono text-xs text-text-muted">{clock}</span>
@@ -393,76 +528,121 @@ export default function GISPage() {
         </div>
       </div>
 
-      {/* 3-col layout */}
+      {/* ── 3-col layout ────────────────────────────────────────────── */}
       <div className="flex gap-2 flex-1 min-h-0">
 
         {/* Left panel */}
-        <div className="w-[210px] flex-shrink-0">
+        <div className="w-[215px] flex-shrink-0">
           <LeftPanel
             metric={metric} setMetric={setMetric}
+            basemap={basemap} setBasemap={setBasemap}
             layers={layers} toggleLayer={toggleLayer}
             selected={selected}
           />
         </div>
 
         {/* Center: map */}
-        <div className="flex-1 relative rounded-xl overflow-hidden border border-border glass-elevated min-h-0">
+        <div
+          className="flex-1 relative rounded-xl overflow-hidden min-h-0"
+          style={{ border: "1px solid rgba(34,197,94,0.12)", boxShadow: "0 0 32px rgba(34,197,94,0.04), inset 0 0 0 1px rgba(34,197,94,0.05)" }}
+        >
           {/* HUD scan line */}
           <div className="scan-line pointer-events-none z-10" />
 
           {/* Corner brackets */}
-          {["top-2 left-2 border-t border-l","top-2 right-2 border-t border-r",
-            "bottom-2 left-2 border-b border-l","bottom-2 right-2 border-b border-r"
+          {[
+            "top-2 left-2 border-t border-l",
+            "top-2 right-2 border-t border-r",
+            "bottom-2 left-2 border-b border-l",
+            "bottom-2 right-2 border-b border-r",
           ].map((cls, i) => (
-            <div key={i} className={`absolute w-4 h-4 ${cls} border-primary/40 z-10 pointer-events-none`} />
+            <div key={i} className={`absolute w-4 h-4 ${cls} border-primary/30 z-10 pointer-events-none`} />
           ))}
 
-          {/* Map title */}
+          {/* Map title HUD */}
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
-            <div className="glass px-3 py-1 rounded-full flex items-center gap-2">
+            <div
+              className="px-4 py-1 rounded-full flex items-center gap-2"
+              style={{
+                background: "rgba(7,18,9,0.75)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(34,197,94,0.18)",
+                boxShadow: "0 0 16px rgba(34,197,94,0.08)",
+              }}
+            >
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text">ARGENTINA · ANÁLISIS GEOESPACIAL v2.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS REAL WORLD LAYERS v3.0</span>
+              <span className="tactical-text opacity-50">·</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-08</span>
             </div>
           </div>
 
-          {/* Coordinate + GIS status overlay */}
+          {/* GIS status overlay (bottom-left) */}
           <div className="absolute bottom-10 left-3 z-[500] pointer-events-none flex flex-col gap-1">
-            <div className="glass px-2 py-1 rounded">
-              <span className="tactical-text">34°00′S · 64°00′O · EPSG:4326</span>
+            <div
+              className="px-2 py-1 rounded"
+              style={{ background: "rgba(7,18,9,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.12)" }}
+            >
+              <span className="tactical-text">EPSG:4326 · WGS84 · {currentBasemap}</span>
             </div>
             {!geoLoading && !geoError && (
-              <div className="glass px-2 py-1 rounded">
-                <span className="tactical-text text-success-DEFAULT">COROPLÉTICO OK · {geoData?.features?.length ?? 0} provincias</span>
+              <div
+                className="px-2 py-1 rounded"
+                style={{ background: "rgba(7,18,9,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.10)" }}
+              >
+                <span className="tactical-text text-success-DEFAULT">
+                  {geoData?.features?.length ?? 0} provincias · {activeLayers} capas activas
+                </span>
               </div>
             )}
             {geoError && (
-              <div className="glass px-2 py-1 rounded border border-danger-DEFAULT/30">
+              <div
+                className="px-2 py-1 rounded"
+                style={{ background: "rgba(7,18,9,0.75)", border: "1px solid rgba(224,62,62,0.3)" }}
+              >
                 <span className="tactical-text text-danger-DEFAULT">GeoJSON Error: {geoError}</span>
               </div>
             )}
           </div>
 
-          {/* Active layers badges */}
-          <div className="absolute bottom-10 right-12 z-[500] pointer-events-none flex flex-col gap-1 items-end">
-            {Object.entries(layers).filter(([, v]) => v).map(([k]) => (
-              <div key={k} className="glass px-1.5 py-0.5 rounded flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-primary" />
-                <span className="tactical-text text-2xs">{k}</span>
-              </div>
-            ))}
+          {/* Active layer badges (bottom-right, above legend) */}
+          <div className="absolute bottom-24 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
+            {Object.entries(layers).filter(([k, v]) => v && k !== "coords").map(([k]) => {
+              const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS];
+              const def = allDefs.find(d => d.key === k);
+              return (
+                <div
+                  key={k}
+                  className="px-1.5 py-0.5 rounded flex items-center gap-1"
+                  style={{ background: "rgba(7,18,9,0.75)", border: `1px solid ${def?.color ?? "#22C55E"}30` }}
+                >
+                  <span className="w-1 h-1 rounded-full" style={{ background: def?.color ?? "#22C55E" }} />
+                  <span className="tactical-text text-2xs">{def?.label ?? k}</span>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Advanced legend */}
+          <MapLegendAdvanced metric={metric} layers={layers} />
 
           <LeafletMap
             sucursales={sucursales}
             depositos={depositos}
             clientes={clienteMarkers}
             routes={gisRoutes}
+            basemap={basemap}
             showChoropleth={layers.choropleth}
             showHeatmap={layers.heatmap}
+            showDepartamentos={layers.departamentos}
+            showMunicipios={layers.municipios}
+            showVial={layers.vial}
+            showPuertos={layers.puertos}
             showSucursales={layers.sucursales}
             showDepositos={layers.depositos}
             showClientes={layers.clientes}
             showRadios={layers.radios}
+            showCoords={layers.coords}
             metric={metric}
             geoData={geoData}
             geoLoading={geoLoading}
@@ -471,21 +651,24 @@ export default function GISPage() {
         </div>
 
         {/* Right panel */}
-        <div className="w-[190px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
-          <div className="glass rounded-xl p-1 flex gap-1 flex-shrink-0">
+        <div className="w-[195px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+          <div
+            className="rounded-xl p-1 flex gap-1 flex-shrink-0"
+            style={{ background: "rgba(7,18,9,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.10)" }}
+          >
             {([
-              { id: "ops", label: "Operaciones" },
-              { id: "analytics", label: "Análisis" },
-              { id: "network", label: "Network" },
-              { id: "routing", label: "Routing" },
+              { id: "ops",      label: "Ops" },
+              { id: "analytics",label: "GIS" },
+              { id: "network",  label: "Net" },
+              { id: "routing",  label: "Log" },
             ] as const).map(t => (
               <button
                 key={t.id}
                 onClick={() => setRightTab(t.id)}
-                className={`flex-1 py-1 rounded text-2xs font-mono transition-all ${
+                className={`flex-1 py-1 rounded text-2xs font-mono transition-all border ${
                   rightTab === t.id
-                    ? "bg-primary-dim text-primary border border-primary/30"
-                    : "text-text-muted hover:text-text-secondary"
+                    ? "bg-primary-dim text-primary border-primary/30"
+                    : "text-text-muted border-transparent hover:text-text-secondary"
                 }`}
               >
                 {t.label}
@@ -493,29 +676,43 @@ export default function GISPage() {
             ))}
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
-            {rightTab === "ops" ? <RightPanel selected={selected} />
+            {rightTab === "ops"      ? <RightPanel selected={selected} layers={layers} />
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
-              : rightTab === "network" ? <NetworkIntelligencePanel />
+              : rightTab === "network"   ? <NetworkIntelligencePanel />
               : <RoutingPanel />}
           </div>
         </div>
       </div>
 
-      {/* Status bar */}
-      <div className="glass rounded-xl mt-2 px-4 py-1.5 flex items-center justify-between flex-shrink-0">
+      {/* ── Status bar ──────────────────────────────────────────────── */}
+      <div
+        className="rounded-xl mt-2 px-4 py-1.5 flex items-center justify-between flex-shrink-0"
+        style={{
+          background: "rgba(7,18,9,0.65)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(34,197,94,0.10)",
+          boxShadow: "0 0 16px rgba(34,197,94,0.03)",
+        }}
+      >
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span className="tactical-text">CartoDB Dark Matter · OpenStreetMap</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" style={{ boxShadow: "0 0 4px rgba(34,197,94,0.7)" }} />
+            <span className="tactical-text">{currentBasemap}</span>
           </div>
-          <span className="tactical-text border-l border-border pl-4">IGN Argentina Provincias</span>
-          <span className="tactical-text border-l border-border pl-4">Datos: 2026-06-16</span>
+          <span className="tactical-text border-l border-border pl-4">IGN Argentina · INDEC 2022</span>
+          <span className="tactical-text border-l border-border pl-4">529 departamentos · 2.313 municipios</span>
+          <span className="tactical-text border-l border-border pl-4">5 puertos · 6 rutas nacionales</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="tactical-text">
-            Métrica: <span className="text-primary font-mono">{metric.toUpperCase()}</span>
+            KPI: <span className="text-primary font-mono">{metric.toUpperCase()}</span>
           </span>
-          <span className="tactical-text border-l border-border pl-3">AgroNova GIS v2.0</span>
+          <span className="tactical-text border-l border-border pl-3">
+            Capas: <span className="text-primary font-mono">{activeLayers}</span>
+          </span>
+          <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
+            AgroNova GIS v3.0 · Sprint GIS-08
+          </span>
         </div>
       </div>
     </div>

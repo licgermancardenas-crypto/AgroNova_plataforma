@@ -1,0 +1,130 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -60.7651,
+          -26.387
+        ]
+      },
+      "properties": {
+        "provincia": "Chaco",
+        "ciudad_candidata": "Resistencia",
+        "macro_region": "NEA",
+        "lat": -26.387,
+        "lon": -60.7651,
+        "agr_ha_m": 3.2,
+        "opportunity_score": 64.0,
+        "gap_score": 3.2,
+        "expansion_score": 64.0,
+        "dist_sucursal_mas_cercana_km": 594.8,
+        "cluster": "Zona Aislada de Alto Potencial",
+        "justificacion": "Resistencia (Chaco): 3.2M ha de potencial agrícola, 0 clientes activos, opportunity score 64.0/100, a 595 km de la sucursal más cercana. Pertenece a 'Zona Aislada de Alto Potencial'.",
+        "fuera_cobertura_150km": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -63.2526,
+          -27.7834
+        ]
+      },
+      "properties": {
+        "provincia": "Santiago del Estero",
+        "ciudad_candidata": "Santiago del Estero",
+        "macro_region": "NOA",
+        "lat": -27.7834,
+        "lon": -63.2526,
+        "agr_ha_m": 2.8,
+        "opportunity_score": 62.9,
+        "gap_score": 2.8,
+        "expansion_score": 62.9,
+        "dist_sucursal_mas_cercana_km": 512.0,
+        "cluster": "Zona Aislada de Alto Potencial",
+        "justificacion": "Santiago del Estero (Santiago del Estero): 2.8M ha de potencial agrícola, 0 clientes activos, opportunity score 62.9/100, a 512 km de la sucursal más cercana. Pertenece a 'Zona Aislada de Alto Potencial'.",
+        "fuera_cobertura_150km": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -57.8011,
+          -28.7742
+        ]
+      },
+      "properties": {
+        "provincia": "Corrientes",
+        "ciudad_candidata": "Corrientes",
+        "macro_region": "NEA",
+        "lat": -28.7742,
+        "lon": -57.8011,
+        "agr_ha_m": 2.0,
+        "opportunity_score": 60.6,
+        "gap_score": 2.0,
+        "expansion_score": 60.6,
+        "dist_sucursal_mas_cercana_km": 420.1,
+        "cluster": "Cluster Comercial Activo",
+        "justificacion": "Corrientes (Corrientes): 2.0M ha de potencial agrícola, 0 clientes activos, opportunity score 60.6/100, a 420 km de la sucursal más cercana. Pertenece a 'Cluster Comercial Activo'.",
+        "fuera_cobertura_150km": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -64.8142,
+          -24.2993
+        ]
+      },
+      "properties": {
+        "provincia": "Salta",
+        "ciudad_candidata": "Salta",
+        "macro_region": "NOA",
+        "lat": -24.2993,
+        "lon": -64.8142,
+        "agr_ha_m": 1.8,
+        "opportunity_score": 60.1,
+        "gap_score": 1.8,
+        "expansion_score": 60.1,
+        "dist_sucursal_mas_cercana_km": 927.3,
+        "cluster": "Zona Aislada de Alto Potencial",
+        "justificacion": "Salta (Salta): 1.8M ha de potencial agrícola, 0 clientes activos, opportunity score 60.1/100, a 927 km de la sucursal más cercana. Pertenece a 'Zona Aislada de Alto Potencial'.",
+        "fuera_cobertura_150km": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0252,
+          -33.7611
+        ]
+      },
+      "properties": {
+        "provincia": "San Luis",
+        "ciudad_candidata": "San Luis",
+        "macro_region": "CUY",
+        "lat": -33.7611,
+        "lon": -66.0252,
+        "agr_ha_m": 1.5,
+        "opportunity_score": 59.2,
+        "gap_score": 1.5,
+        "expansion_score": 59.2,
+        "dist_sucursal_mas_cercana_km": 170.5,
+        "cluster": "Cluster Comercial Activo",
+        "justificacion": "San Luis (San Luis): 1.5M ha de potencial agrícola, 0 clientes activos, opportunity score 59.2/100, a 170 km de la sucursal más cercana. Pertenece a 'Cluster Comercial Activo'.",
+        "fuera_cobertura_150km": true
+      }
+    }
+  ]
+}

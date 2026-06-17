@@ -482,7 +482,7 @@ export interface DepotLoad {
   by_deposito: DepotLoadRecord[];
 }
 
-export type RiskLevel = "Alto" | "Medio" | "Bajo";
+export type RouteRiskLevel = "Alto" | "Medio" | "Bajo";
 
 export interface RouteRiskByDeposito {
   deposito_id: number;
@@ -495,7 +495,7 @@ export interface RouteRiskByDeposito {
   pct_en_transito: number;
   dias_demora_prom: number;
   incidencia_score: number;
-  risk_level: RiskLevel;
+  risk_level: RouteRiskLevel;
 }
 
 export interface RouteRiskByTipoEnvio {
@@ -507,7 +507,7 @@ export interface RouteRiskByTipoEnvio {
   pct_en_transito: number;
   dias_demora_prom: number;
   incidencia_score: number;
-  risk_level: RiskLevel;
+  risk_level: RouteRiskLevel;
 }
 
 export interface RouteRisk {
@@ -551,6 +551,30 @@ export interface GISRoute {
   color: string;
   activo: boolean;
   toneladas_mes?: number;
+}
+
+// ── GIS-08 Real World Layers ──────────────────────────────────────────────────
+
+export type BasemapId = "dark" | "voyager" | "esri_gray" | "osm_hot" | "esri_imagery";
+
+export interface BasemapDef {
+  id: BasemapId;
+  label: string;
+  url: string;
+  attribution: string;
+}
+
+export type VialRouteType = "nacional_primaria" | "nacional_secundaria" | "provincial";
+
+export interface PuertoNode {
+  id: number;
+  nombre: string;
+  tipo: "puerto_principal" | "puerto_fluvial" | "terminal_granaria";
+  lat: number;
+  lon: number;
+  capacidad_mton_anio: number;
+  principales_granos: string[];
+  operador: string;
 }
 
 // ── Alert ────────────────────────────────────────────────────────────────────
