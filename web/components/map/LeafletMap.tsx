@@ -1,14 +1,19 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline } from "react-leaflet";
 import L from "leaflet";
 import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric } from "@/types";
 import { fmtARS } from "@/lib/formatters";
 import { PROVINCE_KPIS } from "@/lib/geo-data";
-import ChoroplethLayer   from "./ChoroplethLayer";
-import ClientClusterLayer from "./ClientClusterLayer";
-import HeatmapLayer      from "./HeatmapLayer";
-import MapLegend         from "./MapLegend";
+import ChoroplethLayer      from "./ChoroplethLayer";
+import ClientClusterLayer   from "./ClientClusterLayer";
+import HeatmapLayer         from "./HeatmapLayer";
+import MapLegend            from "./MapLegend";
+import VoronoiTerritoryLayer from "./VoronoiTerritoryLayer";
+import CoverageBufferLayer   from "./CoverageBufferLayer";
+import CandidateBranchLayer  from "./CandidateBranchLayer";
+import HotspotPolygonLayer   from "./HotspotPolygonLayer";
+import RoutingRiskLayer      from "./RoutingRiskLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -32,29 +37,36 @@ const depositoIcon = L.divIcon({
 });
 
 interface Props {
-  sucursales:       SucursalMarker[];
-  depositos:        DepositoMarker[];
-  clientes:         ClienteMapMarker[];
-  routes?:          GISRoute[];
-  // Layer toggles
-  showChoropleth:   boolean;
-  showHeatmap:      boolean;
-  showSucursales:   boolean;
-  showDepositos:    boolean;
-  showClientes:     boolean;
-  showRadios:       boolean;
+  sucursales:        SucursalMarker[];
+  depositos:         DepositoMarker[];
+  clientes:          ClienteMapMarker[];
+  routes?:           GISRoute[];
+  // Layer toggles — existing
+  showChoropleth:    boolean;
+  showHeatmap:       boolean;
+  showSucursales:    boolean;
+  showDepositos:     boolean;
+  showClientes:      boolean;
+  showRadios:        boolean;
+  // Layer toggles — GIS-07
+  showVoronoi:       boolean;
+  showBuffers:       boolean;
+  showCandidatos:    boolean;
+  showHotspots:      boolean;
+  showRoutingRisk:   boolean;
   // Metric
-  metric:           GisMetric;
+  metric:            GisMetric;
   // GeoJSON
-  geoData:          GeoJSON.FeatureCollection | null;
-  geoLoading:       boolean;
+  geoData:           GeoJSON.FeatureCollection | null;
+  geoLoading:        boolean;
   // Callbacks
-  onProvinceClick:  (kpi: ProvinceKPI) => void;
+  onProvinceClick:   (kpi: ProvinceKPI) => void;
 }
 
 export default function LeafletMap({
   sucursales, depositos, clientes, routes = [],
   showChoropleth, showHeatmap, showSucursales, showDepositos, showClientes, showRadios,
+  showVoronoi, showBuffers, showCandidatos, showHotspots, showRoutingRisk,
   metric, geoData, geoLoading, onProvinceClick,
 }: Props) {
   return (
@@ -70,7 +82,10 @@ export default function LeafletMap({
         attribution="&copy; OpenStreetMap &copy; CARTO"
       />
 
-      {/* Choropleth province polygons */}
+      {/* Voronoi territory polygons (bottom-most layer) */}
+      <VoronoiTerritoryLayer visible={showVoronoi} />
+
+      {/* Choropleth province fill */}
       {showChoropleth && !geoLoading && geoData && (
         <ChoroplethLayer
           geoData={geoData}
@@ -80,12 +95,18 @@ export default function LeafletMap({
         />
       )}
 
-      {/* Commercial activity heatmap (beneath markers) */}
+      {/* Hotspot polygons */}
+      <HotspotPolygonLayer visible={showHotspots} />
+
+      {/* Coverage buffer polygons */}
+      <CoverageBufferLayer visible={showBuffers} />
+
+      {/* Commercial activity heatmap */}
       {showHeatmap && (
         <HeatmapLayer kpis={PROVINCE_KPIS} metric={metric} visible={showHeatmap} />
       )}
 
-      {/* Sucursal coverage radii */}
+      {/* Sucursal coverage radii (simple circles) */}
       {showRadios && sucursales.map(s => (
         <Circle
           key={`r${s.id}`}
@@ -95,30 +116,30 @@ export default function LeafletMap({
         />
       ))}
 
-      {/* Logistics routes */}
-      {routes.map(r => {
-        const PolylineComp = require("react-leaflet").Polyline;
-        return (
-          <PolylineComp
-            key={`rt${r.id}`}
-            positions={[r.from, r.to]}
-            pathOptions={{
-              color:     r.activo ? r.color : "#3E5A3E",
-              weight:    r.activo ? 2 : 1,
-              opacity:   r.activo ? 0.7 : 0.25,
-              dashArray: r.activo ? undefined : "6 4",
-            }}
-          >
-            <Popup>
-              <div style={{ fontSize: 11 }}>
-                <div style={{ fontWeight: 700, marginBottom: 3, color: "#DCE8DC" }}>{r.label}</div>
-                {r.toneladas_mes && <div style={{ color: "#7A9C7A" }}>Carga: <span style={{ color: "#22C55E", fontFamily: "monospace" }}>{r.toneladas_mes.toLocaleString()} ton/mes</span></div>}
-                <div style={{ color: "#7A9C7A" }}>Estado: <span style={{ color: r.activo ? "#22C55E" : "#E8A020" }}>{r.activo ? "Activa" : "Inactiva"}</span></div>
-              </div>
-            </Popup>
-          </PolylineComp>
-        );
-      })}
+      {/* Logistics routing with risk coloring */}
+      <RoutingRiskLayer visible={showRoutingRisk} />
+
+      {/* Legacy static routes (kept for non-risk view) */}
+      {!showRoutingRisk && routes.map(r => (
+        <Polyline
+          key={`rt${r.id}`}
+          positions={[r.from, r.to]}
+          pathOptions={{
+            color:     r.activo ? r.color : "#3E5A3E",
+            weight:    r.activo ? 2 : 1,
+            opacity:   r.activo ? 0.7 : 0.25,
+            dashArray: r.activo ? undefined : "6 4",
+          }}
+        >
+          <Popup>
+            <div style={{ fontSize: 11 }}>
+              <div style={{ fontWeight: 700, marginBottom: 3, color: "#DCE8DC" }}>{r.label}</div>
+              {r.toneladas_mes && <div style={{ color: "#7A9C7A" }}>Carga: <span style={{ color: "#22C55E", fontFamily: "monospace" }}>{r.toneladas_mes.toLocaleString()} ton/mes</span></div>}
+              <div style={{ color: "#7A9C7A" }}>Estado: <span style={{ color: r.activo ? "#22C55E" : "#E8A020" }}>{r.activo ? "Activa" : "Inactiva"}</span></div>
+            </div>
+          </Popup>
+        </Polyline>
+      ))}
 
       {/* Sucursales */}
       {showSucursales && sucursales.map(s => (
@@ -150,6 +171,9 @@ export default function LeafletMap({
 
       {/* Clients with zoom-aware clustering */}
       <ClientClusterLayer clientes={clientes} visible={showClientes} />
+
+      {/* Candidate branch locations */}
+      <CandidateBranchLayer visible={showCandidatos} />
 
       {/* Dynamic legend */}
       <MapLegend metric={metric} kpis={PROVINCE_KPIS} />

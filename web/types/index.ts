@@ -246,7 +246,7 @@ export interface NavItem {
 
 // ── GIS v2.0 ─────────────────────────────────────────────────────────────────
 
-export type GisMetric = "revenue" | "clientes" | "margen" | "churn";
+export type GisMetric = "revenue" | "clientes" | "margen" | "churn" | "otif";
 
 export interface ProvinceKPI {
   nombre: string;
@@ -482,7 +482,7 @@ export interface DepotLoad {
   by_deposito: DepotLoadRecord[];
 }
 
-export type RiskLevel = "Alto" | "Medio" | "Bajo";
+export type RouteRiskLevel = "Alto" | "Medio" | "Bajo";
 
 export interface RouteRiskByDeposito {
   deposito_id: number;
@@ -495,7 +495,7 @@ export interface RouteRiskByDeposito {
   pct_en_transito: number;
   dias_demora_prom: number;
   incidencia_score: number;
-  risk_level: RiskLevel;
+  risk_level: RouteRiskLevel;
 }
 
 export interface RouteRiskByTipoEnvio {
@@ -507,7 +507,7 @@ export interface RouteRiskByTipoEnvio {
   pct_en_transito: number;
   dias_demora_prom: number;
   incidencia_score: number;
-  risk_level: RiskLevel;
+  risk_level: RouteRiskLevel;
 }
 
 export interface RouteRisk {

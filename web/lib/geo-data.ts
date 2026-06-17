@@ -45,11 +45,18 @@ export function getMetricValue(kpi: ProvinceKPI, metric: GisMetric): number {
     case "clientes":  return kpi.n_activos;
     case "margen":    return kpi.margen_pct;
     case "churn":     return kpi.churn_score;
+    case "otif":      return kpi.otif_pct;
   }
 }
 
 export function getMetricLabel(metric: GisMetric): string {
-  return { revenue: "Revenue ARS", clientes: "Clientes Activos", margen: "Margen %", churn: "Riesgo Churn" }[metric];
+  return {
+    revenue:  "Revenue ARS",
+    clientes: "Clientes Activos",
+    margen:   "Margen %",
+    churn:    "Riesgo Churn",
+    otif:     "OTIF %",
+  }[metric];
 }
 
 export function interpolateColor(t: number, metric: GisMetric): string {
@@ -59,6 +66,13 @@ export function interpolateColor(t: number, metric: GisMetric): string {
     const r = Math.round(7   + clamp * (224 - 7));
     const g = Math.round(62  + (1 - clamp) * (197 - 62));
     const b = Math.round(4   + clamp * (62 - 4));
+    return `rgb(${r},${g},${b})`;
+  }
+  if (metric === "otif") {
+    // low OTIF = bad = red, high OTIF = good = green (inverted relative to raw value)
+    const r = Math.round(7   + (1 - clamp) * (224 - 7));
+    const g = Math.round(18  + clamp * (197 - 18));
+    const b = Math.round(9   + (1 - clamp) * (62 - 9));
     return `rgb(${r},${g},${b})`;
   }
   // dark → primary green (#071209 → #22C55E)

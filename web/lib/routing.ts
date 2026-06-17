@@ -1,4 +1,4 @@
-import type { EstadoCarga, RiskLevel } from "@/types";
+import type { EstadoCarga, RouteRiskLevel } from "@/types";
 
 export const ROUTING_ENDPOINTS = {
   transportCosts:       "/data/gis_outputs/transport_costs.json",
@@ -13,7 +13,7 @@ export const ESTADO_CARGA_COLOR: Record<EstadoCarga, string> = {
   "Subutilizado (relativo)": "#E8A020",
 };
 
-export const RISK_LEVEL_COLOR: Record<RiskLevel, string> = {
+export const RISK_LEVEL_COLOR: Record<RouteRiskLevel, string> = {
   "Alto":  "#E03E3E",
   "Medio": "#E8A020",
   "Bajo":  "#22C55E",

@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
-  AlertTriangle, ChevronRight, RefreshCw, BarChart2,
+  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Zap,
+  GitBranch, Shield, MapPinPlus,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
@@ -12,9 +13,9 @@ import type { ProvinceKPI, GisMetric } from "@/types";
 import {
   PROVINCE_KPIS, NATIONAL_TOTALS, getLowCoverageProvinces, getMetricValue,
 } from "@/lib/geo-data";
-import SpatialAnalyticsPanel from "@/components/gis/SpatialAnalyticsPanel";
+import SpatialAnalyticsPanel   from "@/components/gis/SpatialAnalyticsPanel";
 import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel";
-import RoutingPanel from "@/components/gis/RoutingPanel";
+import RoutingPanel             from "@/components/gis/RoutingPanel";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -32,6 +33,22 @@ const METRICS: { id: GisMetric; label: string; color: string }[] = [
   { id: "clientes", label: "Clientes", color: "#4ADE80" },
   { id: "margen",   label: "Margen",   color: "#A3E635" },
   { id: "churn",    label: "Churn",    color: "#E03E3E" },
+  { id: "otif",     label: "OTIF",     color: "#0EA5E9" },
+];
+
+// ── Layer definitions ─────────────────────────────────────────────────────────
+const LAYER_DEFS = [
+  { key: "choropleth",   label: "Coroplético",      color: "#22C55E", icon: "▪" },
+  { key: "voronoi",      label: "Territorios",      color: "#4ADE80", icon: "⬡" },
+  { key: "hotspots",     label: "Hotspots",          color: "#22C55E", icon: "🔥" },
+  { key: "heatmap",      label: "Densidad",          color: "#0DB87E", icon: "◉" },
+  { key: "buffers",      label: "Cobertura",         color: "#A3E635", icon: "◎" },
+  { key: "candidatos",   label: "Candidatos",        color: "#E8A020", icon: "📍" },
+  { key: "routing_risk", label: "Rutas c/ Riesgo",  color: "#E03E3E", icon: "🚛" },
+  { key: "sucursales",   label: "Sucursales",        color: "#22C55E", icon: "◉" },
+  { key: "depositos",    label: "Depósitos",         color: "#E8A020", icon: "◉" },
+  { key: "clientes",     label: "Clientes",          color: "#0DB87E", icon: "◉" },
+  { key: "radios",       label: "Radios Cobertura",  color: "#A3E635", icon: "○" },
 ];
 
 // ── Stat chip ────────────────────────────────────────────────────────────────
@@ -68,20 +85,17 @@ function LeftPanel({
     if (metric === "revenue")  return fmtARS(v, true);
     if (metric === "clientes") return fmtNumber(v);
     if (metric === "margen")   return `${v.toFixed(1)}%`;
+    if (metric === "otif")     return `${v.toFixed(1)}%`;
     return `${(v * 100).toFixed(0)}%`;
   };
 
-  const LAYER_DEFS = [
-    { key: "choropleth", label: "Coroplético",    color: "#22C55E" },
-    { key: "heatmap",    label: "Heatmap",         color: "#4ADE80" },
-    { key: "sucursales", label: "Sucursales",      color: "#22C55E" },
-    { key: "depositos",  label: "Depósitos",       color: "#E8A020" },
-    { key: "clientes",   label: "Clientes",        color: "#0DB87E" },
-    { key: "radios",     label: "Radios Cobertura",color: "#A3E635" },
-  ];
+  // Split layers into two groups for compactness
+  const primaryLayers  = LAYER_DEFS.slice(0, 7);
+  const markerLayers   = LAYER_DEFS.slice(7);
 
   return (
     <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-0.5">
+
       {/* Metric selector */}
       <div className="glass rounded-xl p-3">
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
@@ -105,28 +119,50 @@ function LeftPanel({
         </div>
       </div>
 
-      {/* Layer toggles */}
+      {/* Map layers */}
       <div className="glass rounded-xl p-3">
-        <p className="tactical-text mb-2.5 flex items-center gap-1.5">
-          <Layers size={10} /><span>Capas</span>
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Layers size={10} /><span>Capas del Mapa</span>
         </p>
-        <div className="space-y-1.5">
-          {LAYER_DEFS.map(l => (
+        <div className="space-y-1">
+          {primaryLayers.map(l => (
             <button
               key={l.key}
               onClick={() => toggleLayer(l.key)}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-all border ${
+              className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs transition-all border ${
                 layers[l.key]
                   ? "bg-primary-dim border-primary/30 text-text-primary"
                   : "bg-bg-elevated border-border text-text-muted hover:border-border-accent"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ background: layers[l.key] ? l.color : "#3E5A3E" }} />
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: layers[l.key] ? l.color : "#3E5A3E" }} />
+                <span className="truncate max-w-[110px]">{l.label}</span>
+              </div>
+              <span className={`text-2xs font-mono ${layers[l.key] ? "text-primary" : "text-text-muted"}`}>
+                {layers[l.key] ? "ON" : "—"}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-1.5 pt-1.5 border-t border-border space-y-1">
+          <p className="tactical-text text-2xs mb-1">Marcadores</p>
+          {markerLayers.map(l => (
+            <button
+              key={l.key}
+              onClick={() => toggleLayer(l.key)}
+              className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs transition-all border ${
+                layers[l.key]
+                  ? "bg-primary-dim border-primary/30 text-text-primary"
+                  : "bg-bg-elevated border-border text-text-muted hover:border-border-accent"
+              }`}
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: layers[l.key] ? l.color : "#3E5A3E" }} />
                 <span>{l.label}</span>
               </div>
               <span className={`text-2xs font-mono ${layers[l.key] ? "text-primary" : "text-text-muted"}`}>
-                {layers[l.key] ? "ON" : "OFF"}
+                {layers[l.key] ? "ON" : "—"}
               </span>
             </button>
           ))}
@@ -166,7 +202,7 @@ function LeftPanel({
           <p className="tactical-text mb-2 flex items-center gap-1.5">
             <Activity size={10} /><span>Provincia Seleccionada</span>
           </p>
-          <p className="text-xs text-text-primary font-semibold mb-2 truncate">{selected.nombre}</p>
+          <p className="text-xs text-text-primary font-semibold mb-1 truncate">{selected.nombre}</p>
           <span className="tactical-text text-2xs mb-2 block">{selected.macro_region}</span>
           <div className="space-y-1.5 text-2xs">
             {[
@@ -212,6 +248,16 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
   const lowCoverage = getLowCoverageProvinces();
   const activeRoutes = gisRoutes.filter(r => r.activo).length;
 
+  // Dynamic alerts derived from KPI data
+  const highChurnProvs = PROVINCE_KPIS.filter(p => p.churn_score > 0.38).slice(0, 2);
+  const lowOtifProvs   = PROVINCE_KPIS.filter(p => p.otif_pct < 87).slice(0, 2);
+  const alerts = [
+    ...highChurnProvs.map(p => ({ msg: `Churn ${(p.churn_score * 100).toFixed(0)}% en ${p.nombre}`, c: "#E03E3E" })),
+    ...lowOtifProvs.map(p =>   ({ msg: `OTIF ${p.otif_pct.toFixed(1)}% bajo target en ${p.macro_region}`, c: "#E8A020" })),
+    { msg: "Depósito Salta Norte 91% cap.", c: "#E8A020" },
+    { msg: "5 sucursales candidatas sin cobertura", c: "#0EA5E9" },
+  ].slice(0, 5);
+
   return (
     <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-0.5">
       {/* National KPIs */}
@@ -240,6 +286,10 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
             <span className="text-text-muted">Rutas Activas</span>
             <span className="font-mono text-text-primary">{activeRoutes}/{gisRoutes.length}</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-text-muted">OTIF Nacional</span>
+            <span className="font-mono text-success-DEFAULT">91.4%</span>
+          </div>
         </div>
       </div>
 
@@ -266,7 +316,28 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
         </div>
       </div>
 
-      {/* Low coverage provinces */}
+      {/* Expansion candidates */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <MapPinPlus size={10} /><span>Candidatos Expansión</span>
+        </p>
+        <div className="space-y-1.5 text-2xs">
+          {[
+            { ciudad: "Resistencia (Chaco)",    score: 64.0, dist: 595 },
+            { ciudad: "Sgo. del Estero",         score: 62.9, dist: 512 },
+            { ciudad: "Corrientes",              score: 60.6, dist: 420 },
+            { ciudad: "Salta",                   score: 60.1, dist: 927 },
+            { ciudad: "San Luis",                score: 59.2, dist: 170 },
+          ].map(c => (
+            <div key={c.ciudad} className="flex justify-between">
+              <span className="text-text-secondary truncate max-w-[90px]">{c.ciudad}</span>
+              <span className="font-mono text-warning-DEFAULT">{c.score}/100</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Low coverage */}
       <div className="glass rounded-xl p-3">
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
           <ChevronRight size={10} /><span>Menor Cobertura</span>
@@ -287,23 +358,169 @@ function RightPanel({ selected }: { selected: ProvinceKPI | null }) {
         </div>
       </div>
 
-      {/* GIS alerts */}
+      {/* GIS alerts — data-derived */}
       <div className="glass rounded-xl p-3">
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
           <AlertTriangle size={10} /><span>Alertas GIS</span>
         </p>
         <div className="space-y-2">
-          {[
-            { msg: "Depósito Rosario 87% cap.",   c: "#E8A020" },
-            { msg: "OTIF NEA por debajo target",  c: "#E03E3E" },
-            { msg: "Chaco: alto gap territorial", c: "#E8A020" },
-            { msg: "Churn > 40% en NOA periférico", c: "#E03E3E" },
-          ].map((a, i) => (
+          {alerts.map((a, i) => (
             <div key={i} className="flex items-start gap-1.5 text-2xs">
               <span className="w-1.5 h-1.5 rounded-full mt-0.5 flex-shrink-0" style={{ background: a.c }} />
               <span className="text-text-muted">{a.msg}</span>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Bottom panel ──────────────────────────────────────────────────────────────
+function BottomPanel({
+  metric, activeLayers, geoLoading, geoError,
+}: {
+  metric: GisMetric;
+  activeLayers: number;
+  geoLoading: boolean;
+  geoError: string | null;
+}) {
+  const top5 = [...PROVINCE_KPIS]
+    .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
+    .slice(0, 5);
+  const topVal = getMetricValue(top5[0], metric);
+
+  const fmtShort = (kpi: ProvinceKPI) => {
+    const v = getMetricValue(kpi, metric);
+    if (metric === "revenue")  return fmtARS(v, true);
+    if (metric === "clientes") return fmtNumber(v);
+    if (metric === "otif")     return `${v.toFixed(1)}%`;
+    if (metric === "margen")   return `${v.toFixed(1)}%`;
+    return `${(v * 100).toFixed(0)}%`;
+  };
+
+  const regionKpis = (["PAM","NOA","NEA","CUY","PAT"] as const).map(r => ({
+    region: r,
+    revenue: PROVINCE_KPIS.filter(p => p.macro_region === r).reduce((s, p) => s + p.revenue_ars, 0),
+    clientes: PROVINCE_KPIS.filter(p => p.macro_region === r).reduce((s, p) => s + p.n_activos, 0),
+  }));
+
+  return (
+    <div className="glass rounded-xl mt-2 flex-shrink-0 overflow-hidden">
+      {/* Top section: data panels */}
+      <div className="flex divide-x divide-border" style={{ height: 76 }}>
+
+        {/* Top 5 provincias */}
+        <div className="flex-1 px-3 py-2 overflow-hidden">
+          <p className="tactical-text mb-2 flex items-center gap-1">
+            <TrendingUp size={9} />
+            <span>Top Provincias · <span className="text-primary">{metric.toUpperCase()}</span></span>
+          </p>
+          <div className="flex gap-2.5 items-end h-[38px]">
+            {top5.map((p, i) => {
+              const val  = getMetricValue(p, metric);
+              const pct  = topVal > 0 ? (val / topVal) * 100 : 0;
+              const barH = Math.max(6, Math.round((pct / 100) * 28));
+              return (
+                <div key={p.nombre} className="flex flex-col items-center min-w-0 gap-0.5">
+                  <span className="font-mono text-2xs text-primary leading-none" style={{ fontSize: 9 }}>{fmtShort(p)}</span>
+                  <div className="w-7 bg-bg-elevated rounded-sm overflow-hidden flex items-end" style={{ height: 28 }}>
+                    <div className="w-full rounded-sm bg-primary/60" style={{ height: barH }} />
+                  </div>
+                  <span className="text-text-muted truncate max-w-[30px]" style={{ fontSize: 8 }}>
+                    {p.nombre.split(" ")[0]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Region breakdown */}
+        <div className="px-3 py-2 overflow-hidden" style={{ minWidth: 220 }}>
+          <p className="tactical-text mb-2 flex items-center gap-1">
+            <GitBranch size={9} /><span>Regiones</span>
+          </p>
+          <div className="space-y-1">
+            {regionKpis.map(r => {
+              const pct = r.revenue / NATIONAL_TOTALS.revenue_ars * 100;
+              return (
+                <div key={r.region} className="flex items-center gap-2 text-2xs">
+                  <span className="text-text-muted w-7">{r.region}</span>
+                  <div className="flex-1 h-1 bg-bg-elevated rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-primary/60" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="font-mono text-primary w-10 text-right">{pct.toFixed(1)}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* National KPI chips */}
+        <div className="px-3 py-2 flex items-center gap-0 divide-x divide-border">
+          <TacStat label="Revenue Nac."  value={fmtARS(NATIONAL_TOTALS.revenue_ars, true)} accent />
+          <TacStat label="Cli. Activos"  value={fmtNumber(NATIONAL_TOTALS.n_activos)} />
+          <TacStat label="Sucursales"    value={sucursales.length} />
+          <TacStat label="OTIF Global"   value="91.4%" accent />
+          <TacStat label="Capas Activas" value={activeLayers} />
+        </div>
+
+        {/* Route risk summary */}
+        <div className="px-3 py-2 overflow-hidden" style={{ minWidth: 160 }}>
+          <p className="tactical-text mb-2 flex items-center gap-1">
+            <Shield size={9} /><span>Riesgo Logístico</span>
+          </p>
+          <div className="space-y-1.5 text-2xs">
+            {[
+              { label: "CL Río Cuarto", risk: "Alto",  score: 6.05, c: "#E03E3E" },
+              { label: "CL Rosario",    risk: "Medio", score: 5.97, c: "#E8A020" },
+              { label: "CL Pergamino",  risk: "Bajo",  score: 5.94, c: "#22C55E" },
+            ].map(d => (
+              <div key={d.label} className="flex justify-between">
+                <span className="text-text-muted truncate max-w-[80px]">{d.label}</span>
+                <span className="font-mono font-bold" style={{ color: d.c }}>{d.risk}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Alerts */}
+        <div className="px-3 py-2 overflow-hidden" style={{ minWidth: 200 }}>
+          <p className="tactical-text mb-2 flex items-center gap-1">
+            <AlertTriangle size={9} /><span>Alertas GIS Activas</span>
+          </p>
+          <div className="space-y-1">
+            {[
+              { msg: "5 zonas fuera de cobertura 150km", c: "#E03E3E" },
+              { msg: "Depósito Salta 91% capacidad",     c: "#E8A020" },
+              { msg: "OTIF NEA 86.7% bajo target 88%",  c: "#E8A020" },
+              { msg: "Churn >40% en NOA periférico",     c: "#E03E3E" },
+            ].map((a, i) => (
+              <div key={i} className="flex items-center gap-1.5 text-2xs">
+                <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: a.c }} />
+                <span className="text-text-muted truncate">{a.msg}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Status bar */}
+      <div className="border-t border-border px-4 py-1 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${geoLoading ? "bg-warning-DEFAULT animate-pulse" : geoError ? "bg-danger-DEFAULT" : "bg-primary blink"}`} />
+            <span className="tactical-text">{geoLoading ? "CARGANDO GIS…" : geoError ? "ERROR GeoJSON" : "LIVE · CartoDB Dark Matter"}</span>
+          </div>
+          <span className="tactical-text border-l border-border pl-4">IGN Argentina Provincias · EPSG:4326</span>
+          <span className="tactical-text border-l border-border pl-4">Neon PostgreSQL · {(1_901_064).toLocaleString("es-AR")} rows</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="tactical-text">
+            Métrica: <span className="text-primary font-mono">{metric.toUpperCase()}</span>
+          </span>
+          <span className="tactical-text border-l border-border pl-3">AgroNova GIS v3.0 · Sprint GIS-07</span>
         </div>
       </div>
     </div>
@@ -320,12 +537,17 @@ export default function GISPage() {
   const [geoError,   setGeoError]   = useState<string | null>(null);
   const [clock,    setClock]    = useState("");
   const [layers,   setLayers]   = useState({
-    choropleth: true,
-    heatmap:    false,
-    sucursales: true,
-    depositos:  true,
-    clientes:   true,
-    radios:     false,
+    choropleth:   true,
+    voronoi:      false,
+    hotspots:     false,
+    heatmap:      false,
+    buffers:      false,
+    candidatos:   false,
+    routing_risk: false,
+    sucursales:   true,
+    depositos:    true,
+    clientes:     true,
+    radios:       false,
   });
 
   // Clock
@@ -352,11 +574,7 @@ export default function GISPage() {
     setLayers(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
   }, []);
 
-  const totalRevenue = NATIONAL_TOTALS.revenue_ars;
-  const activeClients = NATIONAL_TOTALS.n_activos;
-  const pamShare = PROVINCE_KPIS
-    .filter(p => p.macro_region === "PAM")
-    .reduce((s, p) => s + p.revenue_pct, 0);
+  const activeLayers = Object.values(layers).filter(Boolean).length;
 
   return (
     <div className="flex flex-col h-[calc(100vh-76px)] animate-fade-in gap-0 -m-5 p-5 pt-3">
@@ -364,12 +582,12 @@ export default function GISPage() {
       {/* Tactical header */}
       <div className="glass rounded-xl mb-2 px-2 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center">
-          <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
-          <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
-          <TacStat label="Provincias"    value={NATIONAL_TOTALS.provincias} />
-          <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`} accent />
-          <TacStat label="Sucursales"    value={sucursales.length} />
-          <TacStat label="Depósitos"     value={depositos.length} />
+          <TacStat label="Rev. Nac."    value={fmtARS(NATIONAL_TOTALS.revenue_ars, true)} accent />
+          <TacStat label="Cli. Activos" value={fmtNumber(NATIONAL_TOTALS.n_activos)} />
+          <TacStat label="Provincias"   value={NATIONAL_TOTALS.provincias} />
+          <TacStat label="Sucursales"   value={sucursales.length} />
+          <TacStat label="Depósitos"    value={depositos.length} />
+          <TacStat label="OTIF Global"  value="91.4%" accent />
         </div>
         <div className="flex items-center gap-3 pr-2">
           {geoLoading && (
@@ -397,7 +615,7 @@ export default function GISPage() {
       <div className="flex gap-2 flex-1 min-h-0">
 
         {/* Left panel */}
-        <div className="w-[210px] flex-shrink-0">
+        <div className="w-[220px] flex-shrink-0">
           <LeftPanel
             metric={metric} setMetric={setMetric}
             layers={layers} toggleLayer={toggleLayer}
@@ -421,18 +639,18 @@ export default function GISPage() {
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
             <div className="glass px-3 py-1 rounded-full flex items-center gap-2">
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text">ARGENTINA · ANÁLISIS GEOESPACIAL v2.0</span>
+              <span className="tactical-text">ARGENTINA · GIS VISUAL INTELLIGENCE v3.0</span>
             </div>
           </div>
 
-          {/* Coordinate + GIS status overlay */}
+          {/* Coordinate overlay */}
           <div className="absolute bottom-10 left-3 z-[500] pointer-events-none flex flex-col gap-1">
             <div className="glass px-2 py-1 rounded">
               <span className="tactical-text">34°00′S · 64°00′O · EPSG:4326</span>
             </div>
             {!geoLoading && !geoError && (
               <div className="glass px-2 py-1 rounded">
-                <span className="tactical-text text-success-DEFAULT">COROPLÉTICO OK · {geoData?.features?.length ?? 0} provincias</span>
+                <span className="tactical-text text-success-DEFAULT">GeoJSON OK · {geoData?.features?.length ?? 0} provincias</span>
               </div>
             )}
             {geoError && (
@@ -442,14 +660,17 @@ export default function GISPage() {
             )}
           </div>
 
-          {/* Active layers badges */}
+          {/* Active layers HUD */}
           <div className="absolute bottom-10 right-12 z-[500] pointer-events-none flex flex-col gap-1 items-end">
-            {Object.entries(layers).filter(([, v]) => v).map(([k]) => (
-              <div key={k} className="glass px-1.5 py-0.5 rounded flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-primary" />
-                <span className="tactical-text text-2xs">{k}</span>
-              </div>
-            ))}
+            {Object.entries(layers).filter(([, v]) => v).map(([k]) => {
+              const def = LAYER_DEFS.find(l => l.key === k);
+              return (
+                <div key={k} className="glass px-1.5 py-0.5 rounded flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full" style={{ background: def?.color ?? "#22C55E" }} />
+                  <span className="tactical-text text-2xs">{def?.label ?? k}</span>
+                </div>
+              );
+            })}
           </div>
 
           <LeafletMap
@@ -463,6 +684,11 @@ export default function GISPage() {
             showDepositos={layers.depositos}
             showClientes={layers.clientes}
             showRadios={layers.radios}
+            showVoronoi={layers.voronoi}
+            showBuffers={layers.buffers}
+            showCandidatos={layers.candidatos}
+            showHotspots={layers.hotspots}
+            showRoutingRisk={layers.routing_risk}
             metric={metric}
             geoData={geoData}
             geoLoading={geoLoading}
@@ -474,10 +700,10 @@ export default function GISPage() {
         <div className="w-[190px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
           <div className="glass rounded-xl p-1 flex gap-1 flex-shrink-0">
             {([
-              { id: "ops", label: "Operaciones" },
-              { id: "analytics", label: "Análisis" },
-              { id: "network", label: "Network" },
-              { id: "routing", label: "Routing" },
+              { id: "ops",      label: "Ops" },
+              { id: "analytics",label: "Análisis" },
+              { id: "network",  label: "Network" },
+              { id: "routing",  label: "Routing" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -493,31 +719,21 @@ export default function GISPage() {
             ))}
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
-            {rightTab === "ops" ? <RightPanel selected={selected} />
+            {rightTab === "ops"       ? <RightPanel selected={selected} />
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
-              : rightTab === "network" ? <NetworkIntelligencePanel />
+              : rightTab === "network"   ? <NetworkIntelligencePanel />
               : <RoutingPanel />}
           </div>
         </div>
       </div>
 
-      {/* Status bar */}
-      <div className="glass rounded-xl mt-2 px-4 py-1.5 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span className="tactical-text">CartoDB Dark Matter · OpenStreetMap</span>
-          </div>
-          <span className="tactical-text border-l border-border pl-4">IGN Argentina Provincias</span>
-          <span className="tactical-text border-l border-border pl-4">Datos: 2026-06-16</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="tactical-text">
-            Métrica: <span className="text-primary font-mono">{metric.toUpperCase()}</span>
-          </span>
-          <span className="tactical-text border-l border-border pl-3">AgroNova GIS v2.0</span>
-        </div>
-      </div>
+      {/* Bottom panel — expanded */}
+      <BottomPanel
+        metric={metric}
+        activeLayers={activeLayers}
+        geoLoading={geoLoading}
+        geoError={geoError}
+      />
     </div>
   );
 }
