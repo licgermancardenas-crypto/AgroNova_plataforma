@@ -33,9 +33,9 @@ function dotIcon(color: string, size: number) {
 function clusterIcon(count: number, maxCount: number) {
   const t    = Math.sqrt(count / maxCount);
   const size = Math.round(18 + t * 28);
-  const opacity = 0.5 + t * 0.35;
+  const opacity = 0.45 + t * 0.35;
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:rgba(34,197,94,${opacity});border:1.5px solid #22C55E;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:${Math.max(9,size/3.5)}px;font-weight:700;color:#DCE8DC">${count}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:rgba(249,115,22,${opacity});border:1.5px solid #F97316;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:${Math.max(9,size/3.5)}px;font-weight:700;color:#FED7AA;box-shadow:0 0 ${size/2}px rgba(249,115,22,0.35)">${count}</div>`,
     className:  "",
     iconSize:   [size, size],
     iconAnchor: [Math.floor(size / 2), Math.floor(size / 2)],

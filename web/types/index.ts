@@ -553,6 +553,30 @@ export interface GISRoute {
   toneladas_mes?: number;
 }
 
+// ── GIS-08 Real World Layers ──────────────────────────────────────────────────
+
+export type BasemapId = "dark" | "voyager" | "esri_gray" | "osm_hot" | "esri_imagery";
+
+export interface BasemapDef {
+  id: BasemapId;
+  label: string;
+  url: string;
+  attribution: string;
+}
+
+export type VialRouteType = "nacional_primaria" | "nacional_secundaria" | "provincial";
+
+export interface PuertoNode {
+  id: number;
+  nombre: string;
+  tipo: "puerto_principal" | "puerto_fluvial" | "terminal_granaria";
+  lat: number;
+  lon: number;
+  capacidad_mton_anio: number;
+  principales_granos: string[];
+  operador: string;
+}
+
 // ── Alert ────────────────────────────────────────────────────────────────────
 
 export interface AlertItem {
