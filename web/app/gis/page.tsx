@@ -5,11 +5,13 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
   AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
+  Mountain,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
-import type { ProvinceKPI, GisMetric, BasemapId } from "@/types";
+import type { ProvinceKPI, GisMetric, BasemapId, MapEngine } from "@/types";
 import { getMetricValue } from "@/lib/geo-data";
+import { isMapboxConfigured } from "@/lib/mapbox-config";
 import {
   getKpisByYear, getNationalTotalsForYear, getLowCoverageForYear,
   YEAR_MIN, YEAR_MAX,
@@ -33,6 +35,19 @@ const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
     </div>
   ),
 });
+
+const MapboxTerrainView = dynamic(
+  () => import("@/components/gis/MapboxTerrainView"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted tactical-text">
+        <div className="w-6 h-6 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
+        <span>Cargando Mapbox Terrain…</span>
+      </div>
+    ),
+  },
+);
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
 
@@ -142,6 +157,9 @@ function LeftPanel({
   show3DArcs, setShow3DArcs,
   showBeams, setShowBeams,
   metric3D, setMetric3D,
+  mapEngine, setMapEngine,
+  showTerrain, setShowTerrain,
+  showSatellite, setShowSatellite,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
   basemap: BasemapId; setBasemap: (b: BasemapId) => void;
@@ -152,6 +170,9 @@ function LeftPanel({
   show3DArcs: boolean; setShow3DArcs: (v: boolean) => void;
   showBeams: boolean; setShowBeams: (v: boolean) => void;
   metric3D: GisMetric; setMetric3D: (m: GisMetric) => void;
+  mapEngine: MapEngine; setMapEngine: (e: MapEngine) => void;
+  showTerrain: boolean; setShowTerrain: (v: boolean) => void;
+  showSatellite: boolean; setShowSatellite: (v: boolean) => void;
 }) {
   const top5 = [...currentKpis]
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
@@ -168,6 +189,53 @@ function LeftPanel({
 
   return (
     <div className="flex flex-col gap-2 h-full overflow-y-auto pr-0.5">
+
+      {/* Map Engine selector */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Globe size={10} /><span>Motor de Mapa</span>
+        </p>
+        <div className="grid grid-cols-2 gap-1.5">
+          {(["leaflet", "mapbox"] as MapEngine[]).map(eng => {
+            const isActive  = mapEngine === eng;
+            const available = eng === "leaflet" || isMapboxConfigured();
+            return (
+              <button
+                key={eng}
+                onClick={() => available && setMapEngine(eng)}
+                disabled={!available}
+                className="px-2 py-1.5 rounded text-2xs font-mono transition-all border flex flex-col items-center gap-0.5"
+                style={isActive
+                  ? { background: "rgba(34,197,94,0.15)", borderColor: "rgba(34,197,94,0.50)", color: "#22C55E" }
+                  : available
+                  ? { background: "rgba(7,18,9,0.5)", borderColor: "rgba(34,197,94,0.15)", color: "#4B6B4B" }
+                  : { background: "rgba(7,18,9,0.3)", borderColor: "rgba(34,197,94,0.08)", color: "#2A4A2A", cursor: "not-allowed" }
+                }
+              >
+                <span>{eng === "leaflet" ? "◆ LEAFLET" : "◈ MAPBOX"}</span>
+                {!available && eng === "mapbox" && (
+                  <span style={{ fontSize: 7, color: "#E8A020" }}>TOKEN FALTANTE</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mapbox Terrain controls — only when mapbox engine active */}
+      {mapEngine === "mapbox" && (
+        <div className="glass rounded-xl p-3" style={{ border: "1px solid rgba(163,230,53,0.15)" }}>
+          <p className="tactical-text mb-2 flex items-center gap-1.5">
+            <Mountain size={10} /><span>Mapbox Terrain</span>
+          </p>
+          <div className="space-y-1.5">
+            <LayerBtn layerKey="terrain"   label="Terrain 3D"  color="#A3E635"
+              active={showTerrain}   onToggle={() => setShowTerrain(!showTerrain)} />
+            <LayerBtn layerKey="satellite" label="Satellite"   color="#0EA5E9"
+              active={showSatellite} onToggle={() => setShowSatellite(!showSatellite)} />
+          </div>
+        </div>
+      )}
 
       {/* Metric selector */}
       <div className="glass rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
@@ -274,8 +342,8 @@ function LeftPanel({
         </div>
       </div>
 
-      {/* Basemap selector */}
-      <div className="glass rounded-xl p-3">
+      {/* Basemap selector — Leaflet only */}
+      {mapEngine === "leaflet" && <div className="glass rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Globe size={10} /><span>Basemap</span>
         </p>
@@ -298,7 +366,7 @@ function LeftPanel({
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Top 5 by metric */}
       <div className="glass rounded-xl p-3">
@@ -524,6 +592,10 @@ export default function GISPage() {
   const [show3DArcs,    setShow3DArcs]    = useState(false);
   const [showBeams,     setShowBeams]     = useState(false);
   const [metric3D,      setMetric3D]      = useState<GisMetric>("revenue");
+  // GIS-15 Mapbox engine
+  const [mapEngine,     setMapEngine]     = useState<MapEngine>("leaflet");
+  const [showTerrain,   setShowTerrain]   = useState(true);
+  const [showSatellite, setShowSatellite] = useState(true);
   const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
     choropleth:    true,
@@ -665,6 +737,9 @@ export default function GISPage() {
                 show3DArcs={show3DArcs} setShow3DArcs={setShow3DArcs}
                 showBeams={showBeams} setShowBeams={setShowBeams}
                 metric3D={metric3D} setMetric3D={setMetric3D}
+                mapEngine={mapEngine} setMapEngine={setMapEngine}
+                showTerrain={showTerrain} setShowTerrain={setShowTerrain}
+                showSatellite={showSatellite} setShowSatellite={setShowSatellite}
               />
             </div>
           )}
@@ -700,13 +775,48 @@ export default function GISPage() {
               }}
             >
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS WEBGL INTELLIGENCE v5.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v6.0</span>
               <span className="tactical-text opacity-50">·</span>
               <span className="font-mono font-bold" style={{ color: "#A3E635", fontSize: 11 }}>{selectedYear}</span>
               {selectedYear < YEAR_MAX && <span className="tactical-text" style={{ color: "#E8A020" }}>HISTÓRICO</span>}
-              {mode3D && <span className="tactical-text" style={{ color: "#A3E635" }}>3D</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-13</span>
+              {mapEngine === "mapbox"
+                ? <span className="tactical-text font-bold" style={{ color: "#A3E635" }}>MAPBOX</span>
+                : mode3D && <span className="tactical-text" style={{ color: "#A3E635" }}>3D</span>
+              }
+              {mapEngine === "mapbox" && showTerrain   && <span className="tactical-text" style={{ color: "#22C55E" }}>TERRAIN</span>}
+              {mapEngine === "mapbox" && showSatellite && <span className="tactical-text" style={{ color: "#0EA5E9" }}>SAT</span>}
+              {mapEngine === "mapbox" && !isMapboxConfigured() && (
+                <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
+              )}
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-15</span>
             </div>
+          </div>
+
+          {/* Engine selector — floating pill top-left */}
+          <div className="absolute top-3 left-3 z-[500] flex gap-1">
+            {(["leaflet", "mapbox"] as MapEngine[]).map(eng => {
+              const isActive  = mapEngine === eng;
+              const available = eng === "leaflet" || isMapboxConfigured();
+              return (
+                <button
+                  key={eng}
+                  onClick={() => available && setMapEngine(eng)}
+                  disabled={!available}
+                  className="px-2 py-1 rounded font-mono transition-all"
+                  style={{
+                    fontSize:        10,
+                    background:      isActive ? "rgba(34,197,94,0.18)" : "rgba(7,18,9,0.75)",
+                    border:          `1px solid ${isActive ? "rgba(34,197,94,0.45)" : "rgba(34,197,94,0.15)"}`,
+                    color:           isActive ? "#22C55E" : available ? "#4B6B4B" : "#2A4A2A",
+                    backdropFilter:  "blur(8px)",
+                    cursor:          available ? "pointer" : "not-allowed",
+                    boxShadow:       isActive ? "0 0 10px rgba(34,197,94,0.12)" : "none",
+                  }}
+                >
+                  {eng === "leaflet" ? "◆ LEAFLET" : "◈ MAPBOX"}
+                </button>
+              );
+            })}
           </div>
 
           {/* GIS status overlay (bottom-left) */}
@@ -715,7 +825,10 @@ export default function GISPage() {
               className="px-2 py-1 rounded"
               style={{ background: "rgba(7,18,9,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.12)" }}
             >
-              <span className="tactical-text">EPSG:4326 · WGS84 · {currentBasemap}</span>
+              {mapEngine === "leaflet"
+                ? <span className="tactical-text">EPSG:4326 · WGS84 · {currentBasemap}</span>
+                : <span className="tactical-text">MAPBOX GL · Satellite-Streets · WGS84</span>
+              }
             </div>
             {!geoLoading && !geoError && (
               <div
@@ -737,60 +850,98 @@ export default function GISPage() {
             )}
           </div>
 
-          {/* Active layer badges (bottom-right, above legend) */}
-          <div className="absolute bottom-24 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
-            {Object.entries(layers).filter(([k, v]) => v && k !== "coords").map(([k]) => {
-              const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS];
-              const def = allDefs.find(d => d.key === k);
-              return (
+          {/* Active layer badges (bottom-right, above legend) — Leaflet only */}
+          {mapEngine === "leaflet" && (
+            <div className="absolute bottom-24 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
+              {Object.entries(layers).filter(([k, v]) => v && k !== "coords").map(([k]) => {
+                const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS];
+                const def = allDefs.find(d => d.key === k);
+                return (
+                  <div
+                    key={k}
+                    className="px-1.5 py-0.5 rounded flex items-center gap-1"
+                    style={{ background: "rgba(7,18,9,0.75)", border: `1px solid ${def?.color ?? "#22C55E"}30` }}
+                  >
+                    <span className="w-1 h-1 rounded-full" style={{ background: def?.color ?? "#22C55E" }} />
+                    <span className="tactical-text text-2xs">{def?.label ?? k}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Mapbox terrain badges (bottom-right) — Mapbox engine only */}
+          {mapEngine === "mapbox" && (
+            <div className="absolute bottom-10 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
+              {[
+                { label: "Terrain 3D", active: showTerrain,   color: "#A3E635" },
+                { label: "Satellite",  active: showSatellite, color: "#0EA5E9" },
+                { label: "Hillshade",  active: showTerrain,   color: "#22C55E" },
+                { label: "Sky Layer",  active: true,          color: "#22C55E" },
+                { label: "3D Build.",  active: true,          color: "#4ADE80" },
+              ].map(b => (
                 <div
-                  key={k}
+                  key={b.label}
                   className="px-1.5 py-0.5 rounded flex items-center gap-1"
-                  style={{ background: "rgba(7,18,9,0.75)", border: `1px solid ${def?.color ?? "#22C55E"}30` }}
+                  style={{ background: "rgba(7,18,9,0.75)", border: `1px solid ${b.active ? b.color : "#1A3D20"}30` }}
                 >
-                  <span className="w-1 h-1 rounded-full" style={{ background: def?.color ?? "#22C55E" }} />
-                  <span className="tactical-text text-2xs">{def?.label ?? k}</span>
+                  <span className="w-1 h-1 rounded-full" style={{ background: b.active ? b.color : "#1A3D20" }} />
+                  <span className="tactical-text text-2xs" style={{ color: b.active ? b.color : "#4B6B4B" }}>{b.label}</span>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {/* Advanced legend */}
-          <MapLegendAdvanced metric={metric} layers={layers} />
+          {/* Advanced legend — Leaflet only */}
+          {mapEngine === "leaflet" && <MapLegendAdvanced metric={metric} layers={layers} />}
 
-          <LeafletMap
-            sucursales={sucursales}
-            depositos={depositos}
-            clientes={clienteMarkers}
-            routes={gisRoutes}
-            basemap={basemap}
-            showChoropleth={layers.choropleth}
-            showHeatmap={layers.heatmap}
-            showDepartamentos={layers.departamentos}
-            showMunicipios={layers.municipios}
-            showVial={layers.vial}
-            showPuertos={layers.puertos}
-            showSucursales={layers.sucursales}
-            showDepositos={layers.depositos}
-            showClientes={layers.clientes}
-            showRadios={layers.radios}
-            showCoords={layers.coords}
-            showHotspots={layers.hotspots}
-            showTerritorios={layers.territorios}
-            showBuffers={layers.buffers}
-            showCandidatos={layers.candidatos}
-            showServiceAreas={layers.serviceareas}
-            metric={metric}
-            allKpis={currentKpis}
-            selectedProvince={selected?.nombre ?? null}
-            geoData={geoData}
-            geoLoading={geoLoading}
-            onProvinceClick={setSelected}
-            show3D={mode3D}
-            show3DArcs={show3DArcs}
-            showBeams={showBeams}
-            metric3D={metric3D}
-          />
+          {/* Map — Leaflet or Mapbox */}
+          {mapEngine === "leaflet" ? (
+            <LeafletMap
+              sucursales={sucursales}
+              depositos={depositos}
+              clientes={clienteMarkers}
+              routes={gisRoutes}
+              basemap={basemap}
+              showChoropleth={layers.choropleth}
+              showHeatmap={layers.heatmap}
+              showDepartamentos={layers.departamentos}
+              showMunicipios={layers.municipios}
+              showVial={layers.vial}
+              showPuertos={layers.puertos}
+              showSucursales={layers.sucursales}
+              showDepositos={layers.depositos}
+              showClientes={layers.clientes}
+              showRadios={layers.radios}
+              showCoords={layers.coords}
+              showHotspots={layers.hotspots}
+              showTerritorios={layers.territorios}
+              showBuffers={layers.buffers}
+              showCandidatos={layers.candidatos}
+              showServiceAreas={layers.serviceareas}
+              metric={metric}
+              allKpis={currentKpis}
+              selectedProvince={selected?.nombre ?? null}
+              geoData={geoData}
+              geoLoading={geoLoading}
+              onProvinceClick={setSelected}
+              show3D={mode3D}
+              show3DArcs={show3DArcs}
+              showBeams={showBeams}
+              metric3D={metric3D}
+            />
+          ) : (
+            <MapboxTerrainView
+              geoData={geoData}
+              allKpis={currentKpis}
+              metric={metric}
+              selectedProvince={selected?.nombre ?? null}
+              onProvinceClick={setSelected}
+              selectedYear={selectedYear}
+              showTerrain={showTerrain}
+              showSatellite={showSatellite}
+            />
+          )}
         </div>
 
         {/* Right panel */}
@@ -863,8 +1014,13 @@ export default function GISPage() {
               <span className="ml-1" style={{ color: "#E8A020", fontSize: 8 }}>HISTÓRICO</span>
             )}
           </span>
+          <span className="tactical-text border-l border-border pl-3">
+            Engine: <span className="font-mono" style={{ color: mapEngine === "mapbox" ? "#A3E635" : "#4ADE80" }}>
+              {mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET"}
+            </span>
+          </span>
           <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v5.0 · Sprint GIS-13
+            AgroNova GIS v6.0 · Sprint GIS-15
           </span>
         </div>
       </div>
