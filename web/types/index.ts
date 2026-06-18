@@ -577,6 +577,10 @@ export interface PuertoNode {
   operador: string;
 }
 
+// ── GIS-15 Mapbox Terrain ────────────────────────────────────────────────────
+
+export type MapEngine = "leaflet" | "mapbox";
+
 // ── GIS-09 ArcGIS Integration ─────────────────────────────────────────────────
 
 export interface ArcGISCapabilities {
