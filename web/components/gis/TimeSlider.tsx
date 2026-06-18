@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Play, Pause, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { YEAR_MIN, YEAR_MAX } from "@/lib/timeseries";
 
@@ -22,9 +22,20 @@ function yearColor(year: number): string {
 }
 
 export default function TimeSlider({ year, setYear, playing, setPlaying }: Props) {
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const yearRef     = useRef(year);
-  yearRef.current   = year;
+  const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+  const yearRef      = useRef(year);
+  yearRef.current    = year;
+  const [pulsing, setPulsing] = useState(false);
+  const prevYearRef  = useRef(year);
+
+  useEffect(() => {
+    if (prevYearRef.current !== year) {
+      prevYearRef.current = year;
+      setPulsing(true);
+      const t = setTimeout(() => setPulsing(false), 600);
+      return () => clearTimeout(t);
+    }
+  }, [year]);
 
   const stop = useCallback(() => {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
@@ -59,7 +70,7 @@ export default function TimeSlider({ year, setYear, playing, setPlaying }: Props
     >
       {/* Year badge */}
       <div
-        className="flex-shrink-0 font-mono font-bold tabular-nums"
+        className={`flex-shrink-0 font-mono font-bold tabular-nums${pulsing ? " year-change-pulse" : ""}`}
         style={{ fontSize: 15, color: col, minWidth: 40, textShadow: `0 0 8px ${col}60` }}
       >
         {year}

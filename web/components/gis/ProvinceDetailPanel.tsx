@@ -139,7 +139,8 @@ export default function ProvinceDetailPanel({ kpi, metric, onClose, year, allKpi
 
   return (
     <div
-      className="glass rounded-xl flex flex-col gap-0 overflow-hidden"
+      key={`${kpi.nombre}-${year}`}
+      className="glass rounded-xl flex flex-col gap-0 overflow-hidden temporal-fade"
       style={{
         border: "1px solid rgba(34,197,94,0.22)",
         boxShadow: "0 0 24px rgba(34,197,94,0.07), 0 4px 20px rgba(0,0,0,0.4)",
