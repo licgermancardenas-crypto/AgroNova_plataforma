@@ -652,9 +652,11 @@ export default function GISPage() {
               }}
             >
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS LAYER ORCHESTRATION v4.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS TEMPORAL INTELLIGENCE v4.0</span>
               <span className="tactical-text opacity-50">·</span>
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-10</span>
+              <span className="font-mono font-bold" style={{ color: "#A3E635", fontSize: 11 }}>{selectedYear}</span>
+              {selectedYear < YEAR_MAX && <span className="tactical-text" style={{ color: "#E8A020" }}>HISTÓRICO</span>}
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-12</span>
             </div>
           </div>
 
@@ -802,8 +804,14 @@ export default function GISPage() {
           <span className="tactical-text border-l border-border pl-3">
             Capas: <span className="text-primary font-mono">{activeLayers}</span>
           </span>
+          <span className="tactical-text border-l border-border pl-3">
+            Año: <span className="font-mono" style={{ color: "#A3E635" }}>{selectedYear}</span>
+            {selectedYear < YEAR_MAX && (
+              <span className="ml-1" style={{ color: "#E8A020", fontSize: 8 }}>HISTÓRICO</span>
+            )}
+          </span>
           <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v4.0 · Sprint GIS-10
+            AgroNova GIS v4.0 · Sprint GIS-12
           </span>
         </div>
       </div>
