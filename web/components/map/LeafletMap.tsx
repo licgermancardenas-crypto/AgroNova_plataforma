@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline }
 import L from "leaflet";
 import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId } from "@/types";
 import { fmtARS } from "@/lib/formatters";
-import { PROVINCE_KPIS } from "@/lib/geo-data";
 import ChoroplethLayer   from "./ChoroplethLayer";
 import ClientClusterLayer from "./ClientClusterLayer";
 import HeatmapLayer      from "./HeatmapLayer";
@@ -122,6 +121,8 @@ interface Props {
   showServiceAreas: boolean;
   // Metric
   metric:           GisMetric;
+  // KPIs (year-aware, passed from parent)
+  allKpis:          ProvinceKPI[];
   // Selection
   selectedProvince: string | null;
   // GeoJSON
@@ -138,7 +139,7 @@ export default function LeafletMap({
   showVial, showPuertos,
   showSucursales, showDepositos, showClientes, showRadios, showCoords,
   showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
-  metric, geoData, geoLoading, onProvinceClick, selectedProvince,
+  metric, allKpis, geoData, geoLoading, onProvinceClick, selectedProvince,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -177,14 +178,14 @@ export default function LeafletMap({
         <ChoroplethLayer
           geoData={geoData}
           metric={metric}
-          allKpis={PROVINCE_KPIS}
+          allKpis={allKpis}
           onProvinceClick={onProvinceClick}
           selectedProvince={selectedProvince}
         />
       )}
 
       {/* Heatmap */}
-      {showHeatmap && <HeatmapLayer kpis={PROVINCE_KPIS} metric={metric} visible={showHeatmap} />}
+      {showHeatmap && <HeatmapLayer kpis={allKpis} metric={metric} visible={showHeatmap} />}
 
       {/* ── Line layers ──────────────────────────────────────────── */}
 
@@ -282,7 +283,7 @@ export default function LeafletMap({
       <ClientClusterLayer clientes={clientes} visible={showClientes} />
 
       {/* Legend */}
-      <MapLegend metric={metric} kpis={PROVINCE_KPIS} />
+      <MapLegend metric={metric} kpis={allKpis} />
     </MapContainer>
   );
 }

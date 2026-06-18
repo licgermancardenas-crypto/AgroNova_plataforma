@@ -8,7 +8,8 @@ import {
   RadialBarChart, RadialBar, ResponsiveContainer,
   BarChart, Bar, Cell, XAxis, YAxis, Tooltip,
 } from "recharts";
-import { PROVINCE_KPIS, NATIONAL_TOTALS } from "@/lib/geo-data";
+import type { ProvinceKPI } from "@/types";
+import type { NationalTotals } from "@/lib/timeseries";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 
 // ── Static layer counts (from known GeoJSON sizes) ────────────────────────────
@@ -28,16 +29,16 @@ const LAYER_COUNTS = {
 
 // ── Coverage metric ───────────────────────────────────────────────────────────
 
-function computeCoverage() {
-  const total  = PROVINCE_KPIS.length;
-  const covered = PROVINCE_KPIS.filter(p => p.n_activos >= 50).length;
+function computeCoverage(kpis: ProvinceKPI[]) {
+  const total   = kpis.length;
+  const covered = kpis.filter(p => p.n_activos >= 50).length;
   const pct     = Math.round((covered / total) * 100);
   return { covered, total, pct };
 }
 
-function macroData() {
+function macroData(kpis: ProvinceKPI[]) {
   const by: Record<string, { rev: number; cli: number }> = {};
-  PROVINCE_KPIS.forEach(p => {
+  kpis.forEach(p => {
     if (!by[p.macro_region]) by[p.macro_region] = { rev: 0, cli: 0 };
     by[p.macro_region].rev += p.revenue_ars;
     by[p.macro_region].cli += p.n_activos;
@@ -104,10 +105,15 @@ function CoverageGauge({ pct }: { pct: number }) {
 
 // ── Main panel ────────────────────────────────────────────────────────────────
 
-export default function MapStatisticsPanel() {
+interface StatsProps {
+  kpis: ProvinceKPI[];
+  nationalTotals: NationalTotals;
+}
+
+export default function MapStatisticsPanel({ kpis, nationalTotals }: StatsProps) {
   const [ts, setTs] = useState("");
-  const coverage = computeCoverage();
-  const macro    = macroData();
+  const coverage = computeCoverage(kpis);
+  const macro    = macroData(kpis);
 
   useEffect(() => {
     setTs(new Date().toLocaleTimeString("es-AR", { hour12: false }));
@@ -129,15 +135,15 @@ export default function MapStatisticsPanel() {
         <div className="space-y-1.5 text-2xs">
           <div className="flex justify-between">
             <span className="text-text-muted">Revenue Total</span>
-            <span className="font-mono text-primary">{fmtARS(NATIONAL_TOTALS.revenue_ars, true)}</span>
+            <span className="font-mono text-primary">{fmtARS(nationalTotals.revenue_ars, true)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-text-muted">Clientes Activos</span>
-            <span className="font-mono text-text-secondary">{fmtNumber(NATIONAL_TOTALS.n_activos)}</span>
+            <span className="font-mono text-text-secondary">{fmtNumber(nationalTotals.n_activos)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-text-muted">Provincias indexadas</span>
-            <span className="font-mono text-text-secondary">{NATIONAL_TOTALS.provincias}</span>
+            <span className="font-mono text-text-secondary">{nationalTotals.provincias}</span>
           </div>
         </div>
       </div>
@@ -202,7 +208,7 @@ export default function MapStatisticsPanel() {
         </p>
         <div className="space-y-2">
           {macro.map(m => {
-            const pct = Math.round((m.clientes / NATIONAL_TOTALS.n_activos) * 100);
+            const pct = Math.round((m.clientes / nationalTotals.n_activos) * 100);
             const col = MACRO_COLORS[m.name] ?? "#22C55E";
             return (
               <div key={m.name}>

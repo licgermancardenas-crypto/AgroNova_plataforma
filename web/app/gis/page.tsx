@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
   AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap,
@@ -9,9 +9,12 @@ import {
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 import type { ProvinceKPI, GisMetric, BasemapId } from "@/types";
+import { getMetricValue } from "@/lib/geo-data";
 import {
-  PROVINCE_KPIS, NATIONAL_TOTALS, getLowCoverageProvinces, getMetricValue,
-} from "@/lib/geo-data";
+  getKpisByYear, getNationalTotalsForYear, getLowCoverageForYear,
+  YEAR_MIN, YEAR_MAX,
+} from "@/lib/timeseries";
+import type { NationalTotals } from "@/lib/timeseries";
 import SpatialAnalyticsPanel   from "@/components/gis/SpatialAnalyticsPanel";
 import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel";
 import RoutingPanel             from "@/components/gis/RoutingPanel";
@@ -19,6 +22,7 @@ import MapLegendAdvanced        from "@/components/gis/MapLegendAdvanced";
 import ArcGISPanel              from "@/components/gis/ArcGISPanel";
 import ProvinceDetailPanel      from "@/components/gis/ProvinceDetailPanel";
 import MapStatisticsPanel       from "@/components/gis/MapStatisticsPanel";
+import TimeSlider               from "@/components/gis/TimeSlider";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -133,14 +137,15 @@ function LeftPanel({
   metric, setMetric,
   basemap, setBasemap,
   layers, toggleLayer,
-  selected,
+  selected, currentKpis,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
   basemap: BasemapId; setBasemap: (b: BasemapId) => void;
   layers: Record<string, boolean>; toggleLayer: (k: string) => void;
   selected: ProvinceKPI | null;
+  currentKpis: ProvinceKPI[];
 }) {
-  const top5 = [...PROVINCE_KPIS]
+  const top5 = [...currentKpis]
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
     .slice(0, 5);
   const topVal = getMetricValue(top5[0], metric);
@@ -331,8 +336,14 @@ function LeftPanel({
 
 // ── Right panel ───────────────────────────────────────────────────────────────
 
-function RightPanel({ selected, layers }: { selected: ProvinceKPI | null; layers: Record<string, boolean> }) {
-  const lowCoverage = getLowCoverageProvinces();
+function RightPanel({
+  selected, layers, nationalTotals, lowCoverage,
+}: {
+  selected: ProvinceKPI | null;
+  layers: Record<string, boolean>;
+  nationalTotals: NationalTotals;
+  lowCoverage: ProvinceKPI[];
+}) {
   const activeRoutes = gisRoutes.filter(r => r.activo).length;
   const activeLayers = Object.values(layers).filter(Boolean).length;
 
@@ -346,10 +357,10 @@ function RightPanel({ selected, layers }: { selected: ProvinceKPI | null; layers
         </p>
         <div className="space-y-2 text-2xs">
           {[
-            ["Revenue Total",   fmtARS(NATIONAL_TOTALS.revenue_ars, true), "#22C55E"],
-            ["Cli. Activos",    fmtNumber(NATIONAL_TOTALS.n_activos), "#DCE8DC"],
-            ["Total Clientes",  fmtNumber(NATIONAL_TOTALS.n_clientes), "#7A9C7A"],
-            ["Provincias",      String(NATIONAL_TOTALS.provincias), "#DCE8DC"],
+            ["Revenue Total",   fmtARS(nationalTotals.revenue_ars, true), "#22C55E"],
+            ["Cli. Activos",    fmtNumber(nationalTotals.n_activos), "#DCE8DC"],
+            ["Total Clientes",  fmtNumber(nationalTotals.n_clientes), "#7A9C7A"],
+            ["Provincias",      String(nationalTotals.provincias), "#DCE8DC"],
             ["Rutas Activas",   `${activeRoutes}/${gisRoutes.length}`, "#A3E635"],
             ["Capas Activas",   String(activeLayers), "#0EA5E9"],
           ].map(([l, v, c]) => (
@@ -459,14 +470,17 @@ function RightPanel({ selected, layers }: { selected: ProvinceKPI | null; layers
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function GISPage() {
-  const [metric,   setMetric]   = useState<GisMetric>("revenue");
-  const [selected, setSelected] = useState<ProvinceKPI | null>(null);
-  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats">("ops");
-  const [geoData,  setGeoData]  = useState<GeoJSON.FeatureCollection | null>(null);
-  const [geoLoading, setGeoLoading] = useState(true);
-  const [geoError,   setGeoError]   = useState<string | null>(null);
-  const [clock,    setClock]    = useState("");
-  const [basemap,  setBasemap]  = useState<BasemapId>("dark");
+  const [metric,        setMetric]        = useState<GisMetric>("revenue");
+  const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats">("ops");
+  const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
+  const [geoLoading,    setGeoLoading]    = useState(true);
+  const [geoError,      setGeoError]      = useState<string | null>(null);
+  const [clock,         setClock]         = useState("");
+  const [basemap,       setBasemap]       = useState<BasemapId>("dark");
+  const [selectedYear,  setSelectedYear]  = useState<number>(YEAR_MAX);
+  const [playing,       setPlaying]       = useState(false);
+  const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
     choropleth:    true,
     heatmap:       false,
@@ -495,6 +509,22 @@ export default function GISPage() {
     return () => clearInterval(t);
   }, []);
 
+  // ── Temporal KPI data ─────────────────────────────────────────────
+  const currentKpis     = useMemo(() => getKpisByYear(selectedYear),            [selectedYear]);
+  const nationalTotals  = useMemo(() => getNationalTotalsForYear(selectedYear), [selectedYear]);
+  const lowCoverage     = useMemo(() => getLowCoverageForYear(selectedYear),    [selectedYear]);
+
+  // When year changes, keep selected province in sync (year-aware KPI values)
+  useEffect(() => {
+    if (!selectedNameRef.current) return;
+    const updated = currentKpis.find(k => k.nombre === selectedNameRef.current);
+    if (updated) setSelected(updated);
+  }, [currentKpis]);
+
+  useEffect(() => {
+    selectedNameRef.current = selected?.nombre ?? null;
+  }, [selected]);
+
   // Load simplified province GeoJSON
   const loadGeo = useCallback(() => {
     setGeoLoading(true);
@@ -511,9 +541,9 @@ export default function GISPage() {
     setLayers(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
   }, []);
 
-  const totalRevenue  = NATIONAL_TOTALS.revenue_ars;
-  const activeClients = NATIONAL_TOTALS.n_activos;
-  const pamShare = PROVINCE_KPIS
+  const totalRevenue  = nationalTotals.revenue_ars;
+  const activeClients = nationalTotals.n_activos;
+  const pamShare = currentKpis
     .filter(p => p.macro_region === "PAM")
     .reduce((s, p) => s + p.revenue_pct, 0);
   const activeLayers = Object.values(layers).filter(Boolean).length;
@@ -524,18 +554,23 @@ export default function GISPage() {
 
       {/* ── Tactical header ────────────────────────────────────────── */}
       <div
-        className="glass rounded-xl mb-2 px-2 flex items-center justify-between flex-shrink-0"
+        className="glass rounded-xl mb-2 px-2 flex items-center gap-2 flex-shrink-0"
         style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
       >
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
           <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
-          <TacStat label="Provincias"    value={NATIONAL_TOTALS.provincias} />
+          <TacStat label="Provincias"    value={nationalTotals.provincias} />
           <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`}  accent />
-          <TacStat label="Sucursales"    value={sucursales.length} />
           <TacStat label="Capas ON"      value={activeLayers} />
         </div>
-        <div className="flex items-center gap-3 pr-2">
+        <TimeSlider
+          year={selectedYear}
+          setYear={setSelectedYear}
+          playing={playing}
+          setPlaying={setPlaying}
+        />
+        <div className="flex items-center gap-3 pr-2 flex-shrink-0">
           {geoLoading && (
             <div className="flex items-center gap-1.5">
               <RefreshCw size={10} className="text-primary animate-spin" />
@@ -569,7 +604,9 @@ export default function GISPage() {
               <ProvinceDetailPanel
                 kpi={selected}
                 metric={metric}
-                onClose={() => setSelected(null)}
+                onClose={() => { setSelected(null); selectedNameRef.current = null; }}
+                year={selectedYear}
+                allKpis={currentKpis}
               />
             </div>
           ) : (
@@ -579,6 +616,7 @@ export default function GISPage() {
                 basemap={basemap} setBasemap={setBasemap}
                 layers={layers} toggleLayer={toggleLayer}
                 selected={selected}
+                currentKpis={currentKpis}
               />
             </div>
           )}
@@ -692,6 +730,7 @@ export default function GISPage() {
             showCandidatos={layers.candidatos}
             showServiceAreas={layers.serviceareas}
             metric={metric}
+            allKpis={currentKpis}
             selectedProvince={selected?.nombre ?? null}
             geoData={geoData}
             geoLoading={geoLoading}
@@ -727,11 +766,11 @@ export default function GISPage() {
             ))}
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
-            {rightTab === "ops"       ? <RightPanel selected={selected} layers={layers} />
+            {rightTab === "ops"       ? <RightPanel selected={selected} layers={layers} nationalTotals={nationalTotals} lowCoverage={lowCoverage} />
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
               : rightTab === "network"   ? <NetworkIntelligencePanel />
               : rightTab === "arcgis"    ? <ArcGISPanel />
-              : rightTab === "stats"     ? <MapStatisticsPanel />
+              : rightTab === "stats"     ? <MapStatisticsPanel kpis={currentKpis} nationalTotals={nationalTotals} />
               : <RoutingPanel />}
           </div>
         </div>

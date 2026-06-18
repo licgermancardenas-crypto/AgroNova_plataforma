@@ -6,7 +6,8 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Award, Users, Target } from "lucide-react";
 import type { ProvinceKPI, GisMetric } from "@/types";
-import { PROVINCE_KPIS, getMetricValue } from "@/lib/geo-data";
+import { getMetricValue } from "@/lib/geo-data";
+import { yoyGrowth, YEAR_MIN } from "@/lib/timeseries";
 import { monthlyRevenue } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 
@@ -39,13 +40,13 @@ function getChurnData(kpi: ProvinceKPI): { name: string; val: number; color: str
   ];
 }
 
-function nationalRank(kpi: ProvinceKPI, metric: GisMetric): number {
-  const sorted = [...PROVINCE_KPIS].sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric));
+function nationalRank(kpi: ProvinceKPI, metric: GisMetric, allKpis: ProvinceKPI[]): number {
+  const sorted = [...allKpis].sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric));
   return sorted.findIndex(p => p.nombre === kpi.nombre) + 1;
 }
 
-function peerLeader(kpi: ProvinceKPI, metric: GisMetric): ProvinceKPI | null {
-  return PROVINCE_KPIS
+function peerLeader(kpi: ProvinceKPI, metric: GisMetric, allKpis: ProvinceKPI[]): ProvinceKPI | null {
+  return allKpis
     .filter(p => p.macro_region === kpi.macro_region && p.nombre !== kpi.nombre)
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))[0] ?? null;
 }
@@ -63,14 +64,31 @@ function MiniTooltip({ active, payload, formatter }: {
   );
 }
 
-function KpiRow({ label, value, color, sub }: {
+function YoyBadge({ pct, invert = false }: { pct: number; invert?: boolean }) {
+  // invert=true for metrics where "up" is bad (churn)
+  const good = invert ? pct < 0 : pct > 0;
+  const col  = Math.abs(pct) < 0.5 ? "#7A9C7A" : good ? "#22C55E" : "#E03E3E";
+  const sign = pct > 0 ? "+" : "";
+  return (
+    <span
+      className="font-mono ml-1 text-2xs font-semibold"
+      style={{ color: col, fontSize: 8, letterSpacing: 0 }}
+    >
+      {sign}{pct.toFixed(1)}%
+    </span>
+  );
+}
+
+function KpiRow({ label, value, color, sub, yoyPct, yoyInvert }: {
   label: string; value: string; color: string; sub?: string;
+  yoyPct?: number | null; yoyInvert?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between py-1 border-b border-border last:border-0">
-      <div>
+      <div className="flex items-center">
         <span className="text-2xs text-text-muted">{label}</span>
         {sub && <span className="text-2xs text-text-muted ml-1 opacity-60">({sub})</span>}
+        {yoyPct != null && <YoyBadge pct={yoyPct} invert={yoyInvert} />}
       </div>
       <span className="font-mono text-2xs font-bold" style={{ color }}>{value}</span>
     </div>
@@ -90,12 +108,14 @@ interface Props {
   kpi: ProvinceKPI;
   metric: GisMetric;
   onClose: () => void;
+  year: number;
+  allKpis: ProvinceKPI[];
 }
 
-export default function ProvinceDetailPanel({ kpi, metric, onClose }: Props) {
-  const rank        = nationalRank(kpi, metric);
-  const total       = PROVINCE_KPIS.length;
-  const leader      = peerLeader(kpi, metric);
+export default function ProvinceDetailPanel({ kpi, metric, onClose, year, allKpis }: Props) {
+  const rank        = nationalRank(kpi, metric, allKpis);
+  const total       = allKpis.length;
+  const leader      = peerLeader(kpi, metric, allKpis);
   const revTrend    = getRevenueTrend(kpi);
   const cliTrend    = getClientTrend(kpi);
   const churnData   = getChurnData(kpi);
@@ -105,6 +125,13 @@ export default function ProvinceDetailPanel({ kpi, metric, onClose }: Props) {
   const otifColor   = kpi.otif_pct >= 93 ? "#22C55E" : kpi.otif_pct >= 88 ? "#E8A020" : "#E03E3E";
   const churnColor  = kpi.churn_score < 0.2 ? "#22C55E" : kpi.churn_score < 0.35 ? "#E8A020" : "#E03E3E";
   const margenColor = kpi.margen_pct >= 20 ? "#22C55E" : kpi.margen_pct >= 17 ? "#E8A020" : "#E03E3E";
+
+  // YoY trends (null if at first year)
+  const yoyRev  = year > YEAR_MIN ? yoyGrowth(kpi, "revenue",  year) : null;
+  const yoyCli  = year > YEAR_MIN ? yoyGrowth(kpi, "clientes", year) : null;
+  const yoyMar  = year > YEAR_MIN ? yoyGrowth(kpi, "margen",   year) : null;
+  const yoyOtif = year > YEAR_MIN ? yoyGrowth(kpi, "otif",     year) : null;
+  const yoyChr  = year > YEAR_MIN ? yoyGrowth(kpi, "churn",    year) : null;
 
   const leaderGap = leader
     ? ((getMetricValue(kpi, metric) / getMetricValue(leader, metric)) - 1)
@@ -131,7 +158,7 @@ export default function ProvinceDetailPanel({ kpi, metric, onClose }: Props) {
             style={{ boxShadow: "0 0 6px rgba(34,197,94,0.8)" }} />
           <div className="min-w-0">
             <p className="text-xs text-text-primary font-bold truncate leading-tight">{kpi.nombre}</p>
-            <p className="tactical-text" style={{ fontSize: 9 }}>{kpi.macro_region} · {kpi.agr_ha_m.toFixed(1)}M ha</p>
+            <p className="tactical-text" style={{ fontSize: 9 }}>{kpi.macro_region} · {kpi.agr_ha_m.toFixed(1)}M ha · <span className="text-primary">{year}</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -152,13 +179,18 @@ export default function ProvinceDetailPanel({ kpi, metric, onClose }: Props) {
 
         {/* KPI grid */}
         <div>
-          <KpiRow label="Revenue"     value={fmtARS(kpi.revenue_ars, true)}  color="#22C55E" />
+          <KpiRow label="Revenue"     value={fmtARS(kpi.revenue_ars, true)}  color="#22C55E"
+            yoyPct={yoyRev?.pct} />
           <KpiRow label="Part. Nac."  value={`${kpi.revenue_pct.toFixed(1)}%`} color="#A3E635"
             sub={`#${rank}/${total}`} />
-          <KpiRow label="Clientes"    value={`${fmtNumber(kpi.n_activos)} / ${fmtNumber(kpi.n_clientes)}`} color="#DCE8DC" />
-          <KpiRow label="Margen"      value={`${kpi.margen_pct.toFixed(1)}%`}   color={margenColor} />
-          <KpiRow label="OTIF"        value={`${kpi.otif_pct.toFixed(1)}%`}     color={otifColor} />
-          <KpiRow label="Riesgo Churn"value={`${(kpi.churn_score * 100).toFixed(0)}%`} color={churnColor} />
+          <KpiRow label="Clientes"    value={`${fmtNumber(kpi.n_activos)} / ${fmtNumber(kpi.n_clientes)}`} color="#DCE8DC"
+            yoyPct={yoyCli?.pct} />
+          <KpiRow label="Margen"      value={`${kpi.margen_pct.toFixed(1)}%`}   color={margenColor}
+            yoyPct={yoyMar?.pct} />
+          <KpiRow label="OTIF"        value={`${kpi.otif_pct.toFixed(1)}%`}     color={otifColor}
+            yoyPct={yoyOtif?.pct} />
+          <KpiRow label="Riesgo Churn"value={`${(kpi.churn_score * 100).toFixed(0)}%`} color={churnColor}
+            yoyPct={yoyChr?.pct} yoyInvert />
           <KpiRow label="Gap Score"   value={kpi.gap_score.toFixed(2)}           color="#0EA5E9" />
         </div>
 
