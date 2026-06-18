@@ -18,6 +18,7 @@ import RoutingPanel             from "@/components/gis/RoutingPanel";
 import MapLegendAdvanced        from "@/components/gis/MapLegendAdvanced";
 import ArcGISPanel              from "@/components/gis/ArcGISPanel";
 import ProvinceDetailPanel      from "@/components/gis/ProvinceDetailPanel";
+import MapStatisticsPanel       from "@/components/gis/MapStatisticsPanel";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -460,7 +461,7 @@ function RightPanel({ selected, layers }: { selected: ProvinceKPI | null; layers
 export default function GISPage() {
   const [metric,   setMetric]   = useState<GisMetric>("revenue");
   const [selected, setSelected] = useState<ProvinceKPI | null>(null);
-  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network" | "routing" | "arcgis">("ops");
+  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats">("ops");
   const [geoData,  setGeoData]  = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading, setGeoLoading] = useState(true);
   const [geoError,   setGeoError]   = useState<string | null>(null);
@@ -710,6 +711,7 @@ export default function GISPage() {
               { id: "network",  label: "Net" },
               { id: "routing",  label: "Log" },
               { id: "arcgis",   label: "ArcGIS" },
+              { id: "stats",    label: "Stats" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -729,6 +731,7 @@ export default function GISPage() {
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
               : rightTab === "network"   ? <NetworkIntelligencePanel />
               : rightTab === "arcgis"    ? <ArcGISPanel />
+              : rightTab === "stats"     ? <MapStatisticsPanel />
               : <RoutingPanel />}
           </div>
         </div>
