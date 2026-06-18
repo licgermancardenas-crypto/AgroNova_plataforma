@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
   AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
-  Mountain,
+  Mountain, Play, Pause, Gauge,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
@@ -47,6 +47,11 @@ const MapboxTerrainView = dynamic(
       </div>
     ),
   },
+);
+
+const LiveMetricsPanel = dynamic(
+  () => import("@/components/gis/LiveMetricsPanel"),
+  { ssr: false },
 );
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
@@ -160,6 +165,9 @@ function LeftPanel({
   mapEngine, setMapEngine,
   showTerrain, setShowTerrain,
   showSatellite, setShowSatellite,
+  showFlows, setShowFlows,
+  showVehicles, setShowVehicles,
+  showPulse, setShowPulse,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
   basemap: BasemapId; setBasemap: (b: BasemapId) => void;
@@ -173,6 +181,9 @@ function LeftPanel({
   mapEngine: MapEngine; setMapEngine: (e: MapEngine) => void;
   showTerrain: boolean; setShowTerrain: (v: boolean) => void;
   showSatellite: boolean; setShowSatellite: (v: boolean) => void;
+  showFlows: boolean; setShowFlows: (v: boolean) => void;
+  showVehicles: boolean; setShowVehicles: (v: boolean) => void;
+  showPulse: boolean; setShowPulse: (v: boolean) => void;
 }) {
   const top5 = [...currentKpis]
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
@@ -341,6 +352,23 @@ function LeftPanel({
           )}
         </div>
       </div>
+
+      {/* GIS-16 Animation layers — Leaflet only */}
+      {mapEngine === "leaflet" && (
+        <div className="glass rounded-xl p-3" style={{ border: "1px solid rgba(34,197,94,0.15)" }}>
+          <p className="tactical-text mb-2 flex items-center gap-1.5">
+            <Activity size={10} /><span>Animaciones</span>
+          </p>
+          <div className="space-y-1.5">
+            <LayerBtn layerKey="flows"    label="Flow Particles" color="#22C55E"
+              active={showFlows}    onToggle={() => setShowFlows(!showFlows)} />
+            <LayerBtn layerKey="vehicles" label="Vehículos"      color="#A3E635"
+              active={showVehicles} onToggle={() => setShowVehicles(!showVehicles)} />
+            <LayerBtn layerKey="pulse"    label="Pulsos Hotspot" color="#E8A020"
+              active={showPulse}    onToggle={() => setShowPulse(!showPulse)} />
+          </div>
+        </div>
+      )}
 
       {/* Basemap selector — Leaflet only */}
       {mapEngine === "leaflet" && <div className="glass rounded-xl p-3">
@@ -580,7 +608,7 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats">("ops");
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live">("ops");
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading,    setGeoLoading]    = useState(true);
   const [geoError,      setGeoError]      = useState<string | null>(null);
@@ -596,6 +624,12 @@ export default function GISPage() {
   const [mapEngine,     setMapEngine]     = useState<MapEngine>("leaflet");
   const [showTerrain,   setShowTerrain]   = useState(true);
   const [showSatellite, setShowSatellite] = useState(true);
+  // GIS-16 animation
+  const [showFlows,     setShowFlows]     = useState(false);
+  const [showVehicles,  setShowVehicles]  = useState(false);
+  const [showPulse,     setShowPulse]     = useState(true);
+  const [animPlaying,   setAnimPlaying]   = useState(true);
+  const [animSpeed,     setAnimSpeed]     = useState<1 | 2>(1);
   const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
     choropleth:    true,
@@ -740,6 +774,9 @@ export default function GISPage() {
                 mapEngine={mapEngine} setMapEngine={setMapEngine}
                 showTerrain={showTerrain} setShowTerrain={setShowTerrain}
                 showSatellite={showSatellite} setShowSatellite={setShowSatellite}
+                showFlows={showFlows} setShowFlows={setShowFlows}
+                showVehicles={showVehicles} setShowVehicles={setShowVehicles}
+                showPulse={showPulse} setShowPulse={setShowPulse}
               />
             </div>
           )}
@@ -788,7 +825,8 @@ export default function GISPage() {
               {mapEngine === "mapbox" && !isMapboxConfigured() && (
                 <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
               )}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-15</span>
+              {(showFlows || showVehicles) && <span className="tactical-text" style={{ color: "#22C55E" }}>FLOWS</span>}
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-16</span>
             </div>
           </div>
 
@@ -818,6 +856,60 @@ export default function GISPage() {
               );
             })}
           </div>
+
+          {/* GIS-16 Live Metrics panel — bottom-left floating */}
+          {(showFlows || showVehicles) && mapEngine === "leaflet" && (
+            <div className="absolute bottom-28 left-3 z-[500]">
+              <LiveMetricsPanel
+                routes={gisRoutes}
+                sucursales={sucursales}
+                playing={animPlaying}
+              />
+            </div>
+          )}
+
+          {/* GIS-16 Animation controls — bottom-center floating */}
+          {(showFlows || showVehicles) && mapEngine === "leaflet" && (
+            <div
+              className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[500] flex items-center gap-1"
+              style={{
+                background:    "rgba(7,18,9,0.82)",
+                backdropFilter:"blur(12px)",
+                border:        "1px solid rgba(34,197,94,0.22)",
+                borderRadius:  10,
+                padding:       "4px 10px",
+              }}
+            >
+              <Gauge size={10} style={{ color: "#22C55E" }} />
+              <span className="font-mono text-2xs mr-1" style={{ color: "#4B6B4B" }}>ANIM</span>
+              <button
+                onClick={() => setAnimPlaying(!animPlaying)}
+                className="flex items-center gap-1 px-2 py-1 rounded font-mono text-2xs transition-all"
+                style={{
+                  background: animPlaying ? "rgba(34,197,94,0.15)" : "rgba(7,18,9,0.5)",
+                  border:     `1px solid ${animPlaying ? "rgba(34,197,94,0.4)" : "rgba(34,197,94,0.12)"}`,
+                  color:      animPlaying ? "#22C55E" : "#4B6B4B",
+                }}
+              >
+                {animPlaying ? <Pause size={9} /> : <Play size={9} />}
+                {animPlaying ? "PAUSE" : "PLAY"}
+              </button>
+              {([1, 2] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setAnimSpeed(s)}
+                  className="px-2 py-1 rounded font-mono text-2xs transition-all"
+                  style={{
+                    background: animSpeed === s ? "rgba(163,230,53,0.12)" : "rgba(7,18,9,0.5)",
+                    border:     `1px solid ${animSpeed === s ? "rgba(163,230,53,0.35)" : "rgba(34,197,94,0.10)"}`,
+                    color:      animSpeed === s ? "#A3E635" : "#4B6B4B",
+                  }}
+                >
+                  x{s}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* GIS status overlay (bottom-left) */}
           <div className="absolute bottom-10 left-3 z-[500] pointer-events-none flex flex-col gap-1">
@@ -929,6 +1021,11 @@ export default function GISPage() {
               show3DArcs={show3DArcs}
               showBeams={showBeams}
               metric3D={metric3D}
+              showFlows={showFlows}
+              showVehicles={showVehicles}
+              showPulse={showPulse}
+              animPlaying={animPlaying}
+              animSpeed={animSpeed}
             />
           ) : (
             <MapboxTerrainView
@@ -957,6 +1054,7 @@ export default function GISPage() {
               { id: "routing",  label: "Log" },
               { id: "arcgis",   label: "ArcGIS" },
               { id: "stats",    label: "Stats" },
+              { id: "live",     label: "Live" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -977,6 +1075,7 @@ export default function GISPage() {
               : rightTab === "network"   ? <NetworkIntelligencePanel />
               : rightTab === "arcgis"    ? <ArcGISPanel />
               : rightTab === "stats"     ? <MapStatisticsPanel kpis={currentKpis} nationalTotals={nationalTotals} />
+              : rightTab === "live"      ? <LiveMetricsPanel routes={gisRoutes} sucursales={sucursales} playing={animPlaying} />
               : <RoutingPanel />}
           </div>
         </div>
@@ -1020,7 +1119,7 @@ export default function GISPage() {
             </span>
           </span>
           <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v6.0 · Sprint GIS-15
+            AgroNova GIS v6.0 · Sprint GIS-16
           </span>
         </div>
       </div>
