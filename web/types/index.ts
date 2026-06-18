@@ -555,7 +555,7 @@ export interface GISRoute {
 
 // ── GIS-08 Real World Layers ──────────────────────────────────────────────────
 
-export type BasemapId = "dark" | "voyager" | "esri_gray" | "osm_hot" | "esri_imagery";
+export type BasemapId = "dark" | "voyager" | "esri_gray" | "osm_hot" | "esri_imagery" | "osm_topo";
 
 export interface BasemapDef {
   id: BasemapId;

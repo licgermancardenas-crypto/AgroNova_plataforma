@@ -94,6 +94,11 @@ export const BASEMAPS: Record<BasemapId, { url: string; attribution: string; lab
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, GeoEye, Earthstar Geographics",
   },
+  osm_topo: {
+    label: "OpenTopoMap",
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: "Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)",
+  },
 };
 
 // ── Props ─────────────────────────────────────────────────────────────────────
