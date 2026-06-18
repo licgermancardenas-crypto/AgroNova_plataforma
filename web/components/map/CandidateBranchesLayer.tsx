@@ -6,18 +6,20 @@ import L from "leaflet";
 
 interface Props { visible: boolean }
 
-// Star-shaped div icon for candidate branches
+// Diamond icon, color + size by priority/score
 function candidateIcon(score: number): L.DivIcon {
-  const size = Math.round(16 + score * 10); // 16-26px
-  const col  = score > 0.7 ? "#E8A020" : score > 0.5 ? "#A3E635" : "#DCE8DC";
+  const size = Math.round(18 + score * 12);     // 18-30px
+  // High=red (expansion urgente), Mid=orange, Low=lime
+  const col  = score > 0.7 ? "#E03E3E" : score > 0.5 ? "#E8A020" : "#A3E635";
+  const glow = score > 0.7 ? "rgba(224,62,62,0.7)" : score > 0.5 ? "rgba(232,160,32,0.6)" : "rgba(163,230,53,0.5)";
   return L.divIcon({
     html: `<div style="
       width:${size}px;height:${size}px;
-      background:${col}22;
-      border:2px solid ${col};
-      border-radius:2px;
+      background:${col}20;
+      border:2.5px solid ${col};
+      border-radius:3px;
       transform:rotate(45deg);
-      box-shadow:0 0 ${Math.round(6+score*10)}px ${col}80;
+      box-shadow:0 0 ${Math.round(8+score*14)}px ${glow}, inset 0 0 ${Math.round(4+score*6)}px ${col}30;
     "></div>`,
     className: "",
     iconSize:  [size, size],

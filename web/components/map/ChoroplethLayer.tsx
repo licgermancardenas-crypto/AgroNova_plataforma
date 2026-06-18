@@ -8,10 +8,11 @@ import { provinceColor, getMetricValue, KPI_INDEX } from "@/lib/geo-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 
 interface Props {
-  geoData: GeoJSON.FeatureCollection | null;
-  metric: GisMetric;
-  allKpis: ProvinceKPI[];
-  onProvinceClick: (kpi: ProvinceKPI) => void;
+  geoData:          GeoJSON.FeatureCollection | null;
+  metric:           GisMetric;
+  allKpis:          ProvinceKPI[];
+  onProvinceClick:  (kpi: ProvinceKPI) => void;
+  selectedProvince: string | null;
 }
 
 function popupHtml(kpi: ProvinceKPI, metric: GisMetric): string {
@@ -51,9 +52,26 @@ function popupHtml(kpi: ProvinceKPI, metric: GisMetric): string {
     </div>`;
 }
 
-export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceClick }: Props) {
+export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceClick, selectedProvince }: Props) {
   const map = useMap();
   const layerRef = useRef<L.GeoJSON | null>(null);
+
+  // Re-apply selected style when selectedProvince changes without rebuilding layer
+  useEffect(() => {
+    if (!layerRef.current) return;
+    layerRef.current.eachLayer((lyr) => {
+      const l = lyr as L.Path & { feature?: GeoJSON.Feature };
+      const nombre = l.feature?.properties?.nombre ?? "";
+      const kpi    = KPI_INDEX[nombre];
+      if (!kpi) return;
+      if (nombre === selectedProvince) {
+        l.setStyle({ fillOpacity: 0.95, weight: 2.5, color: "#22C55E", opacity: 1 });
+        l.bringToFront();
+      } else {
+        l.setStyle({ fillOpacity: 0.72, weight: 0.8, color: "#1A3D20", opacity: 0.9 });
+      }
+    });
+  }, [selectedProvince]);
 
   useEffect(() => {
     if (!geoData) return;
@@ -65,18 +83,19 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
     const layer = L.geoJSON(geoData as GeoJSON.GeoJsonObject, {
       style: (feature) => {
         const nombre = feature?.properties?.nombre ?? "";
-        const kpi = KPI_INDEX[nombre];
+        const kpi    = KPI_INDEX[nombre];
+        const isSelected = nombre === selectedProvince;
         return {
           fillColor:   kpi ? provinceColor(kpi, metric, allKpis) : "#071209",
-          fillOpacity: kpi ? 0.72 : 0.08,
-          color:       "#1A3D20",
-          weight:      0.8,
+          fillOpacity: isSelected ? 0.95 : kpi ? 0.72 : 0.08,
+          color:       isSelected ? "#22C55E" : "#1A3D20",
+          weight:      isSelected ? 2.5 : 0.8,
           opacity:     0.9,
         };
       },
       onEachFeature: (feature, layer) => {
         const nombre = feature.properties?.nombre ?? "";
-        const kpi = KPI_INDEX[nombre];
+        const kpi    = KPI_INDEX[nombre];
 
         if (kpi) {
           layer.bindPopup(popupHtml(kpi, metric), {
@@ -88,11 +107,13 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
           layer.on({
             mouseover(e) {
               const l = e.target as L.Path;
+              if (nombre === selectedProvince) return;
               l.setStyle({ fillOpacity: 0.92, weight: 1.8, color: "#22C55E" });
               l.bringToFront();
             },
             mouseout(e) {
               const l = e.target as L.Path;
+              if (nombre === selectedProvince) return;
               l.setStyle({ fillOpacity: 0.72, weight: 0.8, color: "#1A3D20" });
             },
             click() {
@@ -109,6 +130,8 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
     return () => {
       if (layerRef.current) map.removeLayer(layerRef.current);
     };
+  // selectedProvince intentionally excluded — handled by the dedicated effect above
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geoData, metric, allKpis, map, onProvinceClick]);
 
   return null;

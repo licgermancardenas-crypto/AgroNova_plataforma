@@ -65,11 +65,11 @@ export default function HotspotsLayer({ visible }: Props) {
             const col   = hotspotColor(score);
             return {
               color:       col,
-              weight:      1.5,
-              opacity:     0.9,
+              weight:      2,
+              opacity:     1,
               fillColor:   col,
-              fillOpacity: 0.28,
-              dashArray:   "4 3",
+              fillOpacity: 0.38 + score * 0.22,  // 0.38–0.60 based on intensity
+              dashArray:   undefined,
             };
           },
           onEachFeature: (feat, lyr) => {
@@ -77,11 +77,12 @@ export default function HotspotsLayer({ visible }: Props) {
             lyr.bindTooltip(tooltipHtml(p), { sticky: true, opacity: 0.97 });
             lyr.on({
               mouseover(e) {
-                (e.target as L.Path).setStyle({ fillOpacity: 0.55, weight: 2.5, dashArray: undefined });
+                (e.target as L.Path).setStyle({ fillOpacity: 0.75, weight: 3 });
                 (e.target as L.Path).bringToFront();
               },
               mouseout(e) {
-                (e.target as L.Path).setStyle({ fillOpacity: 0.28, weight: 1.5, dashArray: "4 3" });
+                const score = Number(feat.properties?.intensity_score ?? 0);
+                (e.target as L.Path).setStyle({ fillOpacity: 0.38 + score * 0.22, weight: 2 });
               },
             });
           },

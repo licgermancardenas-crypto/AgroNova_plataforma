@@ -691,6 +691,7 @@ export default function GISPage() {
             showCandidatos={layers.candidatos}
             showServiceAreas={layers.serviceareas}
             metric={metric}
+            selectedProvince={selected?.nombre ?? null}
             geoData={geoData}
             geoLoading={geoLoading}
             onProvinceClick={setSelected}

@@ -29,25 +29,40 @@ L.Icon.Default.mergeOptions({
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
+// Sucursal: hex-shaped pulse icon (30x30, prominent)
 const sucursalIcon = L.divIcon({
-  html: `<div style="position:relative;width:20px;height:20px;display:flex;align-items:center;justify-content:center">
-    <div style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,0.15);border:1.5px solid #22C55E;animation:none;box-shadow:0 0 16px rgba(34,197,94,0.6)"></div>
-    <div style="width:8px;height:8px;border-radius:50%;background:#22C55E"></div>
+  html: `<div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center">
+    <div style="position:absolute;width:30px;height:30px;border-radius:50%;
+      background:rgba(34,197,94,0.08);border:2px solid #22C55E;
+      box-shadow:0 0 0 4px rgba(34,197,94,0.12),0 0 20px rgba(34,197,94,0.5)"></div>
+    <div style="position:absolute;width:18px;height:18px;border-radius:50%;
+      background:rgba(34,197,94,0.18);border:1.5px solid rgba(34,197,94,0.7)"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:#22C55E;
+      box-shadow:0 0 8px rgba(34,197,94,0.9)"></div>
   </div>`,
   className: "",
-  iconSize:  [20, 20],
-  iconAnchor:[10, 10],
+  iconSize:  [30, 30],
+  iconAnchor:[15, 15],
 });
 
-const depositoIcon = L.divIcon({
-  html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center">
-    <div style="position:absolute;width:18px;height:18px;background:rgba(14,165,233,0.15);border:1.5px solid #0EA5E9;border-radius:3px;transform:rotate(0deg);box-shadow:0 0 12px rgba(14,165,233,0.5)"></div>
-    <div style="width:7px;height:7px;background:#0EA5E9;border-radius:1px"></div>
-  </div>`,
-  className: "",
-  iconSize:  [18, 18],
-  iconAnchor:[9, 9],
-});
+// Depósito: size proportional to ocupacion_pct
+function makeDepositoIcon(ocupacion: number): L.DivIcon {
+  const size  = Math.round(14 + (ocupacion / 100) * 12); // 14-26px
+  const color = ocupacion > 85 ? "#E03E3E" : ocupacion > 70 ? "#E8A020" : "#0EA5E9";
+  const glow  = ocupacion > 85 ? "rgba(224,62,62,0.6)" : ocupacion > 70 ? "rgba(232,160,32,0.5)" : "rgba(14,165,233,0.5)";
+  return L.divIcon({
+    html: `<div style="position:relative;width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;width:${size}px;height:${size}px;
+        background:${color}18;border:1.5px solid ${color};border-radius:3px;
+        box-shadow:0 0 10px ${glow}"></div>
+      <div style="width:${Math.round(size*0.4)}px;height:${Math.round(size*0.4)}px;
+        background:${color};border-radius:1px"></div>
+    </div>`,
+    className: "",
+    iconSize:  [size, size],
+    iconAnchor:[size / 2, size / 2],
+  });
+}
 
 // ── Basemap definitions ───────────────────────────────────────────────────────
 
@@ -107,6 +122,8 @@ interface Props {
   showServiceAreas: boolean;
   // Metric
   metric:           GisMetric;
+  // Selection
+  selectedProvince: string | null;
   // GeoJSON
   geoData:          GeoJSON.FeatureCollection | null;
   geoLoading:       boolean;
@@ -121,7 +138,7 @@ export default function LeafletMap({
   showVial, showPuertos,
   showSucursales, showDepositos, showClientes, showRadios, showCoords,
   showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
-  metric, geoData, geoLoading, onProvinceClick,
+  metric, geoData, geoLoading, onProvinceClick, selectedProvince,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -162,6 +179,7 @@ export default function LeafletMap({
           metric={metric}
           allKpis={PROVINCE_KPIS}
           onProvinceClick={onProvinceClick}
+          selectedProvince={selectedProvince}
         />
       )}
 
@@ -243,7 +261,7 @@ export default function LeafletMap({
 
       {/* Depósitos — blue square markers */}
       {showDepositos && depositos.map(d => (
-        <Marker key={`d${d.id}`} position={[d.lat, d.lng]} icon={depositoIcon}>
+        <Marker key={`d${d.id}`} position={[d.lat, d.lng]} icon={makeDepositoIcon(d.ocupacion_pct)}>
           <Popup>
             <div style={{ fontSize: 11, minWidth: 150 }}>
               <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#0EA5E9", borderBottom: "1px solid #0EA5E940", paddingBottom: 4 }}>
