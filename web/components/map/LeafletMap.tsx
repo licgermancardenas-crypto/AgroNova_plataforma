@@ -19,6 +19,8 @@ import CoverageBuffersLayer   from "./CoverageBuffersLayer";
 import CandidateBranchesLayer from "./CandidateBranchesLayer";
 import ServiceAreasLayer      from "./ServiceAreasLayer";
 import DeckOverlay            from "./DeckOverlay";
+import FlowAnimationLayer    from "@/components/gis/FlowAnimationLayer";
+import VehicleLayer          from "@/components/gis/VehicleLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -134,6 +136,12 @@ interface Props {
   show3DArcs:       boolean;
   showBeams:        boolean;
   metric3D:         GisMetric;
+  // GIS-16 animation
+  showFlows:        boolean;
+  showVehicles:     boolean;
+  showPulse:        boolean;
+  animPlaying:      boolean;
+  animSpeed:        1 | 2;
   // Callbacks
   onProvinceClick:  (kpi: ProvinceKPI) => void;
 }
@@ -147,6 +155,7 @@ export default function LeafletMap({
   showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
   metric, allKpis, geoData, geoLoading, onProvinceClick, selectedProvince,
   show3D, show3DArcs, showBeams, metric3D,
+  showFlows, showVehicles, showPulse, animPlaying, animSpeed,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -304,6 +313,24 @@ export default function LeafletMap({
           showBeams={showBeams}
           sucursales={sucursales}
           onProvinceClick={onProvinceClick}
+        />
+      )}
+
+      {/* ── GIS-16 canvas animation layers ─────────────────────────── */}
+      {showFlows && (
+        <FlowAnimationLayer
+          sucursales={sucursales}
+          allKpis={allKpis}
+          playing={animPlaying}
+          speed={animSpeed}
+          showPulse={showPulse}
+        />
+      )}
+      {showVehicles && (
+        <VehicleLayer
+          routes={routes}
+          playing={animPlaying}
+          speed={animSpeed}
         />
       )}
     </MapContainer>
