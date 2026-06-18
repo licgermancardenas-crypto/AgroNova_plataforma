@@ -1,0 +1,35 @@
+from __future__ import annotations
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from backend.core.config import get_settings
+from backend.api.routers import health, gis, kpis, logistics, ml, spatial
+
+settings = get_settings()
+
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.version,
+    description="AgroNova backend — PostGIS Spatial Intelligence + Logistics KPIs",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(health.router)
+app.include_router(gis.router)
+app.include_router(kpis.router)
+app.include_router(logistics.router)
+app.include_router(ml.router)
+app.include_router(spatial.router)
+
+
+@app.get("/")
+def root():
+    return {"name": settings.app_name, "version": settings.version, "docs": "/docs"}
