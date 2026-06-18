@@ -20,6 +20,7 @@ const METRIC_LABEL: Record<GisMetric, string> = {
   clientes: "Clientes Activos",
   margen:   "Margen %",
   churn:    "Riesgo Churn",
+  otif:     "OTIF %",
 };
 
 const ALL_LAYER_DEFS: LayerDef[] = [

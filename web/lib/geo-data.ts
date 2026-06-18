@@ -45,11 +45,12 @@ export function getMetricValue(kpi: ProvinceKPI, metric: GisMetric): number {
     case "clientes":  return kpi.n_activos;
     case "margen":    return kpi.margen_pct;
     case "churn":     return kpi.churn_score;
+    case "otif":      return kpi.otif_pct;
   }
 }
 
 export function getMetricLabel(metric: GisMetric): string {
-  return { revenue: "Revenue ARS", clientes: "Clientes Activos", margen: "Margen %", churn: "Riesgo Churn" }[metric];
+  return { revenue: "Revenue ARS", clientes: "Clientes Activos", margen: "Margen %", churn: "Riesgo Churn", otif: "OTIF %" }[metric];
 }
 
 export function interpolateColor(t: number, metric: GisMetric): string {

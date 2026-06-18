@@ -12,10 +12,11 @@ import type { ProvinceKPI, GisMetric, BasemapId } from "@/types";
 import {
   PROVINCE_KPIS, NATIONAL_TOTALS, getLowCoverageProvinces, getMetricValue,
 } from "@/lib/geo-data";
-import SpatialAnalyticsPanel from "@/components/gis/SpatialAnalyticsPanel";
+import SpatialAnalyticsPanel   from "@/components/gis/SpatialAnalyticsPanel";
 import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel";
-import RoutingPanel from "@/components/gis/RoutingPanel";
-import MapLegendAdvanced from "@/components/gis/MapLegendAdvanced";
+import RoutingPanel             from "@/components/gis/RoutingPanel";
+import MapLegendAdvanced        from "@/components/gis/MapLegendAdvanced";
+import ArcGISPanel              from "@/components/gis/ArcGISPanel";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -437,7 +438,7 @@ function RightPanel({ selected, layers }: { selected: ProvinceKPI | null; layers
 export default function GISPage() {
   const [metric,   setMetric]   = useState<GisMetric>("revenue");
   const [selected, setSelected] = useState<ProvinceKPI | null>(null);
-  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network" | "routing">("ops");
+  const [rightTab, setRightTab] = useState<"ops" | "analytics" | "network" | "routing" | "arcgis">("ops");
   const [geoData,  setGeoData]  = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading, setGeoLoading] = useState(true);
   const [geoError,   setGeoError]   = useState<string | null>(null);
@@ -661,6 +662,7 @@ export default function GISPage() {
               { id: "analytics",label: "GIS" },
               { id: "network",  label: "Net" },
               { id: "routing",  label: "Log" },
+              { id: "arcgis",   label: "ArcGIS" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -676,9 +678,10 @@ export default function GISPage() {
             ))}
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
-            {rightTab === "ops"      ? <RightPanel selected={selected} layers={layers} />
+            {rightTab === "ops"       ? <RightPanel selected={selected} layers={layers} />
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
               : rightTab === "network"   ? <NetworkIntelligencePanel />
+              : rightTab === "arcgis"    ? <ArcGISPanel />
               : <RoutingPanel />}
           </div>
         </div>

@@ -246,7 +246,7 @@ export interface NavItem {
 
 // ── GIS v2.0 ─────────────────────────────────────────────────────────────────
 
-export type GisMetric = "revenue" | "clientes" | "margen" | "churn";
+export type GisMetric = "revenue" | "clientes" | "margen" | "churn" | "otif";
 
 export interface ProvinceKPI {
   nombre: string;
@@ -575,6 +575,37 @@ export interface PuertoNode {
   capacidad_mton_anio: number;
   principales_granos: string[];
   operador: string;
+}
+
+// ── GIS-09 ArcGIS Integration ─────────────────────────────────────────────────
+
+export interface ArcGISCapabilities {
+  geocoding:      boolean;
+  routing:        boolean;
+  service_areas:  boolean;
+  isochrones:     boolean;
+  feature_layers: boolean;
+  scene_view:     boolean;
+  offline_maps:   boolean;
+}
+
+export interface ArcGISStatusSummary {
+  configured:       boolean;
+  mode:             "arcgis" | "local";
+  geocoding_active: boolean;
+  service_areas:    number;
+  isochrones_ready: boolean;
+  routing_ready:    boolean;
+  capabilities:     ArcGISCapabilities;
+  message:          string;
+}
+
+export interface ServiceAreaPolygon {
+  facility:   string;
+  break_min:  number;
+  radius_km?: number;
+  color:      string;
+  source:     "arcgis" | "local_approx";
 }
 
 // ── Alert ────────────────────────────────────────────────────────────────────
