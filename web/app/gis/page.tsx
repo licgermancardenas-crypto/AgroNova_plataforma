@@ -17,6 +17,7 @@ import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel"
 import RoutingPanel             from "@/components/gis/RoutingPanel";
 import MapLegendAdvanced        from "@/components/gis/MapLegendAdvanced";
 import ArcGISPanel              from "@/components/gis/ArcGISPanel";
+import ProvinceDetailPanel      from "@/components/gis/ProvinceDetailPanel";
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -560,13 +561,26 @@ export default function GISPage() {
       <div className="flex gap-2 flex-1 min-h-0">
 
         {/* Left panel */}
-        <div className="w-[215px] flex-shrink-0">
-          <LeftPanel
-            metric={metric} setMetric={setMetric}
-            basemap={basemap} setBasemap={setBasemap}
-            layers={layers} toggleLayer={toggleLayer}
-            selected={selected}
-          />
+        <div className="w-[215px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+          {/* Province detail panel — replaces list when province selected */}
+          {selected ? (
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <ProvinceDetailPanel
+                kpi={selected}
+                metric={metric}
+                onClose={() => setSelected(null)}
+              />
+            </div>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
+              <LeftPanel
+                metric={metric} setMetric={setMetric}
+                basemap={basemap} setBasemap={setBasemap}
+                layers={layers} toggleLayer={toggleLayer}
+                selected={selected}
+              />
+            </div>
+          )}
         </div>
 
         {/* Center: map */}
