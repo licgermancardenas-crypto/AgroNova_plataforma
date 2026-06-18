@@ -18,6 +18,7 @@ import TerritoriesLayer       from "./TerritoriesLayer";
 import CoverageBuffersLayer   from "./CoverageBuffersLayer";
 import CandidateBranchesLayer from "./CandidateBranchesLayer";
 import ServiceAreasLayer      from "./ServiceAreasLayer";
+import DeckOverlay            from "./DeckOverlay";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -128,6 +129,11 @@ interface Props {
   // GeoJSON
   geoData:          GeoJSON.FeatureCollection | null;
   geoLoading:       boolean;
+  // Deck.gl / WebGL (GIS-13)
+  show3D:           boolean;
+  show3DArcs:       boolean;
+  showBeams:        boolean;
+  metric3D:         GisMetric;
   // Callbacks
   onProvinceClick:  (kpi: ProvinceKPI) => void;
 }
@@ -140,6 +146,7 @@ export default function LeafletMap({
   showSucursales, showDepositos, showClientes, showRadios, showCoords,
   showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
   metric, allKpis, geoData, geoLoading, onProvinceClick, selectedProvince,
+  show3D, show3DArcs, showBeams, metric3D,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -173,7 +180,7 @@ export default function LeafletMap({
       {/* Department borders */}
       <DepartamentosLayer visible={showDepartamentos} />
 
-      {/* Province choropleth */}
+      {/* Province choropleth — transparent in 3D mode, still handles clicks */}
       {showChoropleth && !geoLoading && geoData && (
         <ChoroplethLayer
           geoData={geoData}
@@ -181,6 +188,7 @@ export default function LeafletMap({
           allKpis={allKpis}
           onProvinceClick={onProvinceClick}
           selectedProvince={selectedProvince}
+          mode3D={show3D}
         />
       )}
 
@@ -284,6 +292,20 @@ export default function LeafletMap({
 
       {/* Legend */}
       <MapLegend metric={metric} kpis={allKpis} />
+
+      {/* ── Deck.gl WebGL overlay (GIS-13) ─────────────────────────── */}
+      {(show3D || show3DArcs || showBeams) && (
+        <DeckOverlay
+          geoData={geoData}
+          allKpis={allKpis}
+          metric3D={metric3D}
+          mode3D={show3D}
+          showArcs={show3DArcs}
+          showBeams={showBeams}
+          sucursales={sucursales}
+          onProvinceClick={onProvinceClick}
+        />
+      )}
     </MapContainer>
   );
 }

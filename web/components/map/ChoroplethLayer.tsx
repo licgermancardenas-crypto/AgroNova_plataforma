@@ -13,6 +13,7 @@ interface Props {
   allKpis:          ProvinceKPI[];
   onProvinceClick:  (kpi: ProvinceKPI) => void;
   selectedProvince: string | null;
+  mode3D?:          boolean;
 }
 
 function popupHtml(kpi: ProvinceKPI, metric: GisMetric): string {
@@ -52,7 +53,7 @@ function popupHtml(kpi: ProvinceKPI, metric: GisMetric): string {
     </div>`;
 }
 
-export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceClick, selectedProvince }: Props) {
+export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceClick, selectedProvince, mode3D = false }: Props) {
   const map = useMap();
   const layerRef = useRef<L.GeoJSON | null>(null);
 
@@ -85,12 +86,14 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
         const nombre = feature?.properties?.nombre ?? "";
         const kpi    = KPI_INDEX[nombre];
         const isSelected = nombre === selectedProvince;
+        // In 3D mode, render transparent so deck.gl extrusion shows through.
+        // Layer remains interactive so Leaflet still handles province clicks.
         return {
           fillColor:   kpi ? provinceColor(kpi, metric, allKpis) : "#071209",
-          fillOpacity: isSelected ? 0.95 : kpi ? 0.72 : 0.08,
-          color:       isSelected ? "#22C55E" : "#1A3D20",
-          weight:      isSelected ? 2.5 : 0.8,
-          opacity:     0.9,
+          fillOpacity: mode3D ? 0 : isSelected ? 0.95 : kpi ? 0.72 : 0.08,
+          color:       mode3D ? "transparent" : isSelected ? "#22C55E" : "#1A3D20",
+          weight:      mode3D ? 0 : isSelected ? 2.5 : 0.8,
+          opacity:     mode3D ? 0 : 0.9,
         };
       },
       onEachFeature: (feature, layer) => {
@@ -132,7 +135,7 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
     };
   // selectedProvince intentionally excluded — handled by the dedicated effect above
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geoData, metric, allKpis, map, onProvinceClick]);
+  }, [geoData, metric, allKpis, map, onProvinceClick, mode3D]);
 
   return null;
 }

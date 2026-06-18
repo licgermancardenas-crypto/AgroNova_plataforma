@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
-  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap,
+  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
@@ -138,12 +138,20 @@ function LeftPanel({
   basemap, setBasemap,
   layers, toggleLayer,
   selected, currentKpis,
+  mode3D, setMode3D,
+  show3DArcs, setShow3DArcs,
+  showBeams, setShowBeams,
+  metric3D, setMetric3D,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
   basemap: BasemapId; setBasemap: (b: BasemapId) => void;
   layers: Record<string, boolean>; toggleLayer: (k: string) => void;
   selected: ProvinceKPI | null;
   currentKpis: ProvinceKPI[];
+  mode3D: boolean; setMode3D: (v: boolean) => void;
+  show3DArcs: boolean; setShow3DArcs: (v: boolean) => void;
+  showBeams: boolean; setShowBeams: (v: boolean) => void;
+  metric3D: GisMetric; setMetric3D: (m: GisMetric) => void;
 }) {
   const top5 = [...currentKpis]
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
@@ -231,6 +239,38 @@ function LeftPanel({
             <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
               active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
           ))}
+        </div>
+      </div>
+
+      {/* WebGL / 3D Intelligence (GIS-13) */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Box size={10} /><span>WebGL 3D</span>
+        </p>
+        <div className="space-y-1.5">
+          <LayerBtn layerKey="mode3d"  label="Modo 3D"    color="#A3E635" active={mode3D}     onToggle={() => setMode3D(!mode3D)} />
+          <LayerBtn layerKey="arcos3d" label="Flow Arcos" color="#22C55E" active={show3DArcs}  onToggle={() => setShow3DArcs(!show3DArcs)} />
+          <LayerBtn layerKey="beams"   label="Exp. Beams" color="#E8A020" active={showBeams}   onToggle={() => setShowBeams(!showBeams)} />
+          {mode3D && (
+            <div className="pt-1.5 border-t border-border">
+              <p className="tactical-text mb-1.5" style={{ fontSize: 8 }}>Métrica 3D</p>
+              <div className="grid grid-cols-2 gap-1">
+                {METRICS.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => setMetric3D(m.id)}
+                    className="px-1.5 py-1 rounded text-2xs font-mono transition-all border"
+                    style={metric3D === m.id
+                      ? { background: `${m.color}18`, borderColor: `${m.color}60`, color: m.color }
+                      : { background: "rgba(7,18,9,0.5)", borderColor: "rgba(34,197,94,0.15)", color: "#4B6B4B" }
+                    }
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -480,6 +520,10 @@ export default function GISPage() {
   const [basemap,       setBasemap]       = useState<BasemapId>("dark");
   const [selectedYear,  setSelectedYear]  = useState<number>(YEAR_MAX);
   const [playing,       setPlaying]       = useState(false);
+  const [mode3D,        setMode3D]        = useState(false);
+  const [show3DArcs,    setShow3DArcs]    = useState(false);
+  const [showBeams,     setShowBeams]     = useState(false);
+  const [metric3D,      setMetric3D]      = useState<GisMetric>("revenue");
   const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
     choropleth:    true,
@@ -617,6 +661,10 @@ export default function GISPage() {
                 layers={layers} toggleLayer={toggleLayer}
                 selected={selected}
                 currentKpis={currentKpis}
+                mode3D={mode3D} setMode3D={setMode3D}
+                show3DArcs={show3DArcs} setShow3DArcs={setShow3DArcs}
+                showBeams={showBeams} setShowBeams={setShowBeams}
+                metric3D={metric3D} setMetric3D={setMetric3D}
               />
             </div>
           )}
@@ -652,11 +700,12 @@ export default function GISPage() {
               }}
             >
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS TEMPORAL INTELLIGENCE v4.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS WEBGL INTELLIGENCE v5.0</span>
               <span className="tactical-text opacity-50">·</span>
               <span className="font-mono font-bold" style={{ color: "#A3E635", fontSize: 11 }}>{selectedYear}</span>
               {selectedYear < YEAR_MAX && <span className="tactical-text" style={{ color: "#E8A020" }}>HISTÓRICO</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-12</span>
+              {mode3D && <span className="tactical-text" style={{ color: "#A3E635" }}>3D</span>}
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-13</span>
             </div>
           </div>
 
@@ -737,6 +786,10 @@ export default function GISPage() {
             geoData={geoData}
             geoLoading={geoLoading}
             onProvinceClick={setSelected}
+            show3D={mode3D}
+            show3DArcs={show3DArcs}
+            showBeams={showBeams}
+            metric3D={metric3D}
           />
         </div>
 
@@ -811,7 +864,7 @@ export default function GISPage() {
             )}
           </span>
           <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v4.0 · Sprint GIS-12
+            AgroNova GIS v5.0 · Sprint GIS-13
           </span>
         </div>
       </div>
