@@ -4,14 +4,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import get_settings
-from backend.api.routers import health, gis, kpis, logistics, ml, spatial
+from backend.api.routers import health, gis, kpis, logistics, ml, spatial, ai_spatial
 
 settings = get_settings()
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.version,
-    description="AgroNova backend — PostGIS Spatial Intelligence + Logistics KPIs",
+    description="AgroNova backend — PostGIS Spatial Intelligence + AI Spatial Analytics",
 )
 
 app.add_middleware(
@@ -28,6 +28,7 @@ app.include_router(kpis.router)
 app.include_router(logistics.router)
 app.include_router(ml.router)
 app.include_router(spatial.router)
+app.include_router(ai_spatial.router)
 
 
 @app.get("/")

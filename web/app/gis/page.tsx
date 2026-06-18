@@ -31,6 +31,11 @@ const SpatialDiagnosticsPanel = dynamic(
   { ssr: false },
 );
 
+const AISpatialPanel = dynamic(
+  () => import("@/components/gis/AISpatialPanel"),
+  { ssr: false },
+);
+
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
   loading: () => (
@@ -613,7 +618,7 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial">("ops");
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai">("ops");
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading,    setGeoLoading]    = useState(true);
   const [geoError,      setGeoError]      = useState<string | null>(null);
@@ -817,7 +822,7 @@ export default function GISPage() {
               }}
             >
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v7.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v8.0</span>
               <span className="tactical-text opacity-50">·</span>
               <span className="font-mono font-bold" style={{ color: "#A3E635", fontSize: 11 }}>{selectedYear}</span>
               {selectedYear < YEAR_MAX && <span className="tactical-text" style={{ color: "#E8A020" }}>HISTÓRICO</span>}
@@ -831,7 +836,7 @@ export default function GISPage() {
                 <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
               )}
               {(showFlows || showVehicles) && <span className="tactical-text" style={{ color: "#22C55E" }}>FLOWS</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-17</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-18</span>
             </div>
           </div>
 
@@ -1061,6 +1066,7 @@ export default function GISPage() {
               { id: "stats",    label: "Stats" },
               { id: "live",     label: "Live" },
               { id: "spatial",  label: "Spatial" },
+              { id: "ai",       label: "AI" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -1083,6 +1089,7 @@ export default function GISPage() {
               : rightTab === "stats"     ? <MapStatisticsPanel kpis={currentKpis} nationalTotals={nationalTotals} />
               : rightTab === "live"      ? <LiveMetricsPanel routes={gisRoutes} sucursales={sucursales} playing={animPlaying} />
               : rightTab === "spatial"   ? <SpatialDiagnosticsPanel />
+              : rightTab === "ai"        ? <AISpatialPanel />
               : <RoutingPanel />}
           </div>
         </div>
@@ -1126,7 +1133,7 @@ export default function GISPage() {
             </span>
           </span>
           <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v7.0 · Sprint GIS-17
+            AgroNova GIS v8.0 · Sprint GIS-18
           </span>
         </div>
       </div>
