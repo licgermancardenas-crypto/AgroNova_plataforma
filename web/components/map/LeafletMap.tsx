@@ -9,11 +9,16 @@ import ChoroplethLayer   from "./ChoroplethLayer";
 import ClientClusterLayer from "./ClientClusterLayer";
 import HeatmapLayer      from "./HeatmapLayer";
 import MapLegend         from "./MapLegend";
-import DepartamentosLayer from "./DepartamentosLayer";
-import MunicipiosLayer    from "./MunicipiosLayer";
-import VialLayer          from "./VialLayer";
-import PuertosLayer       from "./PuertosLayer";
-import ScaleCoordsControl from "./ScaleCoordsControl";
+import DepartamentosLayer     from "./DepartamentosLayer";
+import MunicipiosLayer        from "./MunicipiosLayer";
+import VialLayer              from "./VialLayer";
+import PuertosLayer           from "./PuertosLayer";
+import ScaleCoordsControl     from "./ScaleCoordsControl";
+import HotspotsLayer          from "./HotspotsLayer";
+import TerritoriesLayer       from "./TerritoriesLayer";
+import CoverageBuffersLayer   from "./CoverageBuffersLayer";
+import CandidateBranchesLayer from "./CandidateBranchesLayer";
+import ServiceAreasLayer      from "./ServiceAreasLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -95,6 +100,11 @@ interface Props {
   showClientes:     boolean;
   showRadios:       boolean;
   showCoords:       boolean;
+  showHotspots:     boolean;
+  showTerritorios:  boolean;
+  showBuffers:      boolean;
+  showCandidatos:   boolean;
+  showServiceAreas: boolean;
   // Metric
   metric:           GisMetric;
   // GeoJSON
@@ -110,6 +120,7 @@ export default function LeafletMap({
   showChoropleth, showHeatmap, showDepartamentos, showMunicipios,
   showVial, showPuertos,
   showSucursales, showDepositos, showClientes, showRadios, showCoords,
+  showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
   metric, geoData, geoLoading, onProvinceClick,
 }: Props) {
   const bm = BASEMAPS[basemap];
@@ -128,6 +139,18 @@ export default function LeafletMap({
       <ScaleCoordsControl showCoords={showCoords} />
 
       {/* ── Polygon layers (bottom) ──────────────────────────────── */}
+
+      {/* Service areas (bottom-most polygon — largest shapes) */}
+      <ServiceAreasLayer visible={showServiceAreas} />
+
+      {/* Territorial Voronoi zones */}
+      <TerritoriesLayer visible={showTerritorios} />
+
+      {/* Coverage buffers */}
+      <CoverageBuffersLayer visible={showBuffers} />
+
+      {/* Hotspot polygons */}
+      <HotspotsLayer visible={showHotspots} />
 
       {/* Department borders */}
       <DepartamentosLayer visible={showDepartamentos} />
@@ -188,6 +211,9 @@ export default function LeafletMap({
 
       {/* Ports & logistics nodes */}
       <PuertosLayer visible={showPuertos} />
+
+      {/* Candidate expansion branches */}
+      <CandidateBranchesLayer visible={showCandidatos} />
 
       {/* Municipalities (zoom-aware clustering) */}
       <MunicipiosLayer visible={showMunicipios} />

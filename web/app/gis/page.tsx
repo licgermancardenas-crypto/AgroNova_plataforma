@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
-  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor,
+  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
@@ -66,6 +66,14 @@ const MARKER_LAYERS = [
   { key: "sucursales",    label: "Sucursales",         color: "#22C55E" },
   { key: "depositos",     label: "Depósitos",          color: "#0EA5E9" },
   { key: "clientes",      label: "Clientes",           color: "#F97316" },
+];
+
+const GIS_OUTPUT_LAYERS = [
+  { key: "hotspots",      label: "Hotspots",           color: "#E8A020" },
+  { key: "territorios",   label: "Territorios",        color: "#C084FC" },
+  { key: "buffers",       label: "Buffers Cobertura",  color: "#A3E635" },
+  { key: "candidatos",    label: "Candidatas",         color: "#E8A020" },
+  { key: "serviceareas",  label: "Service Areas",      color: "#22C55E" },
 ];
 
 // ── Stat chip ─────────────────────────────────────────────────────────────────
@@ -200,6 +208,19 @@ function LeftPanel({
         </p>
         <div className="space-y-1.5">
           {MARKER_LAYERS.map(l => (
+            <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
+              active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
+          ))}
+        </div>
+      </div>
+
+      {/* GIS Output layers */}
+      <div className="glass rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Zap size={10} /><span>GIS Outputs</span>
+        </p>
+        <div className="space-y-1.5">
+          {GIS_OUTPUT_LAYERS.map(l => (
             <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
               active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
           ))}
@@ -456,6 +477,12 @@ export default function GISPage() {
     depositos:     true,
     clientes:      true,
     coords:        true,
+    // GIS Outputs
+    hotspots:      false,
+    territorios:   false,
+    buffers:       false,
+    candidatos:    false,
+    serviceareas:  false,
   });
 
   // Clock
@@ -572,9 +599,9 @@ export default function GISPage() {
               }}
             >
               <MapPin size={10} className="text-primary" />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS REAL WORLD LAYERS v3.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS LAYER ORCHESTRATION v4.0</span>
               <span className="tactical-text opacity-50">·</span>
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-08</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-10</span>
             </div>
           </div>
 
@@ -609,7 +636,7 @@ export default function GISPage() {
           {/* Active layer badges (bottom-right, above legend) */}
           <div className="absolute bottom-24 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
             {Object.entries(layers).filter(([k, v]) => v && k !== "coords").map(([k]) => {
-              const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS];
+              const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS];
               const def = allDefs.find(d => d.key === k);
               return (
                 <div
@@ -644,6 +671,11 @@ export default function GISPage() {
             showClientes={layers.clientes}
             showRadios={layers.radios}
             showCoords={layers.coords}
+            showHotspots={layers.hotspots}
+            showTerritorios={layers.territorios}
+            showBuffers={layers.buffers}
+            showCandidatos={layers.candidatos}
+            showServiceAreas={layers.serviceareas}
             metric={metric}
             geoData={geoData}
             geoLoading={geoLoading}
@@ -703,8 +735,8 @@ export default function GISPage() {
             <span className="tactical-text">{currentBasemap}</span>
           </div>
           <span className="tactical-text border-l border-border pl-4">IGN Argentina · INDEC 2022</span>
-          <span className="tactical-text border-l border-border pl-4">529 departamentos · 2.313 municipios</span>
-          <span className="tactical-text border-l border-border pl-4">5 puertos · 6 rutas nacionales</span>
+          <span className="tactical-text border-l border-border pl-4">529 deptos · 2.313 munic.</span>
+          <span className="tactical-text border-l border-border pl-4">5 puertos · 6 rutas · 4 hotspots · 5 territorios</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="tactical-text">
@@ -714,7 +746,7 @@ export default function GISPage() {
             Capas: <span className="text-primary font-mono">{activeLayers}</span>
           </span>
           <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v3.0 · Sprint GIS-08
+            AgroNova GIS v4.0 · Sprint GIS-10
           </span>
         </div>
       </div>
