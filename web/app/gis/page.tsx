@@ -716,11 +716,11 @@ export default function GISPage() {
   const currentBasemap = BASEMAP_OPTS.find(b => b.id === basemap)?.label ?? basemap;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-76px)] animate-fade-in gap-0 -m-5 p-5 pt-3">
+    <div className="flex flex-col h-screen overflow-hidden animate-fade-in">
 
       {/* ── Tactical header ────────────────────────────────────────── */}
       <div
-        className="glass rounded-xl mb-2 px-2 flex items-center gap-2 flex-shrink-0"
+        className="glass rounded-xl mx-2 mt-1.5 px-2 flex items-center gap-2 flex-shrink-0"
         style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
       >
         <div className="flex items-center flex-shrink-0">
@@ -760,7 +760,7 @@ export default function GISPage() {
       </div>
 
       {/* ── 3-col layout ────────────────────────────────────────────── */}
-      <div className="flex gap-2 flex-1 min-h-0">
+      <div className="flex gap-2 flex-1 min-h-0 px-2 pt-1.5">
 
         {/* Left panel */}
         <div className="w-[215px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
@@ -842,7 +842,7 @@ export default function GISPage() {
                 <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
               )}
               {(showFlows || showVehicles) && <span className="tactical-text" style={{ color: "#22C55E" }}>FLOWS</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-19</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-20</span>
             </div>
           </div>
 
@@ -1103,46 +1103,50 @@ export default function GISPage() {
         </div>
       </div>
 
-      {/* ── Status bar ──────────────────────────────────────────────── */}
+      {/* ── Command Center Footer ────────────────────────────────────── */}
       <div
-        className="rounded-xl mt-2 px-4 py-1.5 flex items-center justify-between flex-shrink-0"
+        className="flex-shrink-0 flex items-center justify-between px-3 gap-1 overflow-hidden"
         style={{
-          background: "rgba(7,18,9,0.65)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(34,197,94,0.10)",
-          boxShadow: "0 0 16px rgba(34,197,94,0.03)",
+          height: 28,
+          background: "rgba(4,10,5,0.95)",
+          backdropFilter: "blur(12px)",
+          borderTop: "1px solid rgba(34,197,94,0.12)",
+          boxShadow: "0 -4px 16px rgba(0,0,0,0.4)",
         }}
       >
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" style={{ boxShadow: "0 0 4px rgba(34,197,94,0.7)" }} />
-            <span className="tactical-text">{currentBasemap}</span>
-          </div>
-          <span className="tactical-text border-l border-border pl-4">IGN Argentina · INDEC 2022</span>
-          <span className="tactical-text border-l border-border pl-4">529 deptos · 2.313 munic.</span>
-          <span className="tactical-text border-l border-border pl-4">5 puertos · 6 rutas · 4 hotspots · 5 territorios</span>
+        <div className="flex items-center overflow-hidden min-w-0">
+          {([
+            { v: currentBasemap.toUpperCase(), c: "#22C55E" },
+            { v: "EPSG:4326 · WGS84",         c: "#3E5A3E" },
+            { v: "IGN ARGENTINA",              c: "#3E5A3E" },
+            { v: "529 DEPTOS",                 c: "#3E5A3E" },
+            { v: "2.313 MUNIC.",               c: "#3E5A3E" },
+            { v: "5 PUERTOS",                  c: "#3E5A3E" },
+          ] as const).map(({ v, c }, i) => (
+            <div key={i} className="flex items-center flex-shrink-0">
+              {i > 0 && <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />}
+              <span className="tactical-text" style={{ color: c }}>{v}</span>
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-3">
-          <span className="tactical-text">
-            KPI: <span className="text-primary font-mono">{metric.toUpperCase()}</span>
-          </span>
-          <span className="tactical-text border-l border-border pl-3">
-            Capas: <span className="text-primary font-mono">{activeLayers}</span>
-          </span>
-          <span className="tactical-text border-l border-border pl-3">
-            Año: <span className="font-mono" style={{ color: "#A3E635" }}>{selectedYear}</span>
-            {selectedYear < YEAR_MAX && (
-              <span className="ml-1" style={{ color: "#E8A020", fontSize: 8 }}>HISTÓRICO</span>
-            )}
-          </span>
-          <span className="tactical-text border-l border-border pl-3">
-            Engine: <span className="font-mono" style={{ color: mapEngine === "mapbox" ? "#A3E635" : "#4ADE80" }}>
-              {mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET"}
-            </span>
-          </span>
-          <span className="tactical-text border-l border-border pl-3" style={{ color: "#4ADE80" }}>
-            AgroNova GIS v8.0 · Sprint GIS-19
-          </span>
+        <div className="flex items-center flex-shrink-0">
+          {([
+            { v: `KPI · ${metric.toUpperCase()}`,                               c: "#22C55E" },
+            { v: `CAPAS · ${activeLayers}`,                                     c: "#3E5A3E" },
+            { v: selectedYear < YEAR_MAX ? `${selectedYear} ★ HIST` : String(selectedYear), c: selectedYear < YEAR_MAX ? "#E8A020" : "#3E5A3E" },
+            { v: mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET OSM",     c: "#3E5A3E" },
+            { v: "GIS v8.0 · GIS-20",                                           c: "#4ADE80" },
+          ] as const).map(({ v, c }, i) => (
+            <div key={i} className="flex items-center flex-shrink-0">
+              {i > 0 && <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />}
+              <span className="tactical-text" style={{ color: c }}>{v}</span>
+            </div>
+          ))}
+          <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" style={{ boxShadow: "0 0 5px rgba(34,197,94,0.9)" }} />
+            <span className="tactical-text" style={{ color: "#22C55E" }}>LIVE</span>
+          </div>
         </div>
       </div>
     </div>
