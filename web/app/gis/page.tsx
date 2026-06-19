@@ -992,7 +992,7 @@ export default function GISPage() {
   const currentBasemap = BASEMAP_OPTS.find(b => b.id === basemap)?.label ?? basemap;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden animate-fade-in">
+    <div className="fixed inset-0 flex flex-col overflow-hidden animate-fade-in">
 
       {/* ── Tactical header ────────────────────────────────────────── */}
       <div
@@ -1056,7 +1056,7 @@ export default function GISPage() {
       </div>
 
       {/* ── 3-col layout ────────────────────────────────────────────── */}
-      <div className="flex gap-2 flex-1 min-h-0 px-2 pt-1.5">
+      <div className="flex gap-2 flex-1 min-h-0 px-2 pt-1.5 pb-1.5">
 
         {/* Left panel */}
         <div className="w-[215px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
@@ -1506,7 +1506,7 @@ export default function GISPage() {
             { v: `CAPAS · ${activeLayers}`,                                     c: "#3E5A3E" },
             { v: selectedYear < YEAR_MAX ? `${selectedYear} ★ HIST` : String(selectedYear), c: selectedYear < YEAR_MAX ? "#E8A020" : "#3E5A3E" },
             { v: mapEngine === "earth" ? "◉ EARTH MODE" : mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET OSM", c: mapEngine === "earth" ? "#38BDF8" : "#3E5A3E" },
-            { v: "GIS v9.0 · GIS-23",                                           c: "#4ADE80" },
+            { v: "GIS v9.1 · GIS-20.1",                                          c: "#4ADE80" },
           ] as const).map(({ v, c }, i) => (
             <div key={i} className="flex items-center flex-shrink-0">
               {i > 0 && <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />}
