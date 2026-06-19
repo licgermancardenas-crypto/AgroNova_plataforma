@@ -1,23 +1,10 @@
-"""
-SQLAlchemy connection layer for Neon PostgreSQL.
-
-Not wired into any router yet (see docs/backend/backend_audit.md §5) — every
-endpoint still reads data/csv/*.csv and data/gis_outputs/*.json directly.
-This module exists so the ORM layer (backend/models/orm.py) and the
-repository layer (backend/repositories/) have somewhere to bind once
-DATABASE_URL is set, and so backend/scripts/test_connection.py has an engine
-to test against.
-
-engine and SessionLocal are None until DATABASE_URL is configured — importing
-this module never raises just because there's no DB yet.
-"""
 from __future__ import annotations
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from .config import get_settings  # loads .env as a side effect — see config.py docstring
+from .config import get_settings
 
 settings = get_settings()
 
@@ -32,9 +19,6 @@ Base = declarative_base()
 
 
 def get_db():
-    """FastAPI dependency. Raises if DATABASE_URL isn't configured — no
-    endpoint depends on this today, so the failure mode only matters once
-    a router actually starts using it."""
     if SessionLocal is None:
         raise RuntimeError(
             "DATABASE_URL not configured — copy .env.example to .env and set it."
@@ -47,9 +31,7 @@ def get_db():
 
 
 def get_db_or_none():
-    """FastAPI dependency that yields None when DATABASE_URL isn't configured.
-    Use this in endpoints that have a CSV/JSON fallback — they degrade
-    gracefully instead of returning 500 when the DB is unavailable."""
+    """Yields None when DATABASE_URL isn't configured — for endpoints with CSV fallback."""
     if SessionLocal is None:
         yield None
         return

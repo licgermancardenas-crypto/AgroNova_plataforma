@@ -1,55 +1,63 @@
 from __future__ import annotations
 
-from sqlalchemy import func, select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
-import gis.geo_utils as gu
 from backend.models.orm import DimCliente, DimDeposito, DimSucursal
+from backend.repositories.base import BaseRepository
 
 
-class RoutingRepository:
+class RoutingRepository(BaseRepository[DimSucursal]):
+    model = DimSucursal
+
     def __init__(self, db: Session):
-        self.db = db
+        super().__init__(db)
 
     def sucursales(self) -> list[dict]:
-        rows = self.db.execute(
-            select(DimSucursal.sucursal_id, DimSucursal.nombre, DimSucursal.lat, DimSucursal.lon)
-        ).fetchall()
+        stmt = select(DimSucursal).where(DimSucursal.estado == "Activa")
+        rows = self.db.execute(stmt).scalars().all()
         return [
-            {"sucursal_id": r.sucursal_id, "nombre": r.nombre,
-             "lat": float(r.lat), "lon": float(r.lon)}
-            for r in rows
+            {
+                "sucursal_id": s.sucursal_id,
+                "nombre": s.nombre,
+                "provincia": s.provincia,
+                "lat": float(s.lat) if s.lat else None,
+                "lon": float(s.lon) if s.lon else None,
+            }
+            for s in rows
         ]
 
     def depositos(self) -> list[dict]:
-        rows = self.db.execute(
-            select(
-                DimDeposito.deposito_id, DimDeposito.nombre,
-                DimDeposito.lat, DimDeposito.lon, DimDeposito.sucursal_id,
-            )
-        ).fetchall()
+        stmt = select(DimDeposito).where(DimDeposito.estado == "Operativo")
+        rows = self.db.execute(stmt).scalars().all()
         return [
-            {"deposito_id": r.deposito_id, "nombre": r.nombre,
-             "lat": float(r.lat), "lon": float(r.lon), "sucursal_id": r.sucursal_id}
-            for r in rows
+            {
+                "deposito_id": d.deposito_id,
+                "nombre": d.nombre,
+                "sucursal_id": d.sucursal_id,
+                "lat": float(d.lat) if d.lat else None,
+                "lon": float(d.lon) if d.lon else None,
+            }
+            for d in rows
         ]
 
     def provincia_counts(self) -> dict[str, int]:
-        """Canonical province name → client count (5 active provinces)."""
-        rows = self.db.execute(
-            select(DimCliente.provincia, func.count())
-            .select_from(DimCliente)
-            .where(DimCliente.provincia.isnot(None))
+        stmt = (
+            select(DimCliente.provincia, func.count(DimCliente.cliente_id).label("n"))
+            .where(DimCliente.activo.is_(True))
             .group_by(DimCliente.provincia)
-        ).fetchall()
-        return {gu.normalize_province(r[0]): int(r[1]) for r in rows}
+        )
+        rows = self.db.execute(stmt).all()
+        return {r.provincia: r.n for r in rows if r.provincia}
 
     def sucursal_real_counts(self) -> dict[int, int]:
-        """sucursal_id_asignada → real client count stored in dim_cliente."""
-        rows = self.db.execute(
-            select(DimCliente.sucursal_id_asignada, func.count())
-            .select_from(DimCliente)
-            .where(DimCliente.sucursal_id_asignada.isnot(None))
+        stmt = (
+            select(
+                DimCliente.sucursal_id_asignada,
+                func.count(DimCliente.cliente_id).label("n"),
+            )
+            .where(DimCliente.activo.is_(True), DimCliente.sucursal_id_asignada.isnot(None))
             .group_by(DimCliente.sucursal_id_asignada)
-        ).fetchall()
-        return {int(r[0]): int(r[1]) for r in rows}
+        )
+        rows = self.db.execute(stmt).all()
+        return {r.sucursal_id_asignada: r.n for r in rows}

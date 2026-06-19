@@ -1,7 +1,3 @@
-"""
-Generic repository — get_all/get_by_id/count/paginate over any ORM model.
-Not used by any service yet (see docs/backend/backend_audit.md §5).
-"""
 from __future__ import annotations
 
 from typing import Generic, TypeVar
@@ -27,6 +23,5 @@ class BaseRepository(Generic[ModelT]):
 
     def count(self) -> int:
         from sqlalchemy import func
-
         stmt = select(func.count()).select_from(self.model)
         return self.db.execute(stmt).scalar_one()

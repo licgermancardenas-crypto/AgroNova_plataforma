@@ -4,21 +4,23 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline }
 import L from "leaflet";
 import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId } from "@/types";
 import { fmtARS } from "@/lib/formatters";
-import { PROVINCE_KPIS } from "@/lib/geo-data";
-import ChoroplethLayer       from "./ChoroplethLayer";
-import ClientClusterLayer    from "./ClientClusterLayer";
-import HeatmapLayer          from "./HeatmapLayer";
-import MapLegend             from "./MapLegend";
-import VoronoiTerritoryLayer from "./VoronoiTerritoryLayer";
-import CoverageBufferLayer   from "./CoverageBufferLayer";
-import CandidateBranchLayer  from "./CandidateBranchLayer";
-import HotspotPolygonLayer   from "./HotspotPolygonLayer";
-import RoutingRiskLayer      from "./RoutingRiskLayer";
-import DepartamentosLayer    from "./DepartamentosLayer";
-import MunicipiosLayer       from "./MunicipiosLayer";
-import VialLayer             from "./VialLayer";
-import PuertosLayer          from "./PuertosLayer";
-import ScaleCoordsControl    from "./ScaleCoordsControl";
+import ChoroplethLayer   from "./ChoroplethLayer";
+import ClientClusterLayer from "./ClientClusterLayer";
+import HeatmapLayer      from "./HeatmapLayer";
+import MapLegend         from "./MapLegend";
+import DepartamentosLayer     from "./DepartamentosLayer";
+import MunicipiosLayer        from "./MunicipiosLayer";
+import VialLayer              from "./VialLayer";
+import PuertosLayer           from "./PuertosLayer";
+import ScaleCoordsControl     from "./ScaleCoordsControl";
+import HotspotsLayer          from "./HotspotsLayer";
+import TerritoriesLayer       from "./TerritoriesLayer";
+import CoverageBuffersLayer   from "./CoverageBuffersLayer";
+import CandidateBranchesLayer from "./CandidateBranchesLayer";
+import ServiceAreasLayer      from "./ServiceAreasLayer";
+import DeckOverlay            from "./DeckOverlay";
+import FlowAnimationLayer    from "@/components/gis/FlowAnimationLayer";
+import VehicleLayer          from "@/components/gis/VehicleLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -29,25 +31,40 @@ L.Icon.Default.mergeOptions({
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
+// Sucursal: hex-shaped pulse icon (30x30, prominent)
 const sucursalIcon = L.divIcon({
-  html: `<div style="position:relative;width:20px;height:20px;display:flex;align-items:center;justify-content:center">
-    <div style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,0.15);border:1.5px solid #22C55E;animation:none;box-shadow:0 0 16px rgba(34,197,94,0.6)"></div>
-    <div style="width:8px;height:8px;border-radius:50%;background:#22C55E"></div>
+  html: `<div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center">
+    <div style="position:absolute;width:30px;height:30px;border-radius:50%;
+      background:rgba(34,197,94,0.08);border:2px solid #22C55E;
+      box-shadow:0 0 0 4px rgba(34,197,94,0.12),0 0 20px rgba(34,197,94,0.5)"></div>
+    <div style="position:absolute;width:18px;height:18px;border-radius:50%;
+      background:rgba(34,197,94,0.18);border:1.5px solid rgba(34,197,94,0.7)"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:#22C55E;
+      box-shadow:0 0 8px rgba(34,197,94,0.9)"></div>
   </div>`,
   className: "",
-  iconSize:  [20, 20],
-  iconAnchor:[10, 10],
+  iconSize:  [30, 30],
+  iconAnchor:[15, 15],
 });
 
-const depositoIcon = L.divIcon({
-  html: `<div style="position:relative;width:18px;height:18px;display:flex;align-items:center;justify-content:center">
-    <div style="position:absolute;width:18px;height:18px;background:rgba(14,165,233,0.15);border:1.5px solid #0EA5E9;border-radius:3px;transform:rotate(0deg);box-shadow:0 0 12px rgba(14,165,233,0.5)"></div>
-    <div style="width:7px;height:7px;background:#0EA5E9;border-radius:1px"></div>
-  </div>`,
-  className: "",
-  iconSize:  [18, 18],
-  iconAnchor:[9, 9],
-});
+// Depósito: size proportional to ocupacion_pct
+function makeDepositoIcon(ocupacion: number): L.DivIcon {
+  const size  = Math.round(14 + (ocupacion / 100) * 12); // 14-26px
+  const color = ocupacion > 85 ? "#E03E3E" : ocupacion > 70 ? "#E8A020" : "#0EA5E9";
+  const glow  = ocupacion > 85 ? "rgba(224,62,62,0.6)" : ocupacion > 70 ? "rgba(232,160,32,0.5)" : "rgba(14,165,233,0.5)";
+  return L.divIcon({
+    html: `<div style="position:relative;width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;width:${size}px;height:${size}px;
+        background:${color}18;border:1.5px solid ${color};border-radius:3px;
+        box-shadow:0 0 10px ${glow}"></div>
+      <div style="width:${Math.round(size*0.4)}px;height:${Math.round(size*0.4)}px;
+        background:${color};border-radius:1px"></div>
+    </div>`,
+    className: "",
+    iconSize:  [size, size],
+    iconAnchor:[size / 2, size / 2],
+  });
+}
 
 // ── Basemap definitions ───────────────────────────────────────────────────────
 
@@ -77,6 +94,11 @@ export const BASEMAPS: Record<BasemapId, { url: string; attribution: string; lab
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, GeoEye, Earthstar Geographics",
   },
+  osm_topo: {
+    label: "OpenTopoMap",
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: "Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)",
+  },
 };
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -87,32 +109,44 @@ interface Props {
   clientes:           ClienteMapMarker[];
   routes?:            GISRoute[];
   // Basemap
-  basemap:            BasemapId;
-  // Layer toggles — analysis
-  showChoropleth:     boolean;
-  showHeatmap:        boolean;
-  showRadios:         boolean;
-  // Layer toggles — GIS-07
-  showVoronoi:        boolean;
-  showBuffers:        boolean;
-  showCandidatos:     boolean;
-  showHotspots:       boolean;
-  showRoutingRisk:    boolean;
-  // Layer toggles — GIS-08 real world
-  showDepartamentos:  boolean;
-  showMunicipios:     boolean;
-  showVial:           boolean;
-  showPuertos:        boolean;
-  showCoords:         boolean;
-  // Markers
-  showSucursales:     boolean;
-  showDepositos:      boolean;
-  showClientes:       boolean;
+  basemap:          BasemapId;
+  // Layer toggles
+  showChoropleth:   boolean;
+  showHeatmap:      boolean;
+  showDepartamentos:boolean;
+  showMunicipios:   boolean;
+  showVial:         boolean;
+  showPuertos:      boolean;
+  showSucursales:   boolean;
+  showDepositos:    boolean;
+  showClientes:     boolean;
+  showRadios:       boolean;
+  showCoords:       boolean;
+  showHotspots:     boolean;
+  showTerritorios:  boolean;
+  showBuffers:      boolean;
+  showCandidatos:   boolean;
+  showServiceAreas: boolean;
   // Metric
-  metric:             GisMetric;
+  metric:           GisMetric;
+  // KPIs (year-aware, passed from parent)
+  allKpis:          ProvinceKPI[];
+  // Selection
+  selectedProvince: string | null;
   // GeoJSON
-  geoData:            GeoJSON.FeatureCollection | null;
-  geoLoading:         boolean;
+  geoData:          GeoJSON.FeatureCollection | null;
+  geoLoading:       boolean;
+  // Deck.gl / WebGL (GIS-13)
+  show3D:           boolean;
+  show3DArcs:       boolean;
+  showBeams:        boolean;
+  metric3D:         GisMetric;
+  // GIS-16 animation
+  showFlows:        boolean;
+  showVehicles:     boolean;
+  showPulse:        boolean;
+  animPlaying:      boolean;
+  animSpeed:        1 | 2;
   // Callbacks
   onProvinceClick:    (kpi: ProvinceKPI) => void;
 }
@@ -120,11 +154,13 @@ interface Props {
 export default function LeafletMap({
   sucursales, depositos, clientes, routes = [],
   basemap,
-  showChoropleth, showHeatmap, showRadios,
-  showVoronoi, showBuffers, showCandidatos, showHotspots, showRoutingRisk,
-  showDepartamentos, showMunicipios, showVial, showPuertos, showCoords,
-  showSucursales, showDepositos, showClientes,
-  metric, geoData, geoLoading, onProvinceClick,
+  showChoropleth, showHeatmap, showDepartamentos, showMunicipios,
+  showVial, showPuertos,
+  showSucursales, showDepositos, showClientes, showRadios, showCoords,
+  showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
+  metric, allKpis, geoData, geoLoading, onProvinceClick, selectedProvince,
+  show3D, show3DArcs, showBeams, metric3D,
+  showFlows, showVehicles, showPulse, animPlaying, animSpeed,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -132,7 +168,7 @@ export default function LeafletMap({
     <MapContainer
       center={[-34, -64]}
       zoom={5}
-      style={{ height: "100%", width: "100%" }}
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
       zoomControl={false}
     >
       <ZoomControl position="bottomright" />
@@ -146,27 +182,35 @@ export default function LeafletMap({
       {/* Voronoi territory polygons */}
       <VoronoiTerritoryLayer visible={showVoronoi} />
 
+      {/* Service areas (bottom-most polygon — largest shapes) */}
+      <ServiceAreasLayer visible={showServiceAreas} />
+
+      {/* Territorial Voronoi zones */}
+      <TerritoriesLayer visible={showTerritorios} />
+
+      {/* Coverage buffers */}
+      <CoverageBuffersLayer visible={showBuffers} />
+
+      {/* Hotspot polygons */}
+      <HotspotsLayer visible={showHotspots} />
+
       {/* Department borders */}
       <DepartamentosLayer visible={showDepartamentos} />
 
-      {/* Province choropleth */}
+      {/* Province choropleth — transparent in 3D mode, still handles clicks */}
       {showChoropleth && !geoLoading && geoData && (
         <ChoroplethLayer
           geoData={geoData}
           metric={metric}
-          allKpis={PROVINCE_KPIS}
+          allKpis={allKpis}
           onProvinceClick={onProvinceClick}
+          selectedProvince={selectedProvince}
+          mode3D={show3D}
         />
       )}
 
-      {/* Hotspot polygons */}
-      <HotspotPolygonLayer visible={showHotspots} />
-
-      {/* Coverage buffer polygons */}
-      <CoverageBufferLayer visible={showBuffers} />
-
-      {/* Commercial activity heatmap */}
-      {showHeatmap && <HeatmapLayer kpis={PROVINCE_KPIS} metric={metric} visible={showHeatmap} />}
+      {/* Heatmap */}
+      {showHeatmap && <HeatmapLayer kpis={allKpis} metric={metric} visible={showHeatmap} />}
 
       {/* ── Line layers ──────────────────────────────────────────── */}
 
@@ -215,6 +259,9 @@ export default function LeafletMap({
       {/* Ports & logistics nodes */}
       <PuertosLayer visible={showPuertos} />
 
+      {/* Candidate expansion branches */}
+      <CandidateBranchesLayer visible={showCandidatos} />
+
       {/* Municipalities (zoom-aware clustering) */}
       <MunicipiosLayer visible={showMunicipios} />
 
@@ -243,7 +290,7 @@ export default function LeafletMap({
 
       {/* Depósitos — blue square markers */}
       {showDepositos && depositos.map(d => (
-        <Marker key={`d${d.id}`} position={[d.lat, d.lng]} icon={depositoIcon}>
+        <Marker key={`d${d.id}`} position={[d.lat, d.lng]} icon={makeDepositoIcon(d.ocupacion_pct)}>
           <Popup>
             <div style={{ fontSize: 11, minWidth: 150 }}>
               <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#0EA5E9", borderBottom: "1px solid #0EA5E940", paddingBottom: 4 }}>
@@ -263,11 +310,40 @@ export default function LeafletMap({
       {/* Clients — orange cluster */}
       <ClientClusterLayer clientes={clientes} visible={showClientes} />
 
-      {/* Candidate branch locations */}
-      <CandidateBranchLayer visible={showCandidatos} />
+      {/* Legend */}
+      <MapLegend metric={metric} kpis={allKpis} />
 
-      {/* Dynamic legend */}
-      <MapLegend metric={metric} kpis={PROVINCE_KPIS} />
+      {/* ── Deck.gl WebGL overlay (GIS-13) ─────────────────────────── */}
+      {(show3D || show3DArcs || showBeams) && (
+        <DeckOverlay
+          geoData={geoData}
+          allKpis={allKpis}
+          metric3D={metric3D}
+          mode3D={show3D}
+          showArcs={show3DArcs}
+          showBeams={showBeams}
+          sucursales={sucursales}
+          onProvinceClick={onProvinceClick}
+        />
+      )}
+
+      {/* ── GIS-16 canvas animation layers ─────────────────────────── */}
+      {showFlows && (
+        <FlowAnimationLayer
+          sucursales={sucursales}
+          allKpis={allKpis}
+          playing={animPlaying}
+          speed={animSpeed}
+          showPulse={showPulse}
+        />
+      )}
+      {showVehicles && (
+        <VehicleLayer
+          routes={routes}
+          playing={animPlaying}
+          speed={animSpeed}
+        />
+      )}
     </MapContainer>
   );
 }

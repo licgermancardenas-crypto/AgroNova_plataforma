@@ -1,12 +1,22 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from backend.core.config import get_settings
-from backend.schemas.common import HealthResponse
+from backend.core.database import get_db_or_none
 
-router = APIRouter(tags=["health"])
-settings = get_settings()
+router = APIRouter(prefix="/api", tags=["health"])
 
 
-@router.get("/health", response_model=HealthResponse)
-def health() -> HealthResponse:
-    return HealthResponse(status="ok", version=settings.version)
+@router.get("/health")
+def health(db: Session | None = Depends(get_db_or_none)):
+    db_ok = False
+    if db is not None:
+        try:
+            db.execute(text("SELECT 1"))
+            db_ok = True
+        except Exception:
+            pass
+    return {
+        "status": "ok",
+        "db": "connected" if db_ok else "fallback",
+    }

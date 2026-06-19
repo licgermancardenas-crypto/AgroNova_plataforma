@@ -162,3 +162,30 @@ body {
   50%       { opacity: 0.3; }
 }
 .blink { animation: blink 1.5s step-end infinite; }
+
+/* ── GIS-12: Temporal transition animations ──────────────────────────────── */
+
+/* Smooth choropleth color transitions when year changes */
+.leaflet-interactive {
+  transition: fill 0.45s ease, fill-opacity 0.45s ease, stroke 0.3s ease, stroke-width 0.25s ease;
+}
+
+/* Year change pulse on header stats */
+@keyframes year-pulse {
+  0%   { opacity: 1; }
+  25%  { opacity: 0.55; transform: scale(0.97); }
+  60%  { opacity: 1;  transform: scale(1.01); }
+  100% { opacity: 1;  transform: scale(1); }
+}
+.year-change-pulse {
+  animation: year-pulse 0.55s ease forwards;
+}
+
+/* Fade-in for temporal panels */
+@keyframes temporal-fade {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.temporal-fade {
+  animation: temporal-fade 0.3s ease forwards;
+}

@@ -34,6 +34,11 @@ const ALL_LAYER_DEFS: LayerDef[] = [
   { key: "depositos",     label: "Depósitos",          color: "#0EA5E9", shape: "square",  active: false },
   { key: "clientes",      label: "Clientes",           color: "#F97316", shape: "circle",  active: false },
   { key: "radios",        label: "Radios Cobertura",   color: "#A3E635", shape: "dashed",  active: false },
+  { key: "hotspots",      label: "Hotspots",           color: "#E8A020", shape: "dashed",  active: false },
+  { key: "territorios",   label: "Territorios",        color: "#C084FC", shape: "square",  active: false },
+  { key: "buffers",       label: "Buffers Cobertura",  color: "#A3E635", shape: "dashed",  active: false },
+  { key: "candidatos",    label: "Candidatas",         color: "#E8A020", shape: "diamond", active: false },
+  { key: "serviceareas",  label: "Service Areas",      color: "#22C55E", shape: "square",  active: false },
 ];
 
 function ShapeIcon({ shape, color }: { shape: LayerDef["shape"]; color: string }) {

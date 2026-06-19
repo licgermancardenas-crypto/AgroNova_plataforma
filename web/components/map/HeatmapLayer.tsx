@@ -33,22 +33,40 @@ export default function HeatmapLayer({ kpis, metric, visible }: Props) {
       const val = getMetricValue(kpi, metric);
       if (val <= 0) return;
 
-      const t       = max === min ? 0 : (val - min) / (max - min);
-      const radius  = Math.round(30_000 + t * 120_000); // 30–150 km in meters
-      const opacity = 0.04 + t * 0.14;
+      const t = max === min ? 0 : (val - min) / (max - min);
 
-      const color = metric === "churn"
-        ? `rgba(224,62,62,${opacity})`
-        : `rgba(34,197,94,${opacity})`;
+      const isChurn = metric === "churn";
+      const baseR   = isChurn ? [224, 62,  62]  : [34,  197, 94];
+      const peakR   = isChurn ? [255, 100, 100] : [163, 230, 53];
 
-      const circle = L.circle([kpi.lat, kpi.lon], {
-        radius,
+      // Outer halo — very soft, blends provinces together
+      group.addLayer(L.circle([kpi.lat, kpi.lon], {
+        radius:      Math.round(70_000 + t * 280_000),
         color:       "transparent",
-        fillColor:   color,
-        fillOpacity: 1,
+        fillColor:   `rgba(${baseR[0]},${baseR[1]},${baseR[2]},1)`,
+        fillOpacity: 0.025 + t * 0.045,
         interactive: false,
-      });
-      group.addLayer(circle);
+      }));
+
+      // Mid-ring — concentrated glow
+      group.addLayer(L.circle([kpi.lat, kpi.lon], {
+        radius:      Math.round(25_000 + t * 95_000),
+        color:       "transparent",
+        fillColor:   `rgba(${baseR[0]},${baseR[1]},${baseR[2]},1)`,
+        fillOpacity: 0.06 + t * 0.10,
+        interactive: false,
+      }));
+
+      // Core peak (only for t > 0.45 to avoid clutter)
+      if (t > 0.45) {
+        group.addLayer(L.circle([kpi.lat, kpi.lon], {
+          radius:      Math.round(8_000 + t * 28_000),
+          color:       "transparent",
+          fillColor:   `rgba(${peakR[0]},${peakR[1]},${peakR[2]},1)`,
+          fillOpacity: 0.12 + t * 0.18,
+          interactive: false,
+        }));
+      }
     });
 
     group.addTo(map);

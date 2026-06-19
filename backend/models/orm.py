@@ -1,32 +1,8 @@
-"""
-SQLAlchemy ORM models — mirrors data/sql/02_ddl_productivo.sql 1:1, which is
-the source of truth for the Neon schema (NOT this file: see
-docs/backend/backend_audit.md §9 — table creation should happen via
-etl/run_pipeline.py + the DDL, not Base.metadata.create_all(), because the
-DDL has ENUMs/CHECKs/GENERATED columns SQLAlchemy wouldn't replicate).
-
-Not used by any endpoint yet — backend/services/ reads data/csv/ directly
-via pandas. This module exists for backend/repositories/ and
-backend/scripts/test_connection.py to query against once DATABASE_URL is set.
-
-ID formats are VARCHAR, not Integer, per the DDL's CHECK constraints and the
-real CSVs: cliente_id "C00001" (^C[0-9]{5}$), producto_id "P0001" (^P[0-9]{4}$).
-fact_inventario.bajo_minimo and fact_logistica.dias_transito_real are
-GENERATED ALWAYS columns in Postgres — mapped here as plain (read-only in
-practice) columns; never set them on INSERT.
-"""
 from __future__ import annotations
 
 from sqlalchemy import (
-    BigInteger,
-    Boolean,
-    Date,
-    ForeignKey,
-    Integer,
-    Numeric,
-    SmallInteger,
-    String,
-    Text,
+    BigInteger, Boolean, Date, ForeignKey, Integer,
+    Numeric, SmallInteger, String, Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -228,8 +204,6 @@ class FactCompras(Base):
 
 
 class FactInventario(Base):
-    """bajo_minimo is GENERATED ALWAYS AS (stock_actual < stock_minimo) STORED
-    in Postgres — never set it from the ORM; the DB computes it."""
     __tablename__ = "fact_inventario"
     __table_args__ = _TABLE_ARGS
 
@@ -240,15 +214,13 @@ class FactInventario(Base):
     stock_actual = mapped_column(Integer, nullable=False, default=0)
     stock_minimo = mapped_column(Integer)
     stock_maximo = mapped_column(Integer)
-    bajo_minimo = mapped_column(Boolean)  # GENERATED — read-only
+    bajo_minimo = mapped_column(Boolean)  # GENERATED ALWAYS in Postgres
     valor_stock_ars = mapped_column(Numeric(18, 2))
     valor_stock_usd = mapped_column(Numeric(14, 2))
     merma_pct = mapped_column(Numeric(6, 4), default=0)
 
 
 class FactLogistica(Base):
-    """dias_transito_real is GENERATED ALWAYS AS (dias_transito_base +
-    dias_demora) STORED in Postgres — never set it from the ORM."""
     __tablename__ = "fact_logistica"
     __table_args__ = _TABLE_ARGS
 
@@ -262,7 +234,7 @@ class FactLogistica(Base):
     peso_kg = mapped_column(Integer)
     dias_transito_base = mapped_column(SmallInteger)
     dias_demora = mapped_column(SmallInteger, default=0)
-    dias_transito_real = mapped_column(SmallInteger)  # GENERATED — read-only
+    dias_transito_real = mapped_column(SmallInteger)  # GENERATED ALWAYS in Postgres
     costo_flete_ars = mapped_column(Numeric(14, 2))
     estado = mapped_column(String(20))
 

@@ -1,16 +1,3 @@
-"""
-AgroNova v3.0 — Backend Platform settings.
-
-DATABASE_URL is intentionally optional: Neon PostgreSQL isn't connected yet
-(see backend/core/database.py and backend/models/). Current endpoints read
-directly from data/csv/*.csv and data/gis_outputs/*.json via the existing
-gis/ pipeline — there is no live DB dependency today.
-
-load_dotenv() runs here, before the Settings class body (and its
-os.getenv() defaults) executes — pydantic field defaults are evaluated once
-at class-definition time, so .env has to be loaded before that point
-regardless of which module imports config.py first.
-"""
 from __future__ import annotations
 
 import os

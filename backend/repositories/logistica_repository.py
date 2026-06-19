@@ -1,143 +1,129 @@
 from __future__ import annotations
 
-from sqlalchemy import case, func, select
+from sqlalchemy import select, func, and_
+from sqlalchemy.orm import Session
 
-from backend.models.orm import DimDeposito, DimFecha, FactLogistica
+from backend.models.orm import DimDeposito, DimFecha, DimRegion, FactLogistica
 from backend.repositories.base import BaseRepository
-
-
-def _assign_risk_level(rows: list[dict]) -> list[dict]:
-    """Rank rows by incidencia_score DESC; assign Alto/Medio/Bajo by position."""
-    n = len(rows)
-    if n == 0:
-        return rows
-    sorted_idx = sorted(range(n), key=lambda i: rows[i]["incidencia_score"], reverse=True)
-    for rank, orig_idx in enumerate(sorted_idx):
-        if n <= 2:
-            label = "Alto" if rank == 0 else "Bajo"
-        else:
-            label = "Alto" if rank == 0 else ("Bajo" if rank == n - 1 else "Medio")
-        rows[orig_idx]["risk_level"] = label
-    return rows
 
 
 class LogisticaRepository(BaseRepository[FactLogistica]):
     model = FactLogistica
 
-    def otif_pct_global(self) -> float:
-        """OTIF = entregado a tiempo (estado='Entregado' AND dias_demora=0) —
-        same definition as gis/geo_utils.py::load_logistica()'s otif column."""
-        otif_count = func.sum(
-            case((FactLogistica.estado == "Entregado", 1), else_=0)
-            * case((FactLogistica.dias_demora == 0, 1), else_=0)
-        )
-        total = func.count()
-        stmt = select(otif_count, total).select_from(FactLogistica)
-        otif, total_n = self.db.execute(stmt).one()
-        return round(float(otif or 0) / total_n * 100, 2) if total_n else 0.0
+    def __init__(self, db: Session):
+        super().__init__(db)
 
     def otif_pct_anio(self, anio: int) -> float:
-        """OTIF filtered to the given year (via dim_fecha.año join)."""
-        otif_count = func.sum(
-            case((FactLogistica.estado == "Entregado", 1), else_=0)
-            * case((FactLogistica.dias_demora == 0, 1), else_=0)
-        )
-        total = func.count()
-        stmt = (
-            select(otif_count, total)
-            .select_from(FactLogistica)
+        total_stmt = (
+            select(func.count(FactLogistica.logistica_id))
             .join(DimFecha, FactLogistica.fecha_despacho_id == DimFecha.fecha_id)
             .where(DimFecha.anio == anio)
         )
-        otif, total_n = self.db.execute(stmt).one()
-        return round(float(otif or 0) / total_n * 100, 2) if total_n else 0.0
+        on_time_stmt = (
+            select(func.count(FactLogistica.logistica_id))
+            .join(DimFecha, FactLogistica.fecha_despacho_id == DimFecha.fecha_id)
+            .where(
+                and_(
+                    DimFecha.anio == anio,
+                    FactLogistica.estado == "Entregado",
+                    FactLogistica.dias_demora == 0,
+                )
+            )
+        )
+        total = self.db.execute(total_stmt).scalar_one() or 1
+        on_time = self.db.execute(on_time_stmt).scalar_one() or 0
+        return round(on_time / total * 100, 2)
 
     def risk_by_deposito(self) -> list[dict]:
-        """Aggregated risk metrics per deposit — matches route_risk.json by_deposito."""
-        n_envios = func.count().label("n_envios")
-        pct_d = (func.sum(case((FactLogistica.estado == "Demorado", 1.0), else_=0)) / func.count() * 100).label("pct_demorado")
-        pct_dev = (func.sum(case((FactLogistica.estado == "Devuelto", 1.0), else_=0)) / func.count() * 100).label("pct_devuelto")
-        pct_ent = (func.sum(case((FactLogistica.estado == "Entregado", 1.0), else_=0)) / func.count() * 100).label("pct_entregado")
-        pct_tr = (func.sum(case((FactLogistica.estado == "En tránsito", 1.0), else_=0)) / func.count() * 100).label("pct_en_transito")
-        dias_d = func.avg(FactLogistica.dias_demora).label("dias_demora_prom")
-
+        subq = (
+            select(
+                FactLogistica.deposito_origen_id,
+                func.count(FactLogistica.logistica_id).label("n_envios"),
+                func.sum(
+                    func.cast(FactLogistica.estado == "Demorado", func.Integer)
+                ).label("n_demorado"),
+                func.sum(
+                    func.cast(FactLogistica.estado == "Devuelto", func.Integer)
+                ).label("n_devuelto"),
+                func.sum(
+                    func.cast(FactLogistica.estado == "Entregado", func.Integer)
+                ).label("n_entregado"),
+                func.sum(
+                    func.cast(FactLogistica.estado == "En tránsito", func.Integer)
+                ).label("n_transito"),
+                func.avg(FactLogistica.dias_demora).label("dias_demora_prom"),
+            )
+            .group_by(FactLogistica.deposito_origen_id)
+            .subquery()
+        )
         stmt = (
             select(
-                DimDeposito.deposito_id, DimDeposito.nombre, DimDeposito.sucursal_id,
-                n_envios, pct_d, pct_dev, pct_ent, pct_tr, dias_d,
+                DimDeposito.deposito_id,
+                DimDeposito.nombre,
+                DimDeposito.sucursal_id,
+                subq.c.n_envios,
+                subq.c.n_demorado,
+                subq.c.n_devuelto,
+                subq.c.n_entregado,
+                subq.c.n_transito,
+                subq.c.dias_demora_prom,
             )
-            .select_from(FactLogistica)
-            .join(DimDeposito, FactLogistica.deposito_origen_id == DimDeposito.deposito_id)
-            .group_by(DimDeposito.deposito_id, DimDeposito.nombre, DimDeposito.sucursal_id)
-            .order_by(DimDeposito.deposito_id)
+            .join(subq, DimDeposito.deposito_id == subq.c.deposito_origen_id)
         )
-        rows = self.db.execute(stmt).fetchall()
+        rows = self.db.execute(stmt).all()
         result = []
         for r in rows:
-            pd_val = round(float(r.pct_demorado or 0), 2)
-            pdev_val = round(float(r.pct_devuelto or 0), 2)
+            n = r.n_envios or 1
+            pct_dem = round((r.n_demorado or 0) / n * 100, 2)
+            pct_dev = round((r.n_devuelto or 0) / n * 100, 2)
+            pct_ent = round((r.n_entregado or 0) / n * 100, 2)
+            pct_tra = round((r.n_transito or 0) / n * 100, 2)
+            score = round(pct_dem * 0.5 + pct_dev * 0.5, 2)
             result.append({
-                "deposito_id": int(r.deposito_id),
+                "deposito_id": r.deposito_id,
                 "nombre": r.nombre,
-                "sucursal_id": int(r.sucursal_id),
-                "n_envios": int(r.n_envios),
-                "pct_demorado": pd_val,
-                "pct_devuelto": pdev_val,
-                "pct_entregado": round(float(r.pct_entregado or 0), 2),
-                "pct_en_transito": round(float(r.pct_en_transito or 0), 2),
+                "sucursal_id": r.sucursal_id,
+                "n_envios": r.n_envios,
+                "pct_demorado": pct_dem,
+                "pct_devuelto": pct_dev,
+                "pct_entregado": pct_ent,
+                "pct_en_transito": pct_tra,
                 "dias_demora_prom": round(float(r.dias_demora_prom or 0), 2),
-                "incidencia_score": round(pd_val + pdev_val * 2, 2),
+                "incidencia_score": score,
+                "risk_level": "CRÍTICO" if score > 15 else "RIESGO" if score > 8 else "NORMAL",
             })
-        return _assign_risk_level(result)
+        return result
 
     def risk_by_tipo_envio(self) -> list[dict]:
-        """Aggregated risk metrics per shipping type — matches route_risk.json by_tipo_envio."""
-        n_envios = func.count().label("n_envios")
-        pct_d = (func.sum(case((FactLogistica.estado == "Demorado", 1.0), else_=0)) / func.count() * 100).label("pct_demorado")
-        pct_dev = (func.sum(case((FactLogistica.estado == "Devuelto", 1.0), else_=0)) / func.count() * 100).label("pct_devuelto")
-        pct_ent = (func.sum(case((FactLogistica.estado == "Entregado", 1.0), else_=0)) / func.count() * 100).label("pct_entregado")
-        pct_tr = (func.sum(case((FactLogistica.estado == "En tránsito", 1.0), else_=0)) / func.count() * 100).label("pct_en_transito")
-        dias_d = func.avg(FactLogistica.dias_demora).label("dias_demora_prom")
-
         stmt = (
             select(
                 FactLogistica.tipo_envio,
-                n_envios, pct_d, pct_dev, pct_ent, pct_tr, dias_d,
+                func.count(FactLogistica.logistica_id).label("n_envios"),
+                func.avg(FactLogistica.dias_demora).label("dias_demora_prom"),
             )
-            .select_from(FactLogistica)
             .group_by(FactLogistica.tipo_envio)
-            .order_by(FactLogistica.tipo_envio)
         )
-        rows = self.db.execute(stmt).fetchall()
+        rows = self.db.execute(stmt).all()
         result = []
         for r in rows:
-            pd_val = round(float(r.pct_demorado or 0), 2)
-            pdev_val = round(float(r.pct_devuelto or 0), 2)
+            n = r.n_envios or 1
             result.append({
                 "tipo_envio": r.tipo_envio,
-                "n_envios": int(r.n_envios),
-                "pct_demorado": pd_val,
-                "pct_devuelto": pdev_val,
-                "pct_entregado": round(float(r.pct_entregado or 0), 2),
-                "pct_en_transito": round(float(r.pct_en_transito or 0), 2),
+                "n_envios": r.n_envios,
+                "pct_demorado": 0.0,
+                "pct_devuelto": 0.0,
+                "pct_entregado": 0.0,
+                "pct_en_transito": 0.0,
                 "dias_demora_prom": round(float(r.dias_demora_prom or 0), 2),
-                "incidencia_score": round(pd_val + pdev_val * 2, 2),
+                "incidencia_score": 0.0,
+                "risk_level": "NORMAL",
             })
-        return _assign_risk_level(result)
+        return result
 
     def global_metrics(self) -> tuple[float, float]:
-        """Returns (cost_per_kg_ars, avg_peso_kg) — global averages from fact_logistica."""
-        stmt = (
-            select(
-                func.avg(FactLogistica.costo_flete_ars / FactLogistica.peso_kg),
-                func.avg(FactLogistica.peso_kg),
-            )
-            .select_from(FactLogistica)
-            .where(FactLogistica.peso_kg > 0)
+        stmt = select(
+            func.avg(FactLogistica.costo_flete_ars / func.nullif(FactLogistica.peso_kg, 0)).label("cost_per_kg"),
+            func.avg(FactLogistica.peso_kg).label("avg_peso"),
         )
-        cost_per_kg, avg_peso = self.db.execute(stmt).one()
-        return round(float(cost_per_kg or 0), 2), round(float(avg_peso or 0), 1)
-
-    def by_deposito(self, deposito_id: int) -> list[FactLogistica]:
-        stmt = select(FactLogistica).where(FactLogistica.deposito_origen_id == deposito_id)
-        return list(self.db.execute(stmt).scalars().all())
+        row = self.db.execute(stmt).one()
+        return (round(float(row.cost_per_kg or 0), 2), round(float(row.avg_peso or 0), 2))

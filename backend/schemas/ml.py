@@ -1,14 +1,4 @@
-"""
-ml/models/train_*.py exist but were never run against real data — ml/artifacts/
-is empty (see docs/geospatial/routing_engine.md sibling discussion in the
-GIS-06 PR and ml/reports/model_performance.md, which documents *expected*
-metrics, not real ones). Per product decision, these endpoints serve the
-same shape the frontend already shows from web/lib/mock-data.ts, explicitly
-flagged as "placeholder" so API consumers don't mistake it for a trained
-model's output.
-"""
 from typing import Literal
-
 from pydantic import BaseModel
 
 
