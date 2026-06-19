@@ -970,16 +970,30 @@ export default function GISPage() {
       >
         <Link
           href="/"
-          className="flex items-center gap-1 px-2 py-1 rounded font-mono text-2xs transition-all border flex-shrink-0"
+          className="flex items-center gap-1 px-2.5 py-1 rounded font-mono text-xs transition-all border flex-shrink-0 font-bold"
           style={{
-            background:  "rgba(7,18,9,0.6)",
-            borderColor: "rgba(34,197,94,0.20)",
-            color:       "#4B6B4B",
+            background:  "rgba(34,197,94,0.10)",
+            borderColor: "rgba(34,197,94,0.45)",
+            color:       "#86EFAC",
+            boxShadow:   "0 0 8px rgba(34,197,94,0.15)",
+            letterSpacing: "0.06em",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22C55E"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.45)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4B6B4B"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.20)"; }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLElement;
+            el.style.color = "#ffffff";
+            el.style.background = "rgba(34,197,94,0.20)";
+            el.style.borderColor = "rgba(34,197,94,0.70)";
+            el.style.boxShadow = "0 0 12px rgba(34,197,94,0.35)";
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLElement;
+            el.style.color = "#86EFAC";
+            el.style.background = "rgba(34,197,94,0.10)";
+            el.style.borderColor = "rgba(34,197,94,0.45)";
+            el.style.boxShadow = "0 0 8px rgba(34,197,94,0.15)";
+          }}
         >
-          <ChevronLeft size={10} />
+          <ChevronLeft size={11} />
           <span>MENÚ</span>
         </Link>
 
