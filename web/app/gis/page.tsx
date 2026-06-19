@@ -292,6 +292,37 @@ function LeftPanel({
   return (
     <div className="flex flex-col gap-2 h-full overflow-y-auto pr-0.5">
 
+      {/* ── Back to main menu ─────────────────────────────────────────── */}
+      <Link
+        href="/"
+        className="flex items-center justify-center gap-2 w-full py-2 rounded-xl font-mono font-bold transition-all border"
+        style={{
+          background:    "rgba(34,197,94,0.08)",
+          borderColor:   "rgba(34,197,94,0.40)",
+          color:         "#86EFAC",
+          fontSize:      13,
+          letterSpacing: "0.08em",
+          boxShadow:     "0 0 12px rgba(34,197,94,0.10)",
+        }}
+        onMouseEnter={e => {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "rgba(34,197,94,0.18)";
+          el.style.borderColor = "rgba(34,197,94,0.65)";
+          el.style.color = "#ffffff";
+          el.style.boxShadow = "0 0 18px rgba(34,197,94,0.30)";
+        }}
+        onMouseLeave={e => {
+          const el = e.currentTarget as HTMLElement;
+          el.style.background = "rgba(34,197,94,0.08)";
+          el.style.borderColor = "rgba(34,197,94,0.40)";
+          el.style.color = "#86EFAC";
+          el.style.boxShadow = "0 0 12px rgba(34,197,94,0.10)";
+        }}
+      >
+        <ChevronLeft size={14} />
+        <span>VOLVER AL MENÚ</span>
+      </Link>
+
       {/* Map Engine selector */}
       <div className="glass rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
@@ -968,35 +999,6 @@ export default function GISPage() {
         className="glass rounded-xl mx-2 mt-1.5 px-2 flex items-center gap-2 flex-shrink-0"
         style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
       >
-        <Link
-          href="/"
-          className="flex items-center gap-1 px-2.5 py-1 rounded font-mono text-xs transition-all border flex-shrink-0 font-bold"
-          style={{
-            background:  "rgba(34,197,94,0.10)",
-            borderColor: "rgba(34,197,94,0.45)",
-            color:       "#86EFAC",
-            boxShadow:   "0 0 8px rgba(34,197,94,0.15)",
-            letterSpacing: "0.06em",
-          }}
-          onMouseEnter={e => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.color = "#ffffff";
-            el.style.background = "rgba(34,197,94,0.20)";
-            el.style.borderColor = "rgba(34,197,94,0.70)";
-            el.style.boxShadow = "0 0 12px rgba(34,197,94,0.35)";
-          }}
-          onMouseLeave={e => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.color = "#86EFAC";
-            el.style.background = "rgba(34,197,94,0.10)";
-            el.style.borderColor = "rgba(34,197,94,0.45)";
-            el.style.boxShadow = "0 0 8px rgba(34,197,94,0.15)";
-          }}
-        >
-          <ChevronLeft size={11} />
-          <span>MENÚ</span>
-        </Link>
-
         <div className="flex items-center flex-shrink-0">
           <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
           <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
