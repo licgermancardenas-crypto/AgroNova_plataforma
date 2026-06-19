@@ -179,9 +179,6 @@ export default function LeafletMap({
 
       {/* ── Polygon layers — bottom ──────────────────────────────── */}
 
-      {/* Voronoi territory polygons */}
-      <VoronoiTerritoryLayer visible={showVoronoi} />
-
       {/* Service areas (bottom-most polygon — largest shapes) */}
       <ServiceAreasLayer visible={showServiceAreas} />
 
@@ -227,11 +224,8 @@ export default function LeafletMap({
         />
       ))}
 
-      {/* Logistics routing with risk coloring */}
-      <RoutingRiskLayer visible={showRoutingRisk} />
-
-      {/* Legacy static routes (non-risk view) */}
-      {!showRoutingRisk && routes.map(r => (
+      {/* Static routes */}
+      {routes.map(r => (
         <Polyline
           key={`rt${r.id}`}
           positions={[r.from, r.to]}

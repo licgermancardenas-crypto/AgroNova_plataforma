@@ -852,28 +852,17 @@ export default function GISPage() {
   const [showMiniMap,   setShowMiniMap]   = useState(false);
   const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
-    // Analysis
     choropleth:    true,
     heatmap:       false,
-    radios:        false,
-    // GIS-07 spatial intelligence
-    voronoi:       false,
-    hotspots:      false,
-    buffers:       false,
-    candidatos:    false,
-    routing_risk:  false,
-    // GIS-08 real world
     departamentos: false,
     municipios:    false,
     vial:          false,
     puertos:       false,
-    // Markers
     sucursales:    true,
     depositos:     true,
     clientes:      true,
-    // Controls
+    radios:        false,
     coords:        true,
-    // GIS Outputs
     hotspots:      false,
     territorios:   false,
     buffers:       false,
