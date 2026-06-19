@@ -6,8 +6,11 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
   AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
-  Mountain, Play, Pause, Gauge,
+  Mountain, Play, Pause, Gauge, Command, Bookmark,
 } from "lucide-react";
+import type { SearchResult } from "@/components/gis/GlobalSearchBar";
+import type { PaletteCommand } from "@/components/gis/CommandPalette";
+import type { BookmarkEntry } from "@/components/gis/BookmarkPanel";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget } from "@/types";
@@ -70,6 +73,26 @@ const LiveMetricsPanel = dynamic(
   { ssr: false },
 );
 
+const GlobalSearchBar = dynamic(
+  () => import("@/components/gis/GlobalSearchBar"),
+  { ssr: false, loading: () => <div className="flex-1 max-w-[280px] h-6 rounded opacity-20" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.10)" }} /> },
+);
+
+const CommandPaletteModal = dynamic(
+  () => import("@/components/gis/CommandPalette"),
+  { ssr: false },
+);
+
+const MiniMap = dynamic(
+  () => import("@/components/gis/MiniMap"),
+  { ssr: false },
+);
+
+const BookmarkPanel = dynamic(
+  () => import("@/components/gis/BookmarkPanel"),
+  { ssr: false },
+);
+
 // ── Camera presets ────────────────────────────────────────────────────────────
 
 const CAMERA_PRESETS: { id: string; label: string; camera: CameraTarget }[] = [
@@ -83,6 +106,33 @@ const CAMERA_PRESETS: { id: string; label: string; camera: CameraTarget }[] = [
   { id: "bsas",      label: "BUE",  camera: { center: [-58.38,  -34.6 ] as [number,number], zoom: 10,  pitch: 60, bearing: -15, duration: 4000 } },
   { id: "reset",     label: "↩RST", camera: { center: [-64,     -38   ] as [number,number], zoom: 4,   pitch: 0,  bearing:  0,  duration: 2000 } },
 ];
+
+// ── Tour stops ────────────────────────────────────────────────────────────────
+
+const TOUR_STOPS: CameraTarget[] = [
+  { center: [-58.38, -34.6 ] as [number,number], zoom: 9,   pitch: 60, bearing: -15, duration: 4000 },
+  { center: [-64.18, -31.42] as [number,number], zoom: 9,   pitch: 55, bearing:  10, duration: 3500 },
+  { center: [-60.65, -32.95] as [number,number], zoom: 9,   pitch: 55, bearing:  20, duration: 3500 },
+  { center: [-65,    -25   ] as [number,number], zoom: 5.5, pitch: 45, bearing:  10, duration: 3000 },
+  { center: [-68,    -47   ] as [number,number], zoom: 5,   pitch: 40, bearing: -10, duration: 3500 },
+  { center: [-64,    -38   ] as [number,number], zoom: 3.8, pitch: 45, bearing:  -8, duration: 3000 },
+];
+const TOUR_LABELS = ["Buenos Aires", "Córdoba", "Rosario", "NOA", "Patagonia", "Argentina"];
+
+// ── Right tabs (reused by command palette) ────────────────────────────────────
+
+const RIGHT_TABS_LIST = [
+  { id: "ops",       label: "Ops"            },
+  { id: "analytics", label: "GIS Analytics"  },
+  { id: "network",   label: "Network Intel"  },
+  { id: "routing",   label: "Logística"      },
+  { id: "arcgis",    label: "ArcGIS Live"    },
+  { id: "stats",     label: "Estadísticas"   },
+  { id: "live",      label: "Live Metrics"   },
+  { id: "spatial",   label: "Spatial Diag."  },
+  { id: "ai",        label: "AI Spatial"     },
+  { id: "env",       label: "Environment"    },
+] as const;
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
 
@@ -202,6 +252,8 @@ function LeftPanel({
   pitch, setPitch,
   autoRotate, setAutoRotate,
   onCameraPreset,
+  currentCamera,
+  onBookmarkLoad,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
   basemap: BasemapId; setBasemap: (b: BasemapId) => void;
@@ -221,6 +273,8 @@ function LeftPanel({
   pitch: number; setPitch: (v: number) => void;
   autoRotate: boolean; setAutoRotate: (v: boolean) => void;
   onCameraPreset: (target: CameraTarget) => void;
+  currentCamera: CameraTarget;
+  onBookmarkLoad: (entry: BookmarkEntry) => void;
 }) {
   const top5 = [...currentKpis]
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
@@ -447,6 +501,17 @@ function LeftPanel({
           )}
         </div>
       </div>
+
+      {/* GIS-24 Bookmarks */}
+      {(mapEngine === "mapbox" || mapEngine === "earth") && (
+        <div className="glass rounded-xl p-3" style={{ border: "1px solid rgba(34,197,94,0.12)" }}>
+          <BookmarkPanel
+            currentCamera={currentCamera}
+            currentEngine={mapEngine}
+            onLoad={onBookmarkLoad}
+          />
+        </div>
+      )}
 
       {/* GIS-16 Animation layers — Leaflet only */}
       {mapEngine === "leaflet" && (
@@ -729,6 +794,12 @@ export default function GISPage() {
   const [pitch,         setPitch]         = useState(40);
   const [autoRotate,    setAutoRotate]    = useState(false);
   const [targetCamera,  setTargetCamera]  = useState<CameraTarget | null>(null);
+  const [currentCamera, setCurrentCamera] = useState<CameraTarget>({ center: [-64, -38], zoom: 4, pitch: 40, bearing: -8, duration: 0 });
+  // GIS-24 command center
+  const [showPalette,   setShowPalette]   = useState(false);
+  const [tourPlaying,   setTourPlaying]   = useState(false);
+  const [tourStep,      setTourStep]      = useState(0);
+  const [showMiniMap,   setShowMiniMap]   = useState(false);
   const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
     choropleth:    true,
@@ -774,24 +845,96 @@ export default function GISPage() {
     selectedNameRef.current = selected?.nombre ?? null;
   }, [selected]);
 
-  // GIS-23: camera preset handler (also syncs pitch state)
+  // GIS-23: camera preset handler (also syncs pitch + currentCamera)
   const handleCameraPreset = useCallback((target: CameraTarget) => {
     setPitch(target.pitch);
     setTargetCamera({ ...target });
+    setCurrentCamera({ ...target });
   }, []);
 
   // GIS-23: FlyTo on province select (Mapbox + Earth engines only)
   useEffect(() => {
     if (!selected || (mapEngine !== "mapbox" && mapEngine !== "earth")) return;
-    setTargetCamera({
+    const cam: CameraTarget = {
       center:   [selected.lon, selected.lat] as [number, number],
       zoom:     mapEngine === "earth" ? 7 : 6.5,
       pitch,
       bearing:  0,
       duration: 2800,
-    });
+    };
+    setTargetCamera(cam);
+    setCurrentCamera(cam);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.nombre, mapEngine]);
+
+  // GIS-24: Ctrl+K command palette
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); setShowPalette(p => !p); } };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
+
+  // GIS-24: Tour mode — step through stops with flyTo
+  useEffect(() => {
+    if (!tourPlaying) return;
+    if (mapEngine === "leaflet") setMapEngine("mapbox");
+    const stop = TOUR_STOPS[tourStep];
+    setTargetCamera({ ...stop });
+    setCurrentCamera({ ...stop });
+    setPitch(stop.pitch);
+    const t = setTimeout(() => {
+      if (tourStep < TOUR_STOPS.length - 1) { setTourStep(s => s + 1); }
+      else { setTourPlaying(false); setTourStep(0); }
+    }, stop.duration + 2800);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourPlaying, tourStep]);
+
+  // GIS-24: Global Search select handler
+  const handleSearchSelect = useCallback((result: SearchResult) => {
+    if (result.type === "provincia" && result.kpi) {
+      setSelected(result.kpi);
+      selectedNameRef.current = result.kpi.nombre;
+    }
+    if (mapEngine !== "leaflet") {
+      const zoom = result.type === "municipio" ? 10 : result.type === "provincia" ? 6.5 : 9;
+      const cam: CameraTarget = { center: [result.lon, result.lat] as [number,number], zoom, pitch, bearing: 0, duration: 2500 };
+      setTargetCamera(cam);
+      setCurrentCamera(cam);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapEngine, pitch]);
+
+  // GIS-24: Bookmark load handler
+  const handleBookmarkLoad = useCallback((entry: BookmarkEntry) => {
+    setMapEngine(entry.engine);
+    handleCameraPreset(entry.camera);
+  }, [handleCameraPreset]);
+
+  // GIS-24: Command palette commands
+  const paletteCommands: PaletteCommand[] = useMemo(() => [
+    ...METRICS.map(m => ({ id: `metric_${m.id}`, group: "Métrica", label: `Métrica: ${m.label}`, action: () => setMetric(m.id) })),
+    { id: "engine_leaflet", group: "Motor", label: "Motor: ◆ Leaflet OSM",    description: "2D", action: () => setMapEngine("leaflet") },
+    { id: "engine_mapbox",  group: "Motor", label: "Motor: ◈ Mapbox Terrain", description: "3D", action: () => setMapEngine("mapbox")  },
+    { id: "engine_earth",   group: "Motor", label: "Motor: ◉ Earth Mode",     description: "Night", action: () => setMapEngine("earth") },
+    ...[...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS].map(l => ({
+      id: `layer_${l.key}`, group: "Capa", label: `Capa: ${l.label} ${layers[l.key as keyof typeof layers] ? "● ON" : "○ OFF"}`,
+      action: () => toggleLayer(l.key),
+    })),
+    ...currentKpis.map(p => ({
+      id: `prov_${p.nombre}`, group: "Provincia", label: `→ ${p.nombre}`, description: p.macro_region,
+      action: () => {
+        setSelected(p); selectedNameRef.current = p.nombre;
+        if (mapEngine !== "leaflet") { const cam: CameraTarget = { center: [p.lon, p.lat] as [number,number], zoom: 6.5, pitch, bearing: 0, duration: 2500 }; setTargetCamera(cam); setCurrentCamera(cam); }
+      },
+    })),
+    ...RIGHT_TABS_LIST.map(t => ({ id: `tab_${t.id}`, group: "Panel", label: `Panel: ${t.label}`, action: () => setRightTab(t.id) })),
+    ...CAMERA_PRESETS.map(p => ({ id: `cam_${p.id}`, group: "Cámara", label: `Cámara: ${p.id.replace("_"," ").toUpperCase()}`, action: () => handleCameraPreset(p.camera) })),
+    { id: "tour_start", group: "Tour", label: "▶ Iniciar Tour Cinematográfico", description: "6 paradas",   action: () => { setTourPlaying(true); setTourStep(0); } },
+    { id: "tour_stop",  group: "Tour", label: "⏹ Detener Tour",                 description: "terminar",    action: () => { setTourPlaying(false); setTourStep(0); } },
+    { id: "minimap_toggle", group: "Vista", label: `${showMiniMap ? "Ocultar" : "Mostrar"} Minimapa`, action: () => setShowMiniMap(v => !v) },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [metric, mapEngine, layers, currentKpis, pitch, showMiniMap]);
 
   // Load simplified province GeoJSON
   const loadGeo = useCallback(() => {
@@ -853,6 +996,26 @@ export default function GISPage() {
           playing={playing}
           setPlaying={setPlaying}
         />
+
+        {/* GIS-24: Global Search */}
+        <GlobalSearchBar
+          provinces={currentKpis}
+          sucursales={sucursales}
+          depositos={depositos}
+          onSelect={handleSearchSelect}
+        />
+
+        {/* GIS-24: ⌘K command palette button */}
+        <button
+          onClick={() => setShowPalette(true)}
+          className="flex items-center gap-1 px-2 py-1 rounded font-mono transition-all border flex-shrink-0"
+          style={{ fontSize: 10, background: "rgba(7,18,9,0.6)", borderColor: "rgba(34,197,94,0.20)", color: "#4B6B4B" }}
+          title="Command Palette (Ctrl+K)"
+        >
+          <Command size={9} />
+          <span>⌘K</span>
+        </button>
+
         <div className="flex items-center gap-3 pr-2 flex-shrink-0">
           {geoLoading && (
             <div className="flex items-center gap-1.5">
@@ -913,6 +1076,8 @@ export default function GISPage() {
                 pitch={pitch} setPitch={setPitch}
                 autoRotate={autoRotate} setAutoRotate={setAutoRotate}
                 onCameraPreset={handleCameraPreset}
+                currentCamera={currentCamera}
+                onBookmarkLoad={handleBookmarkLoad}
               />
             </div>
           )}
@@ -972,8 +1137,8 @@ export default function GISPage() {
             </div>
           </div>
 
-          {/* Engine selector — floating pill top-left */}
-          <div className="absolute top-3 left-3 z-[500] flex gap-1">
+          {/* Engine selector + Tour + MiniMap toggle — floating top-left */}
+          <div className="absolute top-3 left-3 z-[500] flex gap-1 flex-wrap">
             {([
               { id: "leaflet" as MapEngine, label: "◆ LEAFLET", accent: "#22C55E" },
               { id: "mapbox"  as MapEngine, label: "◈ MAPBOX",  accent: "#22C55E" },
@@ -1001,6 +1166,40 @@ export default function GISPage() {
                 </button>
               );
             })}
+
+            {/* GIS-24: Tour button */}
+            {mapEngine !== "leaflet" && (
+              <button
+                onClick={() => { if (tourPlaying) { setTourPlaying(false); setTourStep(0); } else { setTourPlaying(true); setTourStep(0); } }}
+                className="px-2 py-1 rounded font-mono transition-all"
+                style={{
+                  fontSize:       10,
+                  background:     tourPlaying ? "rgba(249,115,22,0.20)" : "rgba(7,18,9,0.75)",
+                  border:         `1px solid ${tourPlaying ? "rgba(249,115,22,0.50)" : "rgba(34,197,94,0.15)"}`,
+                  color:          tourPlaying ? "#F97316" : "#4B6B4B",
+                  backdropFilter: "blur(8px)",
+                  minWidth:       70,
+                }}
+              >
+                {tourPlaying ? `⏸ ${TOUR_LABELS[tourStep]}` : "▶ TOUR"}
+              </button>
+            )}
+
+            {/* GIS-24: MiniMap toggle */}
+            <button
+              onClick={() => setShowMiniMap(v => !v)}
+              className="px-2 py-1 rounded font-mono transition-all"
+              style={{
+                fontSize:       10,
+                background:     showMiniMap ? "rgba(34,197,94,0.15)" : "rgba(7,18,9,0.75)",
+                border:         `1px solid ${showMiniMap ? "rgba(34,197,94,0.45)" : "rgba(34,197,94,0.15)"}`,
+                color:          showMiniMap ? "#22C55E" : "#4B6B4B",
+                backdropFilter: "blur(8px)",
+              }}
+              title="Minimapa"
+            >
+              <Bookmark size={9} />
+            </button>
           </div>
 
           {/* GIS-16 Live Metrics panel — bottom-left floating */}
@@ -1132,6 +1331,18 @@ export default function GISPage() {
             </div>
           )}
 
+          {/* GIS-24: MiniMap */}
+          {showMiniMap && (
+            <div className="absolute top-14 right-3 z-[490] pointer-events-auto">
+              <MiniMap
+                allKpis={currentKpis}
+                metric={metric}
+                selectedProvince={selected?.nombre ?? null}
+                onProvinceClick={setSelected}
+              />
+            </div>
+          )}
+
           {/* Advanced legend — Leaflet only */}
           {mapEngine === "leaflet" && <MapLegendAdvanced metric={metric} layers={layers} />}
 
@@ -1238,6 +1449,14 @@ export default function GISPage() {
           </div>
         </div>
       </div>
+
+      {/* GIS-24: Command Palette overlay */}
+      {showPalette && (
+        <CommandPaletteModal
+          commands={paletteCommands}
+          onClose={() => setShowPalette(false)}
+        />
+      )}
 
       {/* ── Command Center Footer ────────────────────────────────────── */}
       <div
