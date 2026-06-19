@@ -1,10 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
-  AlertTriangle, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
+  AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
   Mountain, Play, Pause, Gauge,
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
@@ -824,6 +825,21 @@ export default function GISPage() {
         className="glass rounded-xl mx-2 mt-1.5 px-2 flex items-center gap-2 flex-shrink-0"
         style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
       >
+        <Link
+          href="/"
+          className="flex items-center gap-1 px-2 py-1 rounded font-mono text-2xs transition-all border flex-shrink-0"
+          style={{
+            background:  "rgba(7,18,9,0.6)",
+            borderColor: "rgba(34,197,94,0.20)",
+            color:       "#4B6B4B",
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22C55E"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.45)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4B6B4B"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.20)"; }}
+        >
+          <ChevronLeft size={10} />
+          <span>MENÚ</span>
+        </Link>
+
         <div className="flex items-center flex-shrink-0">
           <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
           <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
