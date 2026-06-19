@@ -446,9 +446,9 @@ export default function MapboxTerrainView({
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="absolute inset-0">
       {!mapLoaded && <LoadingOverlay />}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="absolute inset-0" />
     </div>
   );
 }

@@ -168,7 +168,7 @@ export default function LeafletMap({
     <MapContainer
       center={[-34, -64]}
       zoom={5}
-      style={{ height: "100%", width: "100%" }}
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
       zoomControl={false}
     >
       <ZoomControl position="bottomright" />

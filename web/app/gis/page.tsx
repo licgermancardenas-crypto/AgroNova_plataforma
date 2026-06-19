@@ -1101,7 +1101,7 @@ export default function GISPage() {
 
         {/* Center: map */}
         <div
-          className="flex-1 relative rounded-xl overflow-hidden min-h-0"
+          className="flex-1 flex flex-col relative rounded-xl overflow-hidden min-h-0"
           style={{ border: "1px solid rgba(34,197,94,0.12)", boxShadow: "0 0 32px rgba(34,197,94,0.04), inset 0 0 0 1px rgba(34,197,94,0.05)" }}
         >
           {/* HUD scan line */}
@@ -1362,62 +1362,64 @@ export default function GISPage() {
           {/* Advanced legend — Leaflet only */}
           {mapEngine === "leaflet" && <MapLegendAdvanced metric={metric} layers={layers} />}
 
-          {/* Map — Leaflet or Mapbox */}
-          {mapEngine === "leaflet" ? (
-            <LeafletMap
-              sucursales={sucursales}
-              depositos={depositos}
-              clientes={clienteMarkers}
-              routes={gisRoutes}
-              basemap={basemap}
-              showChoropleth={layers.choropleth}
-              showHeatmap={layers.heatmap}
-              showDepartamentos={layers.departamentos}
-              showMunicipios={layers.municipios}
-              showVial={layers.vial}
-              showPuertos={layers.puertos}
-              showSucursales={layers.sucursales}
-              showDepositos={layers.depositos}
-              showClientes={layers.clientes}
-              showRadios={layers.radios}
-              showCoords={layers.coords}
-              showHotspots={layers.hotspots}
-              showTerritorios={layers.territorios}
-              showBuffers={layers.buffers}
-              showCandidatos={layers.candidatos}
-              showServiceAreas={layers.serviceareas}
-              metric={metric}
-              allKpis={currentKpis}
-              selectedProvince={selected?.nombre ?? null}
-              geoData={geoData}
-              geoLoading={geoLoading}
-              onProvinceClick={setSelected}
-              show3D={mode3D}
-              show3DArcs={show3DArcs}
-              showBeams={showBeams}
-              metric3D={metric3D}
-              showFlows={showFlows}
-              showVehicles={showVehicles}
-              showPulse={showPulse}
-              animPlaying={animPlaying}
-              animSpeed={animSpeed}
-            />
-          ) : (
-            <MapboxTerrainView
-              geoData={geoData}
-              allKpis={currentKpis}
-              metric={metric}
-              selectedProvince={selected?.nombre ?? null}
-              onProvinceClick={setSelected}
-              selectedYear={selectedYear}
-              showTerrain={showTerrain}
-              showSatellite={showSatellite}
-              engineMode={mapEngine as "mapbox" | "earth"}
-              pitch={pitch}
-              autoRotate={autoRotate}
-              targetCamera={targetCamera}
-            />
-          )}
+          {/* Map — flex-1 wrapper ensures it fills all remaining vertical space */}
+          <div className="flex-1 min-h-0 relative">
+            {mapEngine === "leaflet" ? (
+              <LeafletMap
+                sucursales={sucursales}
+                depositos={depositos}
+                clientes={clienteMarkers}
+                routes={gisRoutes}
+                basemap={basemap}
+                showChoropleth={layers.choropleth}
+                showHeatmap={layers.heatmap}
+                showDepartamentos={layers.departamentos}
+                showMunicipios={layers.municipios}
+                showVial={layers.vial}
+                showPuertos={layers.puertos}
+                showSucursales={layers.sucursales}
+                showDepositos={layers.depositos}
+                showClientes={layers.clientes}
+                showRadios={layers.radios}
+                showCoords={layers.coords}
+                showHotspots={layers.hotspots}
+                showTerritorios={layers.territorios}
+                showBuffers={layers.buffers}
+                showCandidatos={layers.candidatos}
+                showServiceAreas={layers.serviceareas}
+                metric={metric}
+                allKpis={currentKpis}
+                selectedProvince={selected?.nombre ?? null}
+                geoData={geoData}
+                geoLoading={geoLoading}
+                onProvinceClick={setSelected}
+                show3D={mode3D}
+                show3DArcs={show3DArcs}
+                showBeams={showBeams}
+                metric3D={metric3D}
+                showFlows={showFlows}
+                showVehicles={showVehicles}
+                showPulse={showPulse}
+                animPlaying={animPlaying}
+                animSpeed={animSpeed}
+              />
+            ) : (
+              <MapboxTerrainView
+                geoData={geoData}
+                allKpis={currentKpis}
+                metric={metric}
+                selectedProvince={selected?.nombre ?? null}
+                onProvinceClick={setSelected}
+                selectedYear={selectedYear}
+                showTerrain={showTerrain}
+                showSatellite={showSatellite}
+                engineMode={mapEngine as "mapbox" | "earth"}
+                pitch={pitch}
+                autoRotate={autoRotate}
+                targetCamera={targetCamera}
+              />
+            )}
+          </div>
         </div>
 
         {/* Right panel */}
