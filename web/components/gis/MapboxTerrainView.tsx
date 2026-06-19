@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import { MapPin, AlertTriangle } from "lucide-react";
-import type { ProvinceKPI, GisMetric } from "@/types";
+import type { ProvinceKPI, GisMetric, CameraTarget } from "@/types";
 import { MAPBOX_TOKEN, isMapboxConfigured } from "@/lib/mapbox-config";
 import { provinceColor, getMetricValue } from "@/lib/geo-data";
 
@@ -20,6 +20,11 @@ export interface MapboxTerrainViewProps {
   selectedYear:     number;
   showTerrain:      boolean;
   showSatellite:    boolean;
+  // GIS-23 cinematic
+  engineMode?:      "mapbox" | "earth";
+  pitch?:           number;
+  autoRotate?:      boolean;
+  targetCamera?:    CameraTarget | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -119,6 +124,10 @@ export default function MapboxTerrainView({
   onProvinceClick,
   showTerrain,
   showSatellite,
+  engineMode = "mapbox",
+  pitch,
+  autoRotate = false,
+  targetCamera,
 }: MapboxTerrainViewProps) {
   const containerRef   = useRef<HTMLDivElement>(null);
   const mapRef         = useRef<mapboxgl.Map | null>(null);
@@ -360,6 +369,76 @@ export default function MapboxTerrainView({
       }
     }
   }, [mapLoaded, showSatellite]);
+
+  // ── GIS-23: Earth / Mapbox atmosphere switching ────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    if (engineMode === "earth") {
+      (map as any).setFog({
+        color:            "rgb(5, 8, 20)",
+        "high-color":     "#0a1428",
+        "horizon-blend":  0.10,
+        "space-color":    "#000a18",
+        "star-intensity": 0.92,
+        range:            [0.4, 7],
+      });
+      if (map.getLayer("sky")) {
+        map.setPaintProperty("sky", "sky-atmosphere-color",      "rgba(5,8,20,1.0)" as any);
+        map.setPaintProperty("sky", "sky-atmosphere-halo-color", "rgba(14,165,233,0.18)" as any);
+      }
+    } else {
+      (map as any).setFog({
+        color:            "rgb(7, 18, 9)",
+        "high-color":     "#122A14",
+        "horizon-blend":  0.04,
+        "space-color":    "#071209",
+        "star-intensity": 0.5,
+        range:            [0.5, 10],
+      });
+      if (map.getLayer("sky")) {
+        map.setPaintProperty("sky", "sky-atmosphere-color",      "rgba(7,18,9,1.0)" as any);
+        map.setPaintProperty("sky", "sky-atmosphere-halo-color", "rgba(34,197,94,0.1)" as any);
+      }
+    }
+  }, [mapLoaded, engineMode]);
+
+  // ── GIS-23: Pitch sync ────────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || pitch === undefined) return;
+    map.easeTo({ pitch, duration: 600 });
+  }, [mapLoaded, pitch]);
+
+  // ── GIS-23: Auto-rotation ─────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !autoRotate) return;
+    let animId: number;
+    const spin = () => {
+      if (mapRef.current) {
+        const b = mapRef.current.getBearing();
+        mapRef.current.setBearing((b + 0.04) % 360);
+      }
+      animId = requestAnimationFrame(spin);
+    };
+    animId = requestAnimationFrame(spin);
+    return () => cancelAnimationFrame(animId);
+  }, [mapLoaded, autoRotate]);
+
+  // ── GIS-23: FlyTo target camera ───────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !targetCamera) return;
+    map.flyTo({
+      center:    targetCamera.center,
+      zoom:      targetCamera.zoom,
+      pitch:     targetCamera.pitch,
+      bearing:   targetCamera.bearing,
+      duration:  targetCamera.duration,
+      essential: true,
+    });
+  }, [mapLoaded, targetCamera]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   if (!isMapboxConfigured()) {

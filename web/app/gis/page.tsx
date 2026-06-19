@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
-import type { ProvinceKPI, GisMetric, BasemapId, MapEngine } from "@/types";
+import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget } from "@/types";
 import { getMetricValue } from "@/lib/geo-data";
 import { isMapboxConfigured } from "@/lib/mapbox-config";
 import {
@@ -68,6 +68,20 @@ const LiveMetricsPanel = dynamic(
   () => import("@/components/gis/LiveMetricsPanel"),
   { ssr: false },
 );
+
+// ── Camera presets ────────────────────────────────────────────────────────────
+
+const CAMERA_PRESETS: { id: string; label: string; camera: CameraTarget }[] = [
+  { id: "argentina", label: "ARG",  camera: { center: [-64,     -38   ] as [number,number], zoom: 3.8, pitch: 45, bearing: -8,  duration: 3000 } },
+  { id: "pam",       label: "PAM",  camera: { center: [-62,     -34   ] as [number,number], zoom: 5.5, pitch: 35, bearing:  0,  duration: 2500 } },
+  { id: "noa",       label: "NOA",  camera: { center: [-65,     -25   ] as [number,number], zoom: 5.5, pitch: 40, bearing: 10,  duration: 2500 } },
+  { id: "nea",       label: "NEA",  camera: { center: [-58,     -27   ] as [number,number], zoom: 5.5, pitch: 35, bearing: -5,  duration: 2500 } },
+  { id: "cuyo",      label: "CUYO", camera: { center: [-68,     -32   ] as [number,number], zoom: 5.5, pitch: 50, bearing: 15,  duration: 2500 } },
+  { id: "pat",       label: "PAT",  camera: { center: [-68,     -47   ] as [number,number], zoom: 4.5, pitch: 40, bearing: -10, duration: 3000 } },
+  { id: "rosario",   label: "ROS",  camera: { center: [-60.65,  -32.95] as [number,number], zoom: 10,  pitch: 60, bearing: 20,  duration: 4000 } },
+  { id: "bsas",      label: "BUE",  camera: { center: [-58.38,  -34.6 ] as [number,number], zoom: 10,  pitch: 60, bearing: -15, duration: 4000 } },
+  { id: "reset",     label: "↩RST", camera: { center: [-64,     -38   ] as [number,number], zoom: 4,   pitch: 0,  bearing:  0,  duration: 2000 } },
+];
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
 
@@ -184,6 +198,9 @@ function LeftPanel({
   showFlows, setShowFlows,
   showVehicles, setShowVehicles,
   showPulse, setShowPulse,
+  pitch, setPitch,
+  autoRotate, setAutoRotate,
+  onCameraPreset,
 }: {
   metric: GisMetric; setMetric: (m: GisMetric) => void;
   basemap: BasemapId; setBasemap: (b: BasemapId) => void;
@@ -200,6 +217,9 @@ function LeftPanel({
   showFlows: boolean; setShowFlows: (v: boolean) => void;
   showVehicles: boolean; setShowVehicles: (v: boolean) => void;
   showPulse: boolean; setShowPulse: (v: boolean) => void;
+  pitch: number; setPitch: (v: number) => void;
+  autoRotate: boolean; setAutoRotate: (v: boolean) => void;
+  onCameraPreset: (target: CameraTarget) => void;
 }) {
   const top5 = [...currentKpis]
     .sort((a, b) => getMetricValue(b, metric) - getMetricValue(a, metric))
@@ -222,44 +242,102 @@ function LeftPanel({
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Globe size={10} /><span>Motor de Mapa</span>
         </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          {(["leaflet", "mapbox"] as MapEngine[]).map(eng => {
-            const isActive  = mapEngine === eng;
-            const available = eng === "leaflet" || isMapboxConfigured();
+        <div className="grid grid-cols-3 gap-1">
+          {([
+            { id: "leaflet" as MapEngine, icon: "◆", label: "LEAFLET" },
+            { id: "mapbox"  as MapEngine, icon: "◈", label: "MAPBOX"  },
+            { id: "earth"   as MapEngine, icon: "◉", label: "EARTH"   },
+          ]).map(eng => {
+            const isActive  = mapEngine === eng.id;
+            const available = eng.id === "leaflet" || isMapboxConfigured();
+            const accentColor = eng.id === "earth" ? "#38BDF8" : "#22C55E";
             return (
               <button
-                key={eng}
-                onClick={() => available && setMapEngine(eng)}
+                key={eng.id}
+                onClick={() => available && setMapEngine(eng.id)}
                 disabled={!available}
-                className="px-2 py-1.5 rounded text-2xs font-mono transition-all border flex flex-col items-center gap-0.5"
+                className="px-1.5 py-1.5 rounded text-2xs font-mono transition-all border flex flex-col items-center gap-0.5"
                 style={isActive
-                  ? { background: "rgba(34,197,94,0.15)", borderColor: "rgba(34,197,94,0.50)", color: "#22C55E" }
+                  ? { background: `${accentColor}18`, borderColor: `${accentColor}55`, color: accentColor, boxShadow: `0 0 8px ${accentColor}20` }
                   : available
                   ? { background: "rgba(7,18,9,0.5)", borderColor: "rgba(34,197,94,0.15)", color: "#4B6B4B" }
                   : { background: "rgba(7,18,9,0.3)", borderColor: "rgba(34,197,94,0.08)", color: "#2A4A2A", cursor: "not-allowed" }
                 }
               >
-                <span>{eng === "leaflet" ? "◆ LEAFLET" : "◈ MAPBOX"}</span>
-                {!available && eng === "mapbox" && (
-                  <span style={{ fontSize: 7, color: "#E8A020" }}>TOKEN FALTANTE</span>
-                )}
+                <span>{eng.icon}</span>
+                <span style={{ fontSize: 7 }}>{eng.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Mapbox Terrain controls — only when mapbox engine active */}
-      {mapEngine === "mapbox" && (
-        <div className="glass rounded-xl p-3" style={{ border: "1px solid rgba(163,230,53,0.15)" }}>
+      {/* Mapbox / Earth controls */}
+      {(mapEngine === "mapbox" || mapEngine === "earth") && (
+        <div className="glass rounded-xl p-3" style={{ border: `1px solid ${mapEngine === "earth" ? "rgba(56,189,248,0.18)" : "rgba(163,230,53,0.15)"}` }}>
           <p className="tactical-text mb-2 flex items-center gap-1.5">
-            <Mountain size={10} /><span>Mapbox Terrain</span>
+            <Mountain size={10} />
+            <span>{mapEngine === "earth" ? "Earth Mode" : "Mapbox Terrain"}</span>
           </p>
           <div className="space-y-1.5">
             <LayerBtn layerKey="terrain"   label="Terrain 3D"  color="#A3E635"
               active={showTerrain}   onToggle={() => setShowTerrain(!showTerrain)} />
             <LayerBtn layerKey="satellite" label="Satellite"   color="#0EA5E9"
               active={showSatellite} onToggle={() => setShowSatellite(!showSatellite)} />
+          </div>
+        </div>
+      )}
+
+      {/* GIS-23: Camera cinematics — mapbox + earth */}
+      {(mapEngine === "mapbox" || mapEngine === "earth") && (
+        <div className="glass rounded-xl p-3" style={{ border: `1px solid ${mapEngine === "earth" ? "rgba(56,189,248,0.15)" : "rgba(34,197,94,0.12)"}` }}>
+          <p className="tactical-text mb-2 flex items-center gap-1.5">
+            <Globe size={10} className={mapEngine === "earth" ? "text-sky-400" : "text-primary"} />
+            <span>Cámara Cinemática</span>
+          </p>
+
+          {/* Pitch slider */}
+          <div className="mb-2">
+            <div className="flex justify-between items-center mb-1">
+              <span className="tactical-text">Pitch</span>
+              <span className="font-mono text-2xs" style={{ color: "#22C55E" }}>{pitch}°</span>
+            </div>
+            <input
+              type="range" min={0} max={80} step={5} value={pitch}
+              onChange={e => setPitch(Number(e.target.value))}
+              className="w-full h-1 rounded accent-primary cursor-pointer"
+            />
+            <div className="flex justify-between tactical-text mt-0.5" style={{ fontSize: 7, color: "#3E5A3E" }}>
+              <span>0°</span><span>Top Down → Oblicuo</span><span>80°</span>
+            </div>
+          </div>
+
+          {/* Auto-rotate */}
+          <LayerBtn
+            layerKey="autoRotate" label="Auto-Rotación" color="#38BDF8"
+            active={autoRotate} onToggle={() => setAutoRotate(!autoRotate)}
+          />
+
+          {/* Camera presets */}
+          <div className="pt-2 mt-1.5 border-t border-border">
+            <p className="tactical-text mb-1.5" style={{ fontSize: 8, color: "#4B6B4B" }}>Presets Cámara</p>
+            <div className="grid grid-cols-3 gap-1">
+              {CAMERA_PRESETS.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => onCameraPreset(p.camera)}
+                  className="px-1 py-1 rounded font-mono text-2xs transition-all border hover:border-opacity-60"
+                  style={{
+                    fontSize:    8,
+                    background:  "rgba(7,18,9,0.6)",
+                    borderColor: p.id === "reset" ? "rgba(232,160,32,0.30)" : "rgba(34,197,94,0.20)",
+                    color:       p.id === "reset" ? "#E8A020" : "#7A9C7A",
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -646,6 +724,10 @@ export default function GISPage() {
   const [showPulse,     setShowPulse]     = useState(true);
   const [animPlaying,   setAnimPlaying]   = useState(true);
   const [animSpeed,     setAnimSpeed]     = useState<1 | 2>(1);
+  // GIS-23 cinematic
+  const [pitch,         setPitch]         = useState(40);
+  const [autoRotate,    setAutoRotate]    = useState(false);
+  const [targetCamera,  setTargetCamera]  = useState<CameraTarget | null>(null);
   const selectedNameRef = useRef<string | null>(null);
   const [layers,   setLayers]   = useState({
     choropleth:    true,
@@ -690,6 +772,25 @@ export default function GISPage() {
   useEffect(() => {
     selectedNameRef.current = selected?.nombre ?? null;
   }, [selected]);
+
+  // GIS-23: camera preset handler (also syncs pitch state)
+  const handleCameraPreset = useCallback((target: CameraTarget) => {
+    setPitch(target.pitch);
+    setTargetCamera({ ...target });
+  }, []);
+
+  // GIS-23: FlyTo on province select (Mapbox + Earth engines only)
+  useEffect(() => {
+    if (!selected || (mapEngine !== "mapbox" && mapEngine !== "earth")) return;
+    setTargetCamera({
+      center:   [selected.lon, selected.lat] as [number, number],
+      zoom:     mapEngine === "earth" ? 7 : 6.5,
+      pitch,
+      bearing:  0,
+      duration: 2800,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.nombre, mapEngine]);
 
   // Load simplified province GeoJSON
   const loadGeo = useCallback(() => {
@@ -793,6 +894,9 @@ export default function GISPage() {
                 showFlows={showFlows} setShowFlows={setShowFlows}
                 showVehicles={showVehicles} setShowVehicles={setShowVehicles}
                 showPulse={showPulse} setShowPulse={setShowPulse}
+                pitch={pitch} setPitch={setPitch}
+                autoRotate={autoRotate} setAutoRotate={setAutoRotate}
+                onCameraPreset={handleCameraPreset}
               />
             </div>
           )}
@@ -821,53 +925,63 @@ export default function GISPage() {
             <div
               className="px-4 py-1 rounded-full flex items-center gap-2"
               style={{
-                background: "rgba(7,18,9,0.75)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid rgba(34,197,94,0.18)",
-                boxShadow: "0 0 16px rgba(34,197,94,0.08)",
+                background:     mapEngine === "earth" ? "rgba(5,8,20,0.82)" : "rgba(7,18,9,0.75)",
+                backdropFilter: "blur(14px)",
+                border:         `1px solid ${mapEngine === "earth" ? "rgba(56,189,248,0.22)" : "rgba(34,197,94,0.18)"}`,
+                boxShadow:      mapEngine === "earth"
+                  ? "0 0 20px rgba(56,189,248,0.12), 0 0 40px rgba(56,189,248,0.04)"
+                  : "0 0 16px rgba(34,197,94,0.08)",
               }}
             >
-              <MapPin size={10} className="text-primary" />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v8.0</span>
+              <MapPin size={10} className={mapEngine === "earth" ? "text-sky-400" : "text-primary"} />
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v9.0</span>
               <span className="tactical-text opacity-50">·</span>
               <span className="font-mono font-bold" style={{ color: "#A3E635", fontSize: 11 }}>{selectedYear}</span>
               {selectedYear < YEAR_MAX && <span className="tactical-text" style={{ color: "#E8A020" }}>HISTÓRICO</span>}
-              {mapEngine === "mapbox"
-                ? <span className="tactical-text font-bold" style={{ color: "#A3E635" }}>MAPBOX</span>
-                : mode3D && <span className="tactical-text" style={{ color: "#A3E635" }}>3D</span>
-              }
-              {mapEngine === "mapbox" && showTerrain   && <span className="tactical-text" style={{ color: "#22C55E" }}>TERRAIN</span>}
-              {mapEngine === "mapbox" && showSatellite && <span className="tactical-text" style={{ color: "#0EA5E9" }}>SAT</span>}
-              {mapEngine === "mapbox" && !isMapboxConfigured() && (
+              {mapEngine === "earth" && (
+                <span className="font-mono font-bold" style={{ color: "#38BDF8", fontSize: 10, textShadow: "0 0 8px rgba(56,189,248,0.6)" }}>◉ EARTH</span>
+              )}
+              {mapEngine === "mapbox" && (
+                <span className="tactical-text font-bold" style={{ color: "#A3E635" }}>◈ MAPBOX</span>
+              )}
+              {mapEngine === "leaflet" && mode3D && <span className="tactical-text" style={{ color: "#A3E635" }}>3D</span>}
+              {(mapEngine === "mapbox" || mapEngine === "earth") && showTerrain   && <span className="tactical-text" style={{ color: "#22C55E" }}>TERRAIN</span>}
+              {(mapEngine === "mapbox" || mapEngine === "earth") && showSatellite && <span className="tactical-text" style={{ color: "#0EA5E9" }}>SAT</span>}
+              {(mapEngine === "mapbox" || mapEngine === "earth") && autoRotate    && <span className="tactical-text" style={{ color: "#38BDF8" }}>↻ SPIN</span>}
+              {(mapEngine === "mapbox" || mapEngine === "earth") && !isMapboxConfigured() && (
                 <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
               )}
               {(showFlows || showVehicles) && <span className="tactical-text" style={{ color: "#22C55E" }}>FLOWS</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>Sprint GIS-20</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>GIS-23</span>
             </div>
           </div>
 
           {/* Engine selector — floating pill top-left */}
           <div className="absolute top-3 left-3 z-[500] flex gap-1">
-            {(["leaflet", "mapbox"] as MapEngine[]).map(eng => {
-              const isActive  = mapEngine === eng;
-              const available = eng === "leaflet" || isMapboxConfigured();
+            {([
+              { id: "leaflet" as MapEngine, label: "◆ LEAFLET", accent: "#22C55E" },
+              { id: "mapbox"  as MapEngine, label: "◈ MAPBOX",  accent: "#22C55E" },
+              { id: "earth"   as MapEngine, label: "◉ EARTH",   accent: "#38BDF8" },
+            ]).map(eng => {
+              const isActive  = mapEngine === eng.id;
+              const available = eng.id === "leaflet" || isMapboxConfigured();
               return (
                 <button
-                  key={eng}
-                  onClick={() => available && setMapEngine(eng)}
+                  key={eng.id}
+                  onClick={() => available && setMapEngine(eng.id)}
                   disabled={!available}
                   className="px-2 py-1 rounded font-mono transition-all"
                   style={{
                     fontSize:        10,
-                    background:      isActive ? "rgba(34,197,94,0.18)" : "rgba(7,18,9,0.75)",
-                    border:          `1px solid ${isActive ? "rgba(34,197,94,0.45)" : "rgba(34,197,94,0.15)"}`,
-                    color:           isActive ? "#22C55E" : available ? "#4B6B4B" : "#2A4A2A",
+                    background:      isActive ? `${eng.accent}20` : "rgba(7,18,9,0.75)",
+                    border:          `1px solid ${isActive ? `${eng.accent}55` : "rgba(34,197,94,0.15)"}`,
+                    color:           isActive ? eng.accent : available ? "#4B6B4B" : "#2A4A2A",
                     backdropFilter:  "blur(8px)",
                     cursor:          available ? "pointer" : "not-allowed",
-                    boxShadow:       isActive ? "0 0 10px rgba(34,197,94,0.12)" : "none",
+                    boxShadow:       isActive ? `0 0 10px ${eng.accent}20` : "none",
                   }}
                 >
-                  {eng === "leaflet" ? "◆ LEAFLET" : "◈ MAPBOX"}
+                  {eng.label}
                 </button>
               );
             })}
@@ -931,10 +1045,12 @@ export default function GISPage() {
           <div className="absolute bottom-10 left-3 z-[500] pointer-events-none flex flex-col gap-1">
             <div
               className="px-2 py-1 rounded"
-              style={{ background: "rgba(7,18,9,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.12)" }}
+              style={{ background: "rgba(7,18,9,0.75)", backdropFilter: "blur(8px)", border: `1px solid ${mapEngine === "earth" ? "rgba(56,189,248,0.15)" : "rgba(34,197,94,0.12)"}` }}
             >
               {mapEngine === "leaflet"
                 ? <span className="tactical-text">EPSG:4326 · WGS84 · {currentBasemap}</span>
+                : mapEngine === "earth"
+                ? <span className="tactical-text" style={{ color: "#38BDF8" }}>◉ EARTH · Mapbox GL · Night Mode · WGS84</span>
                 : <span className="tactical-text">MAPBOX GL · Satellite-Streets · WGS84</span>
               }
             </div>
@@ -978,8 +1094,8 @@ export default function GISPage() {
             </div>
           )}
 
-          {/* Mapbox terrain badges (bottom-right) — Mapbox engine only */}
-          {mapEngine === "mapbox" && (
+          {/* Mapbox / Earth terrain badges (bottom-right) */}
+          {(mapEngine === "mapbox" || mapEngine === "earth") && (
             <div className="absolute bottom-10 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
               {[
                 { label: "Terrain 3D", active: showTerrain,   color: "#A3E635" },
@@ -1053,6 +1169,10 @@ export default function GISPage() {
               selectedYear={selectedYear}
               showTerrain={showTerrain}
               showSatellite={showSatellite}
+              engineMode={mapEngine as "mapbox" | "earth"}
+              pitch={pitch}
+              autoRotate={autoRotate}
+              targetCamera={targetCamera}
             />
           )}
         </div>
@@ -1134,8 +1254,8 @@ export default function GISPage() {
             { v: `KPI · ${metric.toUpperCase()}`,                               c: "#22C55E" },
             { v: `CAPAS · ${activeLayers}`,                                     c: "#3E5A3E" },
             { v: selectedYear < YEAR_MAX ? `${selectedYear} ★ HIST` : String(selectedYear), c: selectedYear < YEAR_MAX ? "#E8A020" : "#3E5A3E" },
-            { v: mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET OSM",     c: "#3E5A3E" },
-            { v: "GIS v8.0 · GIS-20",                                           c: "#4ADE80" },
+            { v: mapEngine === "earth" ? "◉ EARTH MODE" : mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET OSM", c: mapEngine === "earth" ? "#38BDF8" : "#3E5A3E" },
+            { v: "GIS v9.0 · GIS-23",                                           c: "#4ADE80" },
           ] as const).map(({ v, c }, i) => (
             <div key={i} className="flex items-center flex-shrink-0">
               {i > 0 && <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />}

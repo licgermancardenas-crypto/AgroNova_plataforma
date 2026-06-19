@@ -577,9 +577,17 @@ export interface PuertoNode {
   operador: string;
 }
 
-// ── GIS-15 Mapbox Terrain ────────────────────────────────────────────────────
+// ── GIS-15 Mapbox Terrain / GIS-23 Earth Mode ───────────────────────────────
 
-export type MapEngine = "leaflet" | "mapbox";
+export type MapEngine = "leaflet" | "mapbox" | "earth";
+
+export interface CameraTarget {
+  center:   [number, number];
+  zoom:     number;
+  pitch:    number;
+  bearing:  number;
+  duration: number;
+}
 
 // ── GIS-09 ArcGIS Integration ─────────────────────────────────────────────────
 
