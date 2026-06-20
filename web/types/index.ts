@@ -189,14 +189,20 @@ export interface DepositoMarker {
 }
 
 export interface ClienteMapMarker {
-  cliente_id: number;
-  razon_social: string;
-  lat: number;
-  lng: number;
-  tier: Tier;
-  risk_level: RiskLevel;
-  revenue_ars: number;
-  region: Region;
+  cliente_id:    number;
+  razon_social:  string;
+  lat:           number;
+  lng:           number;
+  municipio:     string;
+  provincia:     string;
+  region:        Region;
+  tier:          Tier;
+  categoria:     string;
+  revenue_ars:   number;
+  margen_pct:    number;
+  churn_risk:    number;    // 0-1
+  risk_level:    RiskLevel;
+  ultima_compra: string;    // YYYY-MM-DD
 }
 
 // ── ML ───────────────────────────────────────────────────────────────────────

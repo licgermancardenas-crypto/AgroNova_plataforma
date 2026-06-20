@@ -220,15 +220,54 @@ export const depositos: DepositoMarker[] = [
   { id:3, nombre:"Depósito Salta Norte",     lat:-24.83, lng:-65.45, capacidad_ton:5000,  ocupacion_pct:91 },
 ];
 
-export const clienteMarkers: ClienteMapMarker[] = clientes.slice(0, 15).map((c, i) => ({
-  cliente_id:   c.cliente_id,
-  razon_social: c.razon_social,
-  lat:          -28 + (i % 5) * (-3.2) + Math.random() * 2 - 1,
-  lng:          -65 + Math.floor(i / 5) * 4 + Math.random() * 3 - 1.5,
-  tier:         c.tier as "A"|"B"|"C",
-  risk_level:   c.risk_level,
-  revenue_ars:  c.revenue_ars,
-  region:       c.region,
+// Verified Argentine municipality centroids — all on-land, no sea positions
+const CLIENT_GEO: Array<{ municipio: string; provincia: string; lat: number; lng: number; categoria: string }> = [
+  { municipio:"Buenos Aires",          provincia:"Buenos Aires",          lat:-34.6037, lng:-58.3816, categoria:"Herbicidas"    }, // 0  PAM
+  { municipio:"Córdoba",               provincia:"Córdoba",               lat:-31.4135, lng:-64.1811, categoria:"Fertilizantes" }, // 1  PAM
+  { municipio:"La Plata",              provincia:"Buenos Aires",          lat:-34.9205, lng:-57.9536, categoria:"Semillas"      }, // 2  PAM
+  { municipio:"San Miguel de Tucumán", provincia:"Tucumán",               lat:-26.8253, lng:-65.2226, categoria:"Herbicidas"    }, // 3  NOA
+  { municipio:"Posadas",               provincia:"Misiones",              lat:-27.3671, lng:-55.8963, categoria:"Fungicidas"    }, // 4  NEA
+  { municipio:"Salta",                 provincia:"Salta",                 lat:-24.7859, lng:-65.4117, categoria:"Insecticidas"  }, // 5  NOA
+  { municipio:"Mendoza",               provincia:"Mendoza",               lat:-32.8894, lng:-68.8458, categoria:"Semillas"      }, // 6  CUY
+  { municipio:"San Juan",              provincia:"San Juan",              lat:-31.5375, lng:-68.5364, categoria:"Fertilizantes" }, // 7  CUY
+  { municipio:"Rosario",               provincia:"Santa Fe",              lat:-32.9468, lng:-60.6393, categoria:"Fungicidas"    }, // 8  PAM
+  { municipio:"Neuquén",               provincia:"Neuquén",               lat:-38.9516, lng:-68.0591, categoria:"Insecticidas"  }, // 9  PAT
+  { municipio:"San Salvador de Jujuy", provincia:"Jujuy",                 lat:-24.1858, lng:-65.2995, categoria:"Herbicidas"    }, // 10 NOA
+  { municipio:"Santiago del Estero",   provincia:"Santiago del Estero",   lat:-27.7951, lng:-64.2615, categoria:"Fertilizantes" }, // 11 NOA
+  { municipio:"Bahía Blanca",          provincia:"Buenos Aires",          lat:-38.7183, lng:-62.2661, categoria:"Semillas"      }, // 12 PAM
+  { municipio:"Mar del Plata",         provincia:"Buenos Aires",          lat:-37.9989, lng:-57.5577, categoria:"Fungicidas"    }, // 13 PAM
+  { municipio:"Comodoro Rivadavia",    provincia:"Chubut",                lat:-45.8667, lng:-67.5000, categoria:"Herbicidas"    }, // 14 PAT
+  { municipio:"San Rafael",            provincia:"Mendoza",               lat:-34.6177, lng:-68.3300, categoria:"Fertilizantes" }, // 15 CUY
+  { municipio:"Río Cuarto",            provincia:"Córdoba",               lat:-33.1322, lng:-64.3496, categoria:"Semillas"      }, // 16 PAM
+  { municipio:"Corrientes",            provincia:"Corrientes",            lat:-27.4692, lng:-58.8306, categoria:"Fungicidas"    }, // 17 NEA
+  { municipio:"Resistencia",           provincia:"Chaco",                 lat:-27.4514, lng:-58.9867, categoria:"Insecticidas"  }, // 18 NEA
+  { municipio:"Venado Tuerto",         provincia:"Santa Fe",              lat:-33.7447, lng:-61.9692, categoria:"Herbicidas"    }, // 19 PAM
+];
+
+// Deterministic values — no Math.random()
+const CLI_MARGEN: number[] = [21.2,19.8,18.5,22.1,17.9,20.4,23.1,18.7,19.2,22.8,17.1,20.5,21.8,19.1,23.5,20.0,18.9,17.5,22.3,19.6];
+const CLI_COMPRA: string[] = [
+  "2026-05-15","2026-04-22","2026-03-10","2026-05-28","2026-01-14",
+  "2025-11-30","2026-02-18","2026-04-05","2026-05-01","2025-09-12",
+  "2025-06-20","2026-03-25","2026-06-01","2026-04-15","2025-04-18",
+  "2026-03-08","2026-05-20","2025-08-14","2025-03-22","2026-04-30",
+];
+
+export const clienteMarkers: ClienteMapMarker[] = clientes.map((c, i) => ({
+  cliente_id:    c.cliente_id,
+  razon_social:  c.razon_social,
+  lat:           CLIENT_GEO[i].lat,
+  lng:           CLIENT_GEO[i].lng,
+  municipio:     CLIENT_GEO[i].municipio,
+  provincia:     CLIENT_GEO[i].provincia,
+  region:        c.region,
+  tier:          c.tier as "A"|"B"|"C",
+  categoria:     CLIENT_GEO[i].categoria,
+  revenue_ars:   c.revenue_ars,
+  margen_pct:    CLI_MARGEN[i],
+  churn_risk:    c.churn_probability,   // consistent with risk_level
+  risk_level:    c.risk_level,
+  ultima_compra: CLI_COMPRA[i],
 }));
 
 // ── Vendedores ────────────────────────────────────────────────────────────────
