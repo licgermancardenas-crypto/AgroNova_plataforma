@@ -8,12 +8,14 @@ import { provinceColor, getMetricValue, KPI_INDEX } from "@/lib/geo-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
 
 interface Props {
-  geoData:          GeoJSON.FeatureCollection | null;
-  metric:           GisMetric;
-  allKpis:          ProvinceKPI[];
-  onProvinceClick:  (kpi: ProvinceKPI) => void;
-  selectedProvince: string | null;
-  mode3D?:          boolean;
+  geoData:           GeoJSON.FeatureCollection | null;
+  metric:            GisMetric;
+  allKpis:           ProvinceKPI[];
+  onProvinceClick:   (kpi: ProvinceKPI) => void;
+  selectedProvince:  string | null;
+  mode3D?:           boolean;
+  compareProvinceA?: string | null;
+  compareProvinceB?: string | null;
 }
 
 function popupHtml(kpi: ProvinceKPI, metric: GisMetric): string {
@@ -53,26 +55,67 @@ function popupHtml(kpi: ProvinceKPI, metric: GisMetric): string {
     </div>`;
 }
 
-export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceClick, selectedProvince, mode3D = false }: Props) {
+export default function ChoroplethLayer({
+  geoData, metric, allKpis, onProvinceClick, selectedProvince, mode3D = false,
+  compareProvinceA = null, compareProvinceB = null,
+}: Props) {
   const map = useMap();
   const layerRef = useRef<L.GeoJSON | null>(null);
 
-  // Re-apply selected style when selectedProvince changes without rebuilding layer
+  // Refs so closure-captured handlers always read latest values
+  const selRef  = useRef(selectedProvince);
+  const cmpARef = useRef(compareProvinceA);
+  const cmpBRef = useRef(compareProvinceB);
+  useEffect(() => { selRef.current  = selectedProvince;  }, [selectedProvince]);
+  useEffect(() => { cmpARef.current = compareProvinceA;  }, [compareProvinceA]);
+  useEffect(() => { cmpBRef.current = compareProvinceB;  }, [compareProvinceB]);
+
+  const compareActive = !!(compareProvinceA || compareProvinceB);
+
+  const getStyle = (nombre: string): L.PathOptions => {
+    const kpi = KPI_INDEX[nombre];
+    const cA  = cmpARef.current;
+    const cB  = cmpBRef.current;
+    const isA  = cA && nombre === cA;
+    const isB  = cB && nombre === cB;
+    const cmpOn = !!(cA || cB);
+    const isSel = nombre === selRef.current;
+
+    if (mode3D) return { fillColor: kpi ? provinceColor(kpi, metric, allKpis) : "#071209", fillOpacity: 0, color: "transparent", weight: 0, opacity: 0 };
+
+    if (cmpOn) {
+      return {
+        fillColor:   kpi ? provinceColor(kpi, metric, allKpis) : "#071209",
+        fillOpacity: isA || isB ? 0.92 : 0.07,
+        color:       isA ? "#22C55E" : isB ? "#0EA5E9" : "#1A3D20",
+        weight:      isA || isB ? 2.5 : 0.4,
+        opacity:     0.9,
+      };
+    }
+
+    return {
+      fillColor:   kpi ? provinceColor(kpi, metric, allKpis) : "#071209",
+      fillOpacity: isSel ? 0.95 : kpi ? 0.72 : 0.08,
+      color:       isSel ? "#22C55E" : "#1A3D20",
+      weight:      isSel ? 2.5 : 0.8,
+      opacity:     0.9,
+    };
+  };
+
+  // Re-apply styles when selection/compare state changes
   useEffect(() => {
     if (!layerRef.current) return;
     layerRef.current.eachLayer((lyr) => {
-      const l = lyr as L.Path & { feature?: GeoJSON.Feature };
+      const l      = lyr as L.Path & { feature?: GeoJSON.Feature };
       const nombre = l.feature?.properties?.nombre ?? "";
-      const kpi    = KPI_INDEX[nombre];
-      if (!kpi) return;
-      if (nombre === selectedProvince) {
-        l.setStyle({ fillOpacity: 0.95, weight: 2.5, color: "#22C55E", opacity: 1 });
-        l.bringToFront();
-      } else {
-        l.setStyle({ fillOpacity: 0.72, weight: 0.8, color: "#1A3D20", opacity: 0.9 });
-      }
+      if (!KPI_INDEX[nombre]) return;
+      l.setStyle(getStyle(nombre));
+      const isA = cmpARef.current && nombre === cmpARef.current;
+      const isB = cmpBRef.current && nombre === cmpBRef.current;
+      if (nombre === selRef.current || isA || isB) l.bringToFront();
     });
-  }, [selectedProvince]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProvince, compareProvinceA, compareProvinceB]);
 
   useEffect(() => {
     if (!geoData) return;
@@ -84,40 +127,34 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
     const layer = L.geoJSON(geoData as GeoJSON.GeoJsonObject, {
       style: (feature) => {
         const nombre = feature?.properties?.nombre ?? "";
-        const kpi    = KPI_INDEX[nombre];
-        const isSelected = nombre === selectedProvince;
-        // In 3D mode, render transparent so deck.gl extrusion shows through.
-        // Layer remains interactive so Leaflet still handles province clicks.
-        return {
-          fillColor:   kpi ? provinceColor(kpi, metric, allKpis) : "#071209",
-          fillOpacity: mode3D ? 0 : isSelected ? 0.95 : kpi ? 0.72 : 0.08,
-          color:       mode3D ? "transparent" : isSelected ? "#22C55E" : "#1A3D20",
-          weight:      mode3D ? 0 : isSelected ? 2.5 : 0.8,
-          opacity:     mode3D ? 0 : 0.9,
-        };
+        return getStyle(nombre);
       },
-      onEachFeature: (feature, layer) => {
+      onEachFeature: (feature, lyr) => {
         const nombre = feature.properties?.nombre ?? "";
         const kpi    = KPI_INDEX[nombre];
 
         if (kpi) {
-          layer.bindPopup(popupHtml(kpi, metric), {
+          lyr.bindPopup(popupHtml(kpi, metric), {
             className:   "agronova-popup",
             maxWidth:    240,
             closeButton: true,
           });
 
-          layer.on({
+          lyr.on({
             mouseover(e) {
-              const l = e.target as L.Path;
-              if (nombre === selectedProvince) return;
-              l.setStyle({ fillOpacity: 0.92, weight: 1.8, color: "#22C55E" });
+              const l   = e.target as L.Path;
+              const isA = cmpARef.current && nombre === cmpARef.current;
+              const isB = cmpBRef.current && nombre === cmpBRef.current;
+              if (selRef.current === nombre || isA || isB) return;
+              l.setStyle({ fillOpacity: 0.90, weight: 1.8, color: "#22C55E" });
               l.bringToFront();
             },
             mouseout(e) {
-              const l = e.target as L.Path;
-              if (nombre === selectedProvince) return;
-              l.setStyle({ fillOpacity: 0.72, weight: 0.8, color: "#1A3D20" });
+              const l   = e.target as L.Path;
+              const isA = cmpARef.current && nombre === cmpARef.current;
+              const isB = cmpBRef.current && nombre === cmpBRef.current;
+              if (selRef.current === nombre || isA || isB) return;
+              l.setStyle(getStyle(nombre));
             },
             click() {
               onProvinceClick(kpi);
@@ -133,7 +170,7 @@ export default function ChoroplethLayer({ geoData, metric, allKpis, onProvinceCl
     return () => {
       if (layerRef.current) map.removeLayer(layerRef.current);
     };
-  // selectedProvince intentionally excluded — handled by the dedicated effect above
+  // selection + compare state handled by dedicated effect above
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geoData, metric, allKpis, map, onProvinceClick, mode3D]);
 

@@ -132,7 +132,9 @@ interface Props {
   // KPIs (year-aware, passed from parent)
   allKpis:          ProvinceKPI[];
   // Selection
-  selectedProvince: string | null;
+  selectedProvince:  string | null;
+  compareProvinceA?: string | null;
+  compareProvinceB?: string | null;
   // GeoJSON
   geoData:          GeoJSON.FeatureCollection | null;
   geoLoading:       boolean;
@@ -159,6 +161,7 @@ export default function LeafletMap({
   showSucursales, showDepositos, showClientes, showRadios, showCoords,
   showHotspots, showTerritorios, showBuffers, showCandidatos, showServiceAreas,
   metric, allKpis, geoData, geoLoading, onProvinceClick, selectedProvince,
+  compareProvinceA = null, compareProvinceB = null,
   show3D, show3DArcs, showBeams, metric3D,
   showFlows, showVehicles, showPulse, animPlaying, animSpeed,
 }: Props) {
@@ -202,6 +205,8 @@ export default function LeafletMap({
           allKpis={allKpis}
           onProvinceClick={onProvinceClick}
           selectedProvince={selectedProvince}
+          compareProvinceA={compareProvinceA}
+          compareProvinceB={compareProvinceB}
           mode3D={show3D}
         />
       )}

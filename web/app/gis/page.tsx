@@ -45,6 +45,11 @@ const EnvironmentPanel = dynamic(
   { ssr: false },
 );
 
+const ComparisonPanel = dynamic(
+  () => import("@/components/gis/ComparisonPanel"),
+  { ssr: false },
+);
+
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
   loading: () => (
@@ -132,6 +137,7 @@ const RIGHT_TABS_LIST = [
   { id: "spatial",   label: "Spatial Diag."  },
   { id: "ai",        label: "AI Spatial"     },
   { id: "env",       label: "Environment"    },
+  { id: "cmp",       label: "Comparar"       },
 ] as const;
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
@@ -818,7 +824,9 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env">("ops");
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp">("ops");
+  const [compareA,      setCompareA]      = useState<ProvinceKPI | null>(null);
+  const [compareB,      setCompareB]      = useState<ProvinceKPI | null>(null);
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
   const [geoLoading,    setGeoLoading]    = useState(true);
   const [geoError,      setGeoError]      = useState<string | null>(null);
@@ -1163,7 +1171,10 @@ export default function GISPage() {
                 <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
               )}
               {(showFlows || showVehicles) && <span className="tactical-text" style={{ color: "#22C55E" }}>FLOWS</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>GIS-23</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>GIS-25</span>
+              {(compareA || compareB) && (
+                <span className="font-mono font-bold" style={{ color: "#0EA5E9", fontSize: 9 }}>⬡ CMP</span>
+              )}
             </div>
           </div>
 
@@ -1383,6 +1394,8 @@ export default function GISPage() {
                 clientes={clienteMarkers}
                 routes={gisRoutes}
                 basemap={basemap}
+                compareProvinceA={compareA?.nombre ?? null}
+                compareProvinceB={compareB?.nombre ?? null}
                 showChoropleth={layers.choropleth}
                 showHeatmap={layers.heatmap}
                 showDepartamentos={layers.departamentos}
@@ -1451,6 +1464,7 @@ export default function GISPage() {
               { id: "spatial",  label: "Spatial" },
               { id: "ai",       label: "AI" },
               { id: "env",      label: "Env" },
+              { id: "cmp",      label: "Cmp" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -1475,6 +1489,16 @@ export default function GISPage() {
               : rightTab === "spatial"   ? <SpatialDiagnosticsPanel />
               : rightTab === "ai"        ? <AISpatialPanel />
               : rightTab === "env"       ? <EnvironmentPanel />
+              : rightTab === "cmp"       ? (
+                  <ComparisonPanel
+                    allKpis={currentKpis}
+                    year={selectedYear}
+                    compareA={compareA}
+                    compareB={compareB}
+                    setCompareA={setCompareA}
+                    setCompareB={setCompareB}
+                  />
+                )
               : <RoutingPanel />}
           </div>
         </div>
@@ -1520,7 +1544,7 @@ export default function GISPage() {
             { v: `CAPAS · ${activeLayers}`,                                     c: "#3E5A3E" },
             { v: selectedYear < YEAR_MAX ? `${selectedYear} ★ HIST` : String(selectedYear), c: selectedYear < YEAR_MAX ? "#E8A020" : "#3E5A3E" },
             { v: mapEngine === "earth" ? "◉ EARTH MODE" : mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET OSM", c: mapEngine === "earth" ? "#38BDF8" : "#3E5A3E" },
-            { v: "GIS v9.1 · GIS-20.1",                                          c: "#4ADE80" },
+            { v: "GIS v10.0 · GIS-25",                                           c: "#4ADE80" },
           ] as const).map(({ v, c }, i) => (
             <div key={i} className="flex items-center flex-shrink-0">
               {i > 0 && <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />}
