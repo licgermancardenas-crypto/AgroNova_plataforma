@@ -997,6 +997,11 @@ export default function GISPage() {
     setSelected(prev => prev?.nombre === kpi.nombre ? null : kpi);
   }, []);
 
+  // True when the selected province has no clients in the dataset
+  const selectedHasNoClients = useMemo(() =>
+    selected !== null && clienteMarkers.filter(c => c.provincia === selected.nombre).length === 0,
+  [selected]);
+
   // Load simplified province GeoJSON
   const loadGeo = useCallback(() => {
     setGeoLoading(true);
@@ -1389,6 +1394,28 @@ export default function GISPage() {
 
           {/* Advanced legend — Leaflet only */}
           {mapEngine === "leaflet" && <MapLegendAdvanced metric={metric} layers={layers} />}
+
+          {/* No-clients badge — shown when selected province has no client data */}
+          {selectedHasNoClients && (
+            <div
+              className="absolute bottom-10 left-1/2 z-[600] pointer-events-none"
+              style={{ transform: "translateX(-50%)" }}
+            >
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs"
+                style={{
+                  background:    "rgba(7,18,9,0.88)",
+                  border:        "1px solid rgba(232,160,32,0.45)",
+                  color:         "#E8A020",
+                  backdropFilter:"blur(8px)",
+                  boxShadow:     "0 2px 12px rgba(0,0,0,0.5)",
+                }}
+              >
+                <span style={{ fontSize: 14 }}>⚠</span>
+                Sin clientes registrados en <strong style={{ color: "#FCD34D" }}>{selected!.nombre}</strong>
+              </div>
+            </div>
+          )}
 
           {/* Map — flex-1 wrapper ensures it fills all remaining vertical space */}
           <div className="flex-1 min-h-0 relative">
