@@ -626,6 +626,42 @@ export interface ServiceAreaPolygon {
   source:     "arcgis" | "local_approx";
 }
 
+// ── GIS-25 Customer Intelligence ─────────────────────────────────────────────
+
+export interface CustomerGeo {
+  cliente_id:          string;
+  razon_social:        string;
+  segmento:            string;
+  ciclo_vida?:         string;
+  provincia?:          string;
+  ciudad?:             string;
+  cuit?:               string;
+  sucursal_id?:        number;
+  tier?:               string;
+  riesgo_crediticio?:  string;
+  superficie_ha?:      number;
+  lat:                 number;
+  lon:                 number;
+  is_outlier:          boolean;
+  revenue_ars?:        number;
+  margen_pct?:         number;
+  ticket_promedio_ars?: number;
+  n_compras?:          number;
+  ultima_compra?:      string;
+  otif_pct?:           number;
+  churn_score?:        number;
+  churn_level?:        string;
+}
+
+export interface CustomerFilters {
+  segmentos:    string[];
+  churnLevels:  string[];
+  tiers:        string[];
+  provincias:   string[];
+  revenueMin:   number;
+  revenueMax:   number;
+}
+
 // ── Alert ────────────────────────────────────────────────────────────────────
 
 export interface AlertItem {
