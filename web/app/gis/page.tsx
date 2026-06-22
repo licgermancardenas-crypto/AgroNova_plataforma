@@ -996,7 +996,7 @@ export default function GISPage() {
   const loadGeo = useCallback(() => {
     setGeoLoading(true);
     setGeoError(null);
-    fetch("/data/geo/provincias_simple.geojson")
+    fetch("/data/geo/provincias_hq.geojson")
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((data: GeoJSON.FeatureCollection) => { setGeoData(data); setGeoLoading(false); })
       .catch((e: Error) => { setGeoError(e.message); setGeoLoading(false); });

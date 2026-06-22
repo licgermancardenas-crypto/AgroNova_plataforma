@@ -12,7 +12,7 @@ export default function DepartamentosLayer({ visible }: Props) {
   const [geoData, setGeoData] = useState<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
-    fetch("/data/geojson/departamentos.geojson")
+    fetch("/data/geo/departamentos_hq.geojson")
       .then(r => r.json())
       .then(setGeoData)
       .catch(() => {});
