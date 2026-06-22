@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline } from "react-leaflet";
 import L from "leaflet";
-import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId } from "@/types";
+import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters } from "@/types";
 import { fmtARS } from "@/lib/formatters";
 import ChoroplethLayer   from "./ChoroplethLayer";
 import ClientClusterLayer from "./ClientClusterLayer";
@@ -21,6 +21,7 @@ import ServiceAreasLayer      from "./ServiceAreasLayer";
 import DeckOverlay            from "./DeckOverlay";
 import FlowAnimationLayer    from "@/components/gis/FlowAnimationLayer";
 import VehicleLayer          from "@/components/gis/VehicleLayer";
+import CustomerLayer         from "@/components/gis/layers/CustomerLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -149,6 +150,11 @@ interface Props {
   showPulse:        boolean;
   animPlaying:      boolean;
   animSpeed:        1 | 2;
+  // GIS-25 Customer Intelligence
+  showCustomers?:       boolean;
+  selectedCustomer?:    CustomerGeo | null;
+  onCustomerClick?:     (c: CustomerGeo | null) => void;
+  customerFilters?:     CustomerFilters | null;
   // Callbacks
   onProvinceClick:    (kpi: ProvinceKPI) => void;
 }
@@ -164,6 +170,7 @@ export default function LeafletMap({
   compareProvinceA = null, compareProvinceB = null,
   show3D, show3DArcs, showBeams, metric3D,
   showFlows, showVehicles, showPulse, animPlaying, animSpeed,
+  showCustomers = false, selectedCustomer = null, onCustomerClick, customerFilters = null,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -308,6 +315,16 @@ export default function LeafletMap({
 
       {/* Clients — orange cluster; auto-shown filtered by province when drilling */}
       <ClientClusterLayer clientes={clientes} visible={showClientes} filterProvince={selectedProvince} />
+
+      {/* GIS-25 Customer Intelligence — real Neon data, self-loads customers.json */}
+      <CustomerLayer
+        visible={showCustomers || showClientes}
+        filterProvince={selectedProvince}
+        filters={customerFilters}
+        selectedCustomer={selectedCustomer ?? null}
+        onCustomerClick={onCustomerClick ?? (() => {})}
+        sucursales={sucursales}
+      />
 
       {/* Legend */}
       <MapLegend metric={metric} kpis={allKpis} />

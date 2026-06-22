@@ -13,7 +13,7 @@ import type { PaletteCommand } from "@/components/gis/CommandPalette";
 import type { BookmarkEntry } from "@/components/gis/BookmarkPanel";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
-import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget } from "@/types";
+import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget, CustomerGeo, CustomerFilters } from "@/types";
 import { getMetricValue } from "@/lib/geo-data";
 import { isMapboxConfigured } from "@/lib/mapbox-config";
 import {
@@ -49,6 +49,31 @@ const ComparisonPanel = dynamic(
   () => import("@/components/gis/ComparisonPanel"),
   { ssr: false },
 );
+
+const CustomerSearchPanel = dynamic(
+  () => import("@/components/gis/CustomerSearchPanel"),
+  { ssr: false },
+);
+
+const CustomerDetailPanel = dynamic(
+  () => import("@/components/gis/CustomerDetailPanel"),
+  { ssr: false },
+);
+
+const CustomerFiltersPanel = dynamic(
+  () => import("@/components/gis/CustomerFiltersPanel"),
+  { ssr: false },
+);
+
+const CustomerStatsPanel = dynamic(
+  () => import("@/components/gis/CustomerStatsPanel"),
+  { ssr: false },
+);
+
+const DEFAULT_CUSTOMER_FILTERS: CustomerFilters = {
+  segmentos: [], churnLevels: [], tiers: [], provincias: [],
+  revenueMin: 0, revenueMax: 999_999_999,
+};
 
 const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
@@ -138,6 +163,7 @@ const RIGHT_TABS_LIST = [
   { id: "ai",        label: "AI Spatial"     },
   { id: "env",       label: "Environment"    },
   { id: "cmp",       label: "Comparar"       },
+  { id: "cli",       label: "Clientes"       },
 ] as const;
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
@@ -824,7 +850,12 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp">("ops");
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli">("ops");
+  // GIS-25 Customer Intelligence
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerGeo | null>(null);
+  const [customerFilters,  setCustomerFilters]  = useState<CustomerFilters>(DEFAULT_CUSTOMER_FILTERS);
+  const [allCustomers,     setAllCustomers]     = useState<CustomerGeo[]>([]);
+  const [cliSubTab,        setCliSubTab]        = useState<"search" | "filtros" | "stats">("search");
   const [compareA,      setCompareA]      = useState<ProvinceKPI | null>(null);
   const [compareB,      setCompareB]      = useState<ProvinceKPI | null>(null);
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
@@ -884,6 +915,30 @@ export default function GISPage() {
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, []);
+
+  // GIS-25 — load real customers from static JSON (Neon-seeded, Vercel-served)
+  useEffect(() => {
+    fetch("/data/customers/customers.json")
+      .then(r => r.json())
+      .then((d: CustomerGeo[]) => setAllCustomers(d))
+      .catch(() => {});
+  }, []);
+
+  const handleCustomerClick = useCallback((c: CustomerGeo | null) => {
+    setSelectedCustomer(c);
+    if (c) setRightTab("cli");
+  }, []);
+
+  const filteredCustomerCount = useMemo(() => {
+    if (!allCustomers.length) return 0;
+    let list = allCustomers.filter(c => !c.is_outlier);
+    if (customerFilters.segmentos.length)   list = list.filter(c => customerFilters.segmentos.includes(c.segmento ?? ""));
+    if (customerFilters.churnLevels.length) list = list.filter(c => customerFilters.churnLevels.includes(c.churn_level ?? ""));
+    if (customerFilters.tiers.length)       list = list.filter(c => customerFilters.tiers.includes(c.tier ?? ""));
+    if (customerFilters.revenueMin > 0)     list = list.filter(c => (c.revenue_ars ?? 0) >= customerFilters.revenueMin);
+    if (customerFilters.revenueMax < 999_999_999) list = list.filter(c => (c.revenue_ars ?? 0) <= customerFilters.revenueMax);
+    return list.length;
+  }, [allCustomers, customerFilters]);
 
   // ── Temporal KPI data ─────────────────────────────────────────────
   const currentKpis     = useMemo(() => getKpisByYear(selectedYear),            [selectedYear]);
@@ -1459,6 +1514,10 @@ export default function GISPage() {
                 showPulse={showPulse}
                 animPlaying={animPlaying}
                 animSpeed={animSpeed}
+                showCustomers={layers.clientes}
+                selectedCustomer={selectedCustomer}
+                onCustomerClick={handleCustomerClick}
+                customerFilters={customerFilters}
               />
             ) : (
               <MapboxTerrainView
@@ -1497,6 +1556,7 @@ export default function GISPage() {
               { id: "ai",       label: "AI" },
               { id: "env",      label: "Env" },
               { id: "cmp",      label: "Cmp" },
+              { id: "cli",      label: "Cli" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -1530,6 +1590,59 @@ export default function GISPage() {
                     setCompareA={setCompareA}
                     setCompareB={setCompareB}
                   />
+                )
+              : rightTab === "cli"       ? (
+                  <div className="flex flex-col gap-2 h-full min-h-0">
+                    {/* Sub-tab bar */}
+                    <div className="flex gap-1 flex-shrink-0">
+                      {(["search", "filtros", "stats"] as const).map(st => (
+                        <button
+                          key={st}
+                          onClick={() => setCliSubTab(st)}
+                          className="flex-1 py-1 rounded font-mono text-2xs transition-all border"
+                          style={cliSubTab === st
+                            ? { background: "rgba(249,115,22,0.15)", borderColor: "rgba(249,115,22,0.40)", color: "#F97316" }
+                            : { background: "transparent", borderColor: "rgba(255,255,255,0.07)", color: "#4B6B4B" }
+                          }
+                        >
+                          {st === "search" ? "Buscar" : st === "filtros" ? "Filtros" : "Stats"}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Customer detail panel — shown above search when a client is selected */}
+                    {selectedCustomer && cliSubTab === "search" && (
+                      <div className="flex-shrink-0">
+                        <CustomerDetailPanel
+                          customer={selectedCustomer}
+                          onClose={() => setSelectedCustomer(null)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Sub-tab content */}
+                    <div className="flex-1 min-h-0 overflow-y-auto">
+                      {cliSubTab === "search" && !selectedCustomer && (
+                        <CustomerSearchPanel
+                          customers={allCustomers}
+                          onSelect={c => { setSelectedCustomer(c); }}
+                          onFlyTo={() => {}}
+                          selectedCustomer={selectedCustomer}
+                        />
+                      )}
+                      {cliSubTab === "filtros" && (
+                        <CustomerFiltersPanel
+                          filters={customerFilters}
+                          onChange={setCustomerFilters}
+                          totalCount={allCustomers.filter(c => !c.is_outlier).length}
+                          filteredCount={filteredCustomerCount}
+                        />
+                      )}
+                      {cliSubTab === "stats" && (
+                        <CustomerStatsPanel customers={allCustomers} />
+                      )}
+                    </div>
+                  </div>
                 )
               : <RoutingPanel />}
           </div>
