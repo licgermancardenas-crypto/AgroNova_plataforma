@@ -156,7 +156,16 @@ export default function ChoroplethLayer({
               if (selRef.current === nombre || isA || isB) return;
               l.setStyle(getStyle(nombre));
             },
-            click() {
+            click(e) {
+              const isCurrentlySelected = selRef.current === nombre;
+              if (isCurrentlySelected) {
+                map.flyTo([-34, -64], 5, { animate: true, duration: 0.8 });
+              } else {
+                try {
+                  const bounds = (e.target as L.Polygon).getBounds();
+                  map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 9, animate: true, duration: 0.8 });
+                } catch { /* non-polygon feature */ }
+              }
               onProvinceClick(kpi);
             },
           });

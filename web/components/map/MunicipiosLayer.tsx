@@ -17,7 +17,15 @@ interface MunicipioFeature {
   };
 }
 
-interface Props { visible: boolean; }
+// nam_prov in the GeoJSON uses the full IGN name for TdF
+const PROV_TO_NAM_PROV: Record<string, string> = {
+  "Tierra del Fuego": "Tierra del Fuego, Antártida e Islas del Atlántico Sur",
+};
+
+interface Props {
+  visible:         boolean;
+  filterProvince?: string | null;
+}
 
 const MIN_ZOOM_INDIVIDUAL = 8;
 
@@ -47,7 +55,7 @@ function gridKey(lat: number, lon: number, zoom: number): string {
   return `${Math.floor(lat / cell)},${Math.floor(lon / cell)}`;
 }
 
-export default function MunicipiosLayer({ visible }: Props) {
+export default function MunicipiosLayer({ visible, filterProvince = null }: Props) {
   const [zoom, setZoom] = useState(5);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -69,12 +77,21 @@ export default function MunicipiosLayer({ visible }: Props) {
   useEffect(() => {
     if (!mapRef.current) return;
     if (layerRef.current) { mapRef.current.removeLayer(layerRef.current); layerRef.current = null; }
-    if (!visible || features.length === 0) return;
+    if (!visible && !filterProvince) return;
+    if (features.length === 0) return;
+
+    const namProv = filterProvince
+      ? (PROV_TO_NAM_PROV[filterProvince] ?? filterProvince)
+      : null;
+    const visibleFeatures = namProv
+      ? features.filter(f => f.properties.nam_prov === namProv)
+      : features;
 
     const group = L.layerGroup();
 
-    if (zoom >= MIN_ZOOM_INDIVIDUAL) {
-      features.forEach(f => {
+    // When drilling into a province always show individual markers
+    if (zoom >= MIN_ZOOM_INDIVIDUAL || filterProvince) {
+      visibleFeatures.forEach(f => {
         if (!f.geometry?.coordinates?.length) return;
         const coords = f.geometry.coordinates[0];
         const lat = coords[1];
@@ -95,7 +112,7 @@ export default function MunicipiosLayer({ visible }: Props) {
     } else {
       // Grid cluster
       const cells: Record<string, { count: number; lats: number[]; lons: number[]; prov: string }> = {};
-      features.forEach(f => {
+      visibleFeatures.forEach(f => {
         if (!f.geometry?.coordinates?.length) return;
         const coords = f.geometry.coordinates[0];
         const lat = coords[1];
@@ -124,7 +141,7 @@ export default function MunicipiosLayer({ visible }: Props) {
     layerRef.current = group;
 
     return () => { if (mapRef.current && layerRef.current) { mapRef.current.removeLayer(layerRef.current); } };
-  }, [features, visible, zoom]);
+  }, [features, visible, zoom, filterProvince]);
 
   return null;
 }

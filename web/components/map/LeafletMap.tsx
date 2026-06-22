@@ -261,8 +261,8 @@ export default function LeafletMap({
       {/* Candidate expansion branches */}
       <CandidateBranchesLayer visible={showCandidatos} />
 
-      {/* Municipalities (zoom-aware clustering) */}
-      <MunicipiosLayer visible={showMunicipios} />
+      {/* Municipalities (zoom-aware clustering; auto-shown when province selected) */}
+      <MunicipiosLayer visible={showMunicipios} filterProvince={selectedProvince} />
 
       {/* Sucursales — green glow markers */}
       {showSucursales && sucursales.map(s => (
@@ -306,8 +306,8 @@ export default function LeafletMap({
         </Marker>
       ))}
 
-      {/* Clients — orange cluster */}
-      <ClientClusterLayer clientes={clientes} visible={showClientes} />
+      {/* Clients — orange cluster; auto-shown filtered by province when drilling */}
+      <ClientClusterLayer clientes={clientes} visible={showClientes} filterProvince={selectedProvince} />
 
       {/* Legend */}
       <MapLegend metric={metric} kpis={allKpis} />

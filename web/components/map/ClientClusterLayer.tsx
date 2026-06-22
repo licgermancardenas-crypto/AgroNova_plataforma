@@ -7,8 +7,9 @@ import type { ClienteMapMarker } from "@/types";
 import { fmtARS } from "@/lib/formatters";
 
 interface Props {
-  clientes: ClienteMapMarker[];
-  visible: boolean;
+  clientes:       ClienteMapMarker[];
+  visible:        boolean;
+  filterProvince?: string | null;
 }
 
 // Zoom < 9 → clusters  |  zoom >= 9 → individual markers
@@ -97,7 +98,7 @@ function buildPopup(c: ClienteMapMarker): string {
 </div>`;
 }
 
-export default function ClientClusterLayer({ clientes, visible }: Props) {
+export default function ClientClusterLayer({ clientes, visible, filterProvince = null }: Props) {
   const [zoom, setZoom] = useState(5);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const mapRef   = useRef<L.Map | null>(null);
@@ -111,13 +112,17 @@ export default function ClientClusterLayer({ clientes, visible }: Props) {
   useEffect(() => {
     if (!mapRef.current) return;
     if (layerRef.current) mapRef.current.removeLayer(layerRef.current);
-    if (!visible) return;
+    if (!visible && !filterProvince) return;
+
+    const visible_clientes = filterProvince
+      ? clientes.filter(c => c.provincia === filterProvince)
+      : clientes;
 
     const group = L.layerGroup();
 
-    if (zoom >= INDIVIDUAL_ZOOM) {
-      // Individual markers — exact municipality centroids, no jitter
-      clientes.forEach(c => {
+    // When drilling into a province always show individual markers
+    if (zoom >= INDIVIDUAL_ZOOM || filterProvince) {
+      visible_clientes.forEach(c => {
         const marker = L.marker([c.lat, c.lng], {
           icon: dotIcon(c.tier, RISK_COLOR[c.risk_level] ?? "#0DB87E"),
         });
@@ -127,7 +132,7 @@ export default function ClientClusterLayer({ clientes, visible }: Props) {
     } else {
       // Cluster view
       const cells: Record<string, { count: number; lats: number[]; lons: number[] }> = {};
-      clientes.forEach(c => {
+      visible_clientes.forEach(c => {
         const key = gridKey(c.lat, c.lng, zoom);
         if (!cells[key]) cells[key] = { count: 0, lats: [], lons: [] };
         cells[key].count++;
@@ -154,7 +159,7 @@ export default function ClientClusterLayer({ clientes, visible }: Props) {
     return () => {
       if (mapRef.current && layerRef.current) mapRef.current.removeLayer(layerRef.current);
     };
-  }, [clientes, visible, zoom]);
+  }, [clientes, visible, zoom, filterProvince]);
 
   return null;
 }

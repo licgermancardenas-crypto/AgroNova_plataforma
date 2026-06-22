@@ -992,6 +992,11 @@ export default function GISPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [metric, mapEngine, layers, currentKpis, pitch, showMiniMap]);
 
+  // Province click: toggle deselect (second click on same province clears selection)
+  const handleProvinceClick = useCallback((kpi: ProvinceKPI) => {
+    setSelected(prev => prev?.nombre === kpi.nombre ? null : kpi);
+  }, []);
+
   // Load simplified province GeoJSON
   const loadGeo = useCallback(() => {
     setGeoLoading(true);
@@ -1417,7 +1422,7 @@ export default function GISPage() {
                 selectedProvince={selected?.nombre ?? null}
                 geoData={geoData}
                 geoLoading={geoLoading}
-                onProvinceClick={setSelected}
+                onProvinceClick={handleProvinceClick}
                 show3D={mode3D}
                 show3DArcs={show3DArcs}
                 showBeams={showBeams}
