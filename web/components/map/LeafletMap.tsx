@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline } from "react-leaflet";
 import L from "leaflet";
-import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters } from "@/types";
+import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters, TerritoryAnalysis } from "@/types";
 import { fmtARS } from "@/lib/formatters";
 import ChoroplethLayer   from "./ChoroplethLayer";
 import ClientClusterLayer from "./ClientClusterLayer";
@@ -21,7 +21,8 @@ import ServiceAreasLayer      from "./ServiceAreasLayer";
 import DeckOverlay            from "./DeckOverlay";
 import FlowAnimationLayer    from "@/components/gis/FlowAnimationLayer";
 import VehicleLayer          from "@/components/gis/VehicleLayer";
-import CustomerLayer         from "@/components/gis/layers/CustomerLayer";
+import CustomerLayer                from "@/components/gis/layers/CustomerLayer";
+import TerritoryOptimizationLayer  from "@/components/gis/layers/TerritoryOptimizationLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -155,6 +156,13 @@ interface Props {
   selectedCustomer?:    CustomerGeo | null;
   onCustomerClick?:     (c: CustomerGeo | null) => void;
   customerFilters?:     CustomerFilters | null;
+  // GIS-26 Territory Optimization
+  showTerritoryOpt?:    boolean;
+  territoryData?:       TerritoryAnalysis | null;
+  showTerritoryConflicts?: boolean;
+  showBranchRings?:     boolean;
+  showConflictLines?:   boolean;
+  simClosedBranch?:     number | null;
   // Callbacks
   onProvinceClick:    (kpi: ProvinceKPI) => void;
 }
@@ -171,6 +179,9 @@ export default function LeafletMap({
   show3D, show3DArcs, showBeams, metric3D,
   showFlows, showVehicles, showPulse, animPlaying, animSpeed,
   showCustomers = false, selectedCustomer = null, onCustomerClick, customerFilters = null,
+  showTerritoryOpt = false, territoryData = null,
+  showTerritoryConflicts = true, showBranchRings = false, showConflictLines = false,
+  simClosedBranch = null,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -324,6 +335,16 @@ export default function LeafletMap({
         selectedCustomer={selectedCustomer ?? null}
         onCustomerClick={onCustomerClick ?? (() => {})}
         sucursales={sucursales}
+      />
+
+      {/* GIS-26 Territory Optimization — branch load, conflict lines, simulation */}
+      <TerritoryOptimizationLayer
+        visible={showTerritoryOpt}
+        data={territoryData}
+        showConflicts={showTerritoryConflicts}
+        showBranchRings={showBranchRings}
+        showConflictLines={showConflictLines}
+        simulatedClosed={simClosedBranch}
       />
 
       {/* Legend */}

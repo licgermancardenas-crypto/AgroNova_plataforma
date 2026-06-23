@@ -13,7 +13,7 @@ import type { PaletteCommand } from "@/components/gis/CommandPalette";
 import type { BookmarkEntry } from "@/components/gis/BookmarkPanel";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
-import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget, CustomerGeo, CustomerFilters } from "@/types";
+import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget, CustomerGeo, CustomerFilters, TerritoryAnalysis } from "@/types";
 import { getMetricValue } from "@/lib/geo-data";
 import { isMapboxConfigured } from "@/lib/mapbox-config";
 import {
@@ -67,6 +67,11 @@ const CustomerFiltersPanel = dynamic(
 
 const CustomerStatsPanel = dynamic(
   () => import("@/components/gis/CustomerStatsPanel"),
+  { ssr: false },
+);
+
+const TerritoryPanel = dynamic(
+  () => import("@/components/gis/TerritoryPanel"),
   { ssr: false },
 );
 
@@ -164,6 +169,7 @@ const RIGHT_TABS_LIST = [
   { id: "env",       label: "Environment"    },
   { id: "cmp",       label: "Comparar"       },
   { id: "cli",       label: "Clientes"       },
+  { id: "opt",       label: "Optimizar"      },
 ] as const;
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
@@ -850,12 +856,18 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli">("ops");
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt">("ops");
   // GIS-25 Customer Intelligence
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGeo | null>(null);
   const [customerFilters,  setCustomerFilters]  = useState<CustomerFilters>(DEFAULT_CUSTOMER_FILTERS);
   const [allCustomers,     setAllCustomers]     = useState<CustomerGeo[]>([]);
   const [cliSubTab,        setCliSubTab]        = useState<"search" | "filtros" | "stats">("search");
+  // GIS-26 Territory Optimization
+  const [territoryData,    setTerritoryData]    = useState<TerritoryAnalysis | null>(null);
+  const [simClosedBranch,  setSimClosedBranch]  = useState<number | null>(null);
+  const [showTerritoryConflicts, setShowTerritoryConflicts] = useState(true);
+  const [showBranchRings,  setShowBranchRings]  = useState(false);
+  const [showConflictLines,setShowConflictLines] = useState(false);
   const [compareA,      setCompareA]      = useState<ProvinceKPI | null>(null);
   const [compareB,      setCompareB]      = useState<ProvinceKPI | null>(null);
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
@@ -921,6 +933,14 @@ export default function GISPage() {
     fetch("/data/customers/customers.json")
       .then(r => r.json())
       .then((d: CustomerGeo[]) => setAllCustomers(d))
+      .catch(() => {});
+  }, []);
+
+  // GIS-26 — load territory_analysis.json (Neon/PostGIS-generated, Vercel-served)
+  useEffect(() => {
+    fetch("/data/gis_outputs/territory_analysis.json")
+      .then(r => r.json())
+      .then((d: TerritoryAnalysis) => setTerritoryData(d))
       .catch(() => {});
   }, []);
 
@@ -1518,6 +1538,12 @@ export default function GISPage() {
                 selectedCustomer={selectedCustomer}
                 onCustomerClick={handleCustomerClick}
                 customerFilters={customerFilters}
+                showTerritoryOpt={rightTab === "opt"}
+                territoryData={territoryData}
+                showTerritoryConflicts={showTerritoryConflicts}
+                showBranchRings={showBranchRings}
+                showConflictLines={showConflictLines}
+                simClosedBranch={simClosedBranch}
               />
             ) : (
               <MapboxTerrainView
@@ -1643,6 +1669,18 @@ export default function GISPage() {
                       )}
                     </div>
                   </div>
+                )
+              : rightTab === "opt"       ? (
+                  <TerritoryPanel
+                    showConflicts={showTerritoryConflicts}
+                    showBranchRings={showBranchRings}
+                    showConflictLines={showConflictLines}
+                    onToggleConflicts={()     => setShowTerritoryConflicts(p => !p)}
+                    onToggleBranchRings={()   => setShowBranchRings(p => !p)}
+                    onToggleConflictLines={()  => setShowConflictLines(p => !p)}
+                    simClosedId={simClosedBranch}
+                    onSimClose={setSimClosedBranch}
+                  />
                 )
               : <RoutingPanel />}
           </div>

@@ -662,6 +662,87 @@ export interface CustomerFilters {
   revenueMax:   number;
 }
 
+// ── GIS-26 Territory Optimization ───────────────────────────────────────────
+
+export type LoadStatus = "NORMAL" | "ALTA_CARGA" | "SATURADA";
+
+export interface TerritoryBranch {
+  sucursal_id:     number;
+  nombre:          string;
+  provincia:       string;
+  lat:             number;
+  lng:             number;
+  n_clientes:      number;
+  revenue_total:   number;
+  revenue_total_m: number;
+  otif_avg:        number;
+  avg_distance_km: number;
+  margen_avg:      number;
+  churn_avg:       number;
+  n_alto_riesgo:   number;
+  n_tier_a:        number;
+  load_status:     LoadStatus;
+  load_color:      string;
+  pct_clientes:    number;
+  n_conflictos:    number;
+}
+
+export interface TerritoryConflict {
+  cliente_id:       string;
+  razon_social:     string;
+  provincia:        string;
+  current_id:       number;
+  current_nombre:   string;
+  nearest_id:       number;
+  nearest_nombre:   string;
+  revenue_ars:      number;
+  otif_pct:         number;
+  lat:              number;
+  lon:              number;
+  current_dist_km:  number;
+  nearest_dist_km:  number;
+  improvement_km:   number;
+  improvement_pct:  number;
+}
+
+export interface TerritoryStatus {
+  total_clientes:      number;
+  total_revenue_ars:   number;
+  n_conflictos:        number;
+  pct_conflictos:      number;
+  revenue_en_riesgo:   number;
+  ahorro_potencial_km: number;
+  reduccion_media_pct: number;
+  otif_global:         number;
+  otif_ganancia_est:   number;
+  n_branches:          number;
+  load_distribution:   Record<LoadStatus, number>;
+}
+
+export interface TerritoryAnalysis {
+  generated_at: string;
+  status:       TerritoryStatus;
+  branches:     TerritoryBranch[];
+  conflicts:    TerritoryConflict[];
+}
+
+export interface ExpansionCandidate {
+  provincia:        string;
+  ciudad:           string;
+  lat:              number;
+  lon:              number;
+  expansion_score:  number;
+  gap_score:        number;
+  opportunity_score:number;
+  dist_km:          number;
+  agr_ha_m:         number;
+  cluster:          string;
+  justificacion:    string;
+  n_activos:        number;
+  penetracion_idx:  number;
+  roi_est_m_ars:    number;
+}
+
 // ── Alert ────────────────────────────────────────────────────────────────────
 
 export interface AlertItem {
