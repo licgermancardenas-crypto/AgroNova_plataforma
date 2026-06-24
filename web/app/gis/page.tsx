@@ -30,6 +30,8 @@ import ArcGISPanel              from "@/components/gis/ArcGISPanel";
 import ProvinceDetailPanel      from "@/components/gis/ProvinceDetailPanel";
 import MapStatisticsPanel       from "@/components/gis/MapStatisticsPanel";
 import TimeSlider               from "@/components/gis/TimeSlider";
+import ExecutiveHeader          from "@/components/gis/ExecutiveHeader";
+import KpiRibbon                from "@/components/gis/KpiRibbon";
 
 const SpatialDiagnosticsPanel = dynamic(
   () => import("@/components/gis/SpatialDiagnosticsPanel"),
@@ -83,6 +85,16 @@ const NetworkPanel = dynamic(
 
 const StoryPanel = dynamic(
   () => import("@/components/gis/StoryPanel"),
+  { ssr: false },
+);
+
+const SystemStatusPanel = dynamic(
+  () => import("@/components/gis/SystemStatusPanel"),
+  { ssr: false },
+);
+
+const ActivityFeed = dynamic(
+  () => import("@/components/gis/ActivityFeed"),
   { ssr: false },
 );
 
@@ -141,7 +153,7 @@ const BookmarkPanel = dynamic(
 
 // ── Story Mode scenes ─────────────────────────────────────────────────────────
 
-type RightTabId = "ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt" | "twin";
+type RightTabId = "ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt" | "twin" | "sys";
 
 interface StorySceneDef extends StoryScene {
   flyTo: { center: [number, number]; zoom: number };
@@ -275,6 +287,7 @@ const RIGHT_TABS_LIST = [
   { id: "cli",       label: "Clientes"       },
   { id: "opt",       label: "Optimizar"      },
   { id: "twin",      label: "Digital Twin"   },
+  { id: "sys",       label: "System Status"  },
 ] as const;
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
@@ -945,7 +958,7 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt" | "twin">("ops");
+  const [rightTab,      setRightTab]      = useState<RightTabId>("ops");
   // GIS-25 Customer Intelligence
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGeo | null>(null);
   const [customerFilters,  setCustomerFilters]  = useState<CustomerFilters>(DEFAULT_CUSTOMER_FILTERS);
@@ -1260,75 +1273,42 @@ export default function GISPage() {
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden animate-fade-in">
 
-      {/* ── Tactical header ────────────────────────────────────────── */}
-      <div
-        className="glass rounded-xl mx-2 mt-1.5 px-2 flex items-center gap-2 flex-shrink-0"
-        style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
-      >
-        {/* Stats — Revenue always visible; extra stats hidden on mobile */}
-        <div className="flex items-center flex-shrink-0 overflow-x-auto scrollbar-none">
-          <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
-          <div className="hidden sm:flex items-center">
-            <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
-            <TacStat label="Provincias"    value={nationalTotals.provincias} />
-          </div>
-          <div className="hidden md:flex items-center">
-            <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`}  accent />
-            <TacStat label="Capas ON"      value={activeLayers} />
-          </div>
-        </div>
-        {/* TimeSlider — hidden on mobile */}
-        <div className="hidden sm:flex flex-1 min-w-0">
-          <TimeSlider
-            year={selectedYear}
-            setYear={setSelectedYear}
-            playing={playing}
-            setPlaying={setPlaying}
-          />
-        </div>
-
-        {/* GIS-24: Global Search — hidden on tablet/mobile */}
-        <div className="hidden lg:flex">
-          <GlobalSearchBar
-            provinces={currentKpis}
-            sucursales={sucursales}
-            depositos={depositos}
-            onSelect={handleSearchSelect}
-          />
-        </div>
-
-        {/* GIS-24: ⌘K command palette button */}
-        <button
-          onClick={() => setShowPalette(true)}
-          className="flex items-center gap-1 px-2 py-1 rounded font-mono transition-all border flex-shrink-0"
-          style={{ fontSize: 10, background: "rgba(7,18,9,0.6)", borderColor: "rgba(34,197,94,0.20)", color: "#4B6B4B" }}
-          title="Command Palette (Ctrl+K)"
+      {/* ── Executive Command Center header ───────────────────────── */}
+      <div className="flex flex-col gap-1.5 px-2 pt-1.5 flex-shrink-0">
+        <ExecutiveHeader
+          clock={clock}
+          geoLoading={geoLoading}
+          geoError={geoError}
+          onReload={loadGeo}
+          onOpenPalette={() => setShowPalette(true)}
         >
-          <Command size={9} />
-          <span>⌘K</span>
-        </button>
-
-        <div className="flex items-center gap-3 pr-2 flex-shrink-0">
-          {geoLoading && (
-            <div className="flex items-center gap-1.5">
-              <RefreshCw size={10} className="text-primary animate-spin" />
-              <span className="tactical-text">Cargando GIS…</span>
-            </div>
-          )}
-          {geoError && (
-            <button onClick={loadGeo} className="flex items-center gap-1.5 text-danger-DEFAULT hover:text-danger-dim">
-              <AlertTriangle size={10} />
-              <span className="tactical-text">Reintentar</span>
-            </button>
-          )}
-          <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${geoLoading ? "bg-warning-DEFAULT animate-pulse" : geoError ? "bg-danger-DEFAULT" : "bg-primary"}`}
-              style={!geoLoading && !geoError ? { boxShadow: "0 0 5px rgba(34,197,94,0.8)" } : {}} />
-            <span className="tactical-text">{geoLoading ? "LOADING" : geoError ? "ERROR" : "LIVE"}</span>
+          {/* TimeSlider — hidden on mobile */}
+          <div className="hidden sm:flex flex-1 min-w-0">
+            <TimeSlider
+              year={selectedYear}
+              setYear={setSelectedYear}
+              playing={playing}
+              setPlaying={setPlaying}
+            />
           </div>
-          <span className="font-mono text-xs text-text-muted">{clock}</span>
-          <span className="tactical-text">ARG-TZ</span>
-        </div>
+          {/* GlobalSearch — hidden on tablet/mobile */}
+          <div className="hidden lg:flex">
+            <GlobalSearchBar
+              provinces={currentKpis}
+              sucursales={sucursales}
+              depositos={depositos}
+              onSelect={handleSearchSelect}
+            />
+          </div>
+        </ExecutiveHeader>
+
+        {/* KPI Ribbon */}
+        <KpiRibbon
+          nationalTotals={nationalTotals}
+          currentKpis={currentKpis}
+          metric={metric}
+          onMetricChange={setMetric}
+        />
       </div>
 
       {/* ── 3-col layout ────────────────────────────────────────────── */}
@@ -1338,7 +1318,7 @@ export default function GISPage() {
         <div
           className={
             panelLeftOpen
-              ? "flex flex-col gap-2 min-h-0 fixed left-0 top-16 bottom-7 z-[650] w-[270px] overflow-y-auto py-2 px-2 panel-drawer panel-drawer-left lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:w-[220px] lg:flex-shrink-0 lg:h-full"
+              ? "flex flex-col gap-2 min-h-0 fixed left-0 top-[120px] bottom-7 z-[650] w-[270px] overflow-y-auto py-2 px-2 panel-drawer panel-drawer-left lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:w-[220px] lg:flex-shrink-0 lg:h-full"
               : "hidden lg:flex lg:flex-col lg:gap-2 lg:w-[220px] lg:flex-shrink-0 lg:h-full lg:min-h-0"
           }
         >
@@ -1847,12 +1827,12 @@ export default function GISPage() {
         <div
           className={
             panelRightOpen
-              ? "flex flex-col gap-2 min-h-0 fixed right-0 top-16 bottom-7 z-[650] w-[280px] overflow-y-auto py-2 px-2 panel-drawer panel-drawer-right lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:w-[215px] lg:flex-shrink-0 lg:h-full"
+              ? "flex flex-col gap-2 min-h-0 fixed right-0 top-[120px] bottom-7 z-[650] w-[280px] overflow-y-auto py-2 px-2 panel-drawer panel-drawer-right lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:w-[215px] lg:flex-shrink-0 lg:h-full"
               : "hidden lg:flex lg:flex-col lg:gap-2 lg:w-[215px] lg:flex-shrink-0 lg:h-full lg:min-h-0"
           }
         >
           <div
-            className="rounded-xl p-1 grid grid-cols-7 gap-0.5 flex-shrink-0"
+            className="rounded-xl p-1 grid grid-cols-5 gap-0.5 flex-shrink-0"
             style={{ background: "rgba(7,18,9,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.10)" }}
           >
             {([
@@ -1861,15 +1841,16 @@ export default function GISPage() {
               { id: "network",   label: "Net"  },
               { id: "routing",   label: "Log"  },
               { id: "arcgis",    label: "Arc"  },
-              { id: "stats",     label: "Stat" },
-              { id: "live",      label: "Live" },
+              { id: "stats",     label: "Sta"  },
+              { id: "live",      label: "Lv"   },
               { id: "spatial",   label: "Sp"   },
               { id: "ai",        label: "AI"   },
               { id: "env",       label: "Env"  },
               { id: "cmp",       label: "Cmp"  },
               { id: "cli",       label: "Cli"  },
               { id: "opt",       label: "Opt"  },
-              { id: "twin",      label: "Twin" },
+              { id: "twin",      label: "Twn"  },
+              { id: "sys",       label: "SYS"  },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -1974,6 +1955,13 @@ export default function GISPage() {
                     simClosedId={simClosedDepot}
                     onSimClose={setSimClosedDepot}
                   />
+                )
+              : rightTab === "sys"       ? (
+                  <div className="flex flex-col">
+                    <SystemStatusPanel />
+                    <div className="gis-sep mx-3" />
+                    <ActivityFeed />
+                  </div>
                 )
               : <RoutingPanel />}
           </div>
