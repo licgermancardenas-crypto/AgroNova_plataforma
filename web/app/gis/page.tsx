@@ -13,7 +13,7 @@ import type { PaletteCommand } from "@/components/gis/CommandPalette";
 import type { BookmarkEntry } from "@/components/gis/BookmarkPanel";
 import { sucursales, depositos, clienteMarkers, gisRoutes } from "@/lib/mock-data";
 import { fmtARS, fmtNumber } from "@/lib/formatters";
-import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget, CustomerGeo, CustomerFilters, TerritoryAnalysis } from "@/types";
+import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget, CustomerGeo, CustomerFilters, TerritoryAnalysis, NetworkAnalysis } from "@/types";
 import { getMetricValue } from "@/lib/geo-data";
 import { isMapboxConfigured } from "@/lib/mapbox-config";
 import {
@@ -72,6 +72,11 @@ const CustomerStatsPanel = dynamic(
 
 const TerritoryPanel = dynamic(
   () => import("@/components/gis/TerritoryPanel"),
+  { ssr: false },
+);
+
+const NetworkPanel = dynamic(
+  () => import("@/components/gis/NetworkPanel"),
   { ssr: false },
 );
 
@@ -170,6 +175,7 @@ const RIGHT_TABS_LIST = [
   { id: "cmp",       label: "Comparar"       },
   { id: "cli",       label: "Clientes"       },
   { id: "opt",       label: "Optimizar"      },
+  { id: "twin",      label: "Digital Twin"   },
 ] as const;
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
@@ -856,7 +862,7 @@ function RightPanel({
 export default function GISPage() {
   const [metric,        setMetric]        = useState<GisMetric>("revenue");
   const [selected,      setSelected]      = useState<ProvinceKPI | null>(null);
-  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt">("ops");
+  const [rightTab,      setRightTab]      = useState<"ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt" | "twin">("ops");
   // GIS-25 Customer Intelligence
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGeo | null>(null);
   const [customerFilters,  setCustomerFilters]  = useState<CustomerFilters>(DEFAULT_CUSTOMER_FILTERS);
@@ -868,6 +874,11 @@ export default function GISPage() {
   const [showTerritoryConflicts, setShowTerritoryConflicts] = useState(true);
   const [showBranchRings,  setShowBranchRings]  = useState(false);
   const [showConflictLines,setShowConflictLines] = useState(false);
+  // GIS-27 Network Intelligence Digital Twin
+  const [networkData,       setNetworkData]       = useState<NetworkAnalysis | null>(null);
+  const [showNetworkFlows,  setShowNetworkFlows]  = useState(false);
+  const [showNetworkBottlenecks, setShowNetworkBottlenecks] = useState(false);
+  const [simClosedDepot,    setSimClosedDepot]    = useState<number | null>(null);
   const [compareA,      setCompareA]      = useState<ProvinceKPI | null>(null);
   const [compareB,      setCompareB]      = useState<ProvinceKPI | null>(null);
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
@@ -941,6 +952,14 @@ export default function GISPage() {
     fetch("/data/gis_outputs/territory_analysis.json")
       .then(r => r.json())
       .then((d: TerritoryAnalysis) => setTerritoryData(d))
+      .catch(() => {});
+  }, []);
+
+  // GIS-27 — load network_analysis.json
+  useEffect(() => {
+    fetch("/data/gis_outputs/network_analysis.json")
+      .then(r => r.json())
+      .then((d: NetworkAnalysis) => setNetworkData(d))
       .catch(() => {});
   }, []);
 
@@ -1238,7 +1257,7 @@ export default function GISPage() {
               }}
             >
               <MapPin size={10} className={mapEngine === "earth" ? "text-sky-400" : "text-primary"} />
-              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v9.0</span>
+              <span className="tactical-text tracking-wider">ARGENTINA · GIS HYBRID INTELLIGENCE v10.0</span>
               <span className="tactical-text opacity-50">·</span>
               <span className="font-mono font-bold" style={{ color: "#A3E635", fontSize: 11 }}>{selectedYear}</span>
               {selectedYear < YEAR_MAX && <span className="tactical-text" style={{ color: "#E8A020" }}>HISTÓRICO</span>}
@@ -1544,6 +1563,10 @@ export default function GISPage() {
                 showBranchRings={showBranchRings}
                 showConflictLines={showConflictLines}
                 simClosedBranch={simClosedBranch}
+                showNetworkFlows={showNetworkFlows}
+                showNetworkBottlenecks={showNetworkBottlenecks}
+                networkData={networkData}
+                simClosedDepot={simClosedDepot}
               />
             ) : (
               <MapboxTerrainView
@@ -1583,6 +1606,8 @@ export default function GISPage() {
               { id: "env",      label: "Env" },
               { id: "cmp",      label: "Cmp" },
               { id: "cli",      label: "Cli" },
+              { id: "opt",      label: "Opt" },
+              { id: "twin",     label: "Twin" },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -1682,6 +1707,16 @@ export default function GISPage() {
                     onSimClose={setSimClosedBranch}
                   />
                 )
+              : rightTab === "twin"      ? (
+                  <NetworkPanel
+                    showFlows={showNetworkFlows}
+                    showBottlenecks={showNetworkBottlenecks}
+                    onToggleFlows={() => setShowNetworkFlows(p => !p)}
+                    onToggleBottlenecks={() => setShowNetworkBottlenecks(p => !p)}
+                    simClosedId={simClosedDepot}
+                    onSimClose={setSimClosedDepot}
+                  />
+                )
               : <RoutingPanel />}
           </div>
         </div>
@@ -1727,7 +1762,7 @@ export default function GISPage() {
             { v: `CAPAS · ${activeLayers}`,                                     c: "#3E5A3E" },
             { v: selectedYear < YEAR_MAX ? `${selectedYear} ★ HIST` : String(selectedYear), c: selectedYear < YEAR_MAX ? "#E8A020" : "#3E5A3E" },
             { v: mapEngine === "earth" ? "◉ EARTH MODE" : mapEngine === "mapbox" ? "MAPBOX TERRAIN" : "LEAFLET OSM", c: mapEngine === "earth" ? "#38BDF8" : "#3E5A3E" },
-            { v: "GIS v10.0 · GIS-25",                                           c: "#4ADE80" },
+            { v: "GIS v10.0 · GIS-27",                                           c: "#4ADE80" },
           ] as const).map(({ v, c }, i) => (
             <div key={i} className="flex items-center flex-shrink-0">
               {i > 0 && <span className="inline-block w-px h-3 bg-border mx-2 flex-shrink-0" />}

@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline } from "react-leaflet";
 import L from "leaflet";
-import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters, TerritoryAnalysis } from "@/types";
+import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters, TerritoryAnalysis, NetworkAnalysis } from "@/types";
 import { fmtARS } from "@/lib/formatters";
 import ChoroplethLayer   from "./ChoroplethLayer";
 import ClientClusterLayer from "./ClientClusterLayer";
@@ -23,6 +23,7 @@ import FlowAnimationLayer    from "@/components/gis/FlowAnimationLayer";
 import VehicleLayer          from "@/components/gis/VehicleLayer";
 import CustomerLayer                from "@/components/gis/layers/CustomerLayer";
 import TerritoryOptimizationLayer  from "@/components/gis/layers/TerritoryOptimizationLayer";
+import NetworkFlowLayer            from "@/components/gis/layers/NetworkFlowLayer";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -163,6 +164,11 @@ interface Props {
   showBranchRings?:     boolean;
   showConflictLines?:   boolean;
   simClosedBranch?:     number | null;
+  // GIS-27 Network Intelligence
+  showNetworkFlows?:    boolean;
+  showNetworkBottlenecks?: boolean;
+  networkData?:         NetworkAnalysis | null;
+  simClosedDepot?:      number | null;
   // Callbacks
   onProvinceClick:    (kpi: ProvinceKPI) => void;
 }
@@ -182,6 +188,8 @@ export default function LeafletMap({
   showTerritoryOpt = false, territoryData = null,
   showTerritoryConflicts = true, showBranchRings = false, showConflictLines = false,
   simClosedBranch = null,
+  showNetworkFlows = false, showNetworkBottlenecks = false,
+  networkData = null, simClosedDepot = null,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -345,6 +353,15 @@ export default function LeafletMap({
         showBranchRings={showBranchRings}
         showConflictLines={showConflictLines}
         simulatedClosed={simClosedBranch}
+      />
+
+      {/* GIS-27 Network Intelligence — animated flows + bottleneck halos */}
+      <NetworkFlowLayer
+        visible={showNetworkFlows || showNetworkBottlenecks}
+        data={networkData}
+        showFlows={showNetworkFlows}
+        showBottlenecks={showNetworkBottlenecks}
+        simClosedId={simClosedDepot}
       />
 
       {/* Legend */}

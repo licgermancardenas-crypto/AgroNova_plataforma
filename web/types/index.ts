@@ -743,6 +743,84 @@ export interface ExpansionCandidate {
   roi_est_m_ars:    number;
 }
 
+// ── GIS-27 Network Intelligence ─────────────────────────────────────────────
+
+export type DepotStatus = "NORMAL" | "ALTO_USO" | "CRÍTICO";
+
+export interface NetworkDepot {
+  deposito_id:             number;
+  nombre:                  string;
+  sucursal_id:             number;
+  sucursal_nombre:         string;
+  lat:                     number;
+  lon:                     number;
+  sucursal_lat:            number;
+  sucursal_lon:            number;
+  dist_sucursal_km:        number;
+  capacidad_ton:           number;
+  tipo:                    string;
+  n_envios:                number;
+  peso_total_kg:           number;
+  costo_flete_total:       number;
+  dias_demora_prom:        number;
+  dias_transito_base_prom: number;
+  otif_pct:                number;
+  pct_demorado:            number;
+  pct_devuelto:            number;
+  pct_entregado:           number;
+  pct_transito:            number;
+  stock_actual:            number;
+  stock_maximo:            number;
+  valor_stock_ars:         number;
+  utilizacion_pct:         number;
+  load_status:             DepotStatus;
+  load_color:              string;
+  capacidad_libre_ton:     number;
+}
+
+export interface NetworkFlow {
+  deposito_id:      number;
+  deposito_nombre:  string;
+  deposito_lat:     number;
+  deposito_lon:     number;
+  sucursal_id:      number;
+  region_id:        number;
+  region_nombre:    string;
+  region_provincia: string;
+  region_lat:       number;
+  region_lon:       number;
+  n_envios:         number;
+  peso_total_kg:    number;
+  costo_flete:      number;
+  dias_demora_prom: number;
+  otif_pct:         number;
+  pct_demorado:     number;
+  flow_color:       string;
+}
+
+export interface NetworkStatus {
+  total_envios:          number;
+  peso_total_kg:         number;
+  costo_flete_total:     number;
+  otif_global:           number;
+  utilizacion_promedio:  number;
+  capacidad_total_ton:   number;
+  stock_actual_ton:      number;
+  capacidad_libre_ton:   number;
+  valor_stock_ars:       number;
+  dias_demora_prom:      number;
+  n_depositos:           number;
+  n_depositos_criticos:  number;
+  n_rutas_criticas:      number;
+}
+
+export interface NetworkAnalysis {
+  generated_at: string;
+  status:  NetworkStatus;
+  depots:  NetworkDepot[];
+  flows:   NetworkFlow[];
+}
+
 // ── Alert ────────────────────────────────────────────────────────────────────
 
 export interface AlertItem {

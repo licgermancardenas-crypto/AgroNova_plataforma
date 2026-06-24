@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import get_settings
-from backend.api.routers import health, gis, kpis, logistics, ml, spatial, ai_spatial, environment, customer_spatial, territory
+from backend.api.routers import health, gis, kpis, logistics, ml, spatial, ai_spatial, environment, customer_spatial, territory, network
 
 settings = get_settings()
 
@@ -32,6 +32,7 @@ app.include_router(ai_spatial.router)
 app.include_router(environment.router)
 app.include_router(customer_spatial.router)
 app.include_router(territory.router)
+app.include_router(network.router)
 
 
 @app.get("/")
