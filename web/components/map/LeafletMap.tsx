@@ -268,12 +268,18 @@ export default function LeafletMap({
           }}
         >
           <Popup>
-            <div style={{ fontSize: 11 }}>
-              <div style={{ fontWeight: 700, marginBottom: 3, color: "#DCE8DC" }}>{r.label}</div>
-              {r.toneladas_mes && (
-                <div style={{ color: "#7A9C7A" }}>Carga: <span style={{ color: "#22C55E", fontFamily: "monospace" }}>{r.toneladas_mes.toLocaleString()} ton/mes</span></div>
-              )}
-              <div style={{ color: "#7A9C7A" }}>Estado: <span style={{ color: r.activo ? "#22C55E" : "#E8A020" }}>{r.activo ? "Activa" : "Inactiva"}</span></div>
+            <div style={{ fontSize: 11, minWidth: 165, fontFamily: "system-ui, sans-serif" }}>
+              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#A3E635", borderBottom: "1px solid rgba(163,230,53,0.20)", paddingBottom: 4 }}>
+                ◈ Ruta · {r.label}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 10px" }}>
+                {r.toneladas_mes && (<>
+                  <span style={{ color: "#7A9C7A" }}>Carga</span>
+                  <span style={{ color: "#DCE8DC", fontFamily: "monospace", textAlign: "right" }}>{r.toneladas_mes.toLocaleString()} t/mes</span>
+                </>)}
+                <span style={{ color: "#7A9C7A" }}>Estado</span>
+                <span style={{ color: r.activo ? "#22C55E" : "#E8A020", fontFamily: "monospace", textAlign: "right" }}>{r.activo ? "Activa" : "Inactiva"}</span>
+              </div>
             </div>
           </Popup>
         </Polyline>
@@ -294,11 +300,11 @@ export default function LeafletMap({
       {showSucursales && sucursales.map(s => (
         <Marker key={`s${s.id}`} position={[s.lat, s.lng]} icon={sucursalIcon}>
           <Popup>
-            <div style={{ fontSize: 11, minWidth: 155 }}>
-              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#22C55E", borderBottom: "1px solid #1A3D20", paddingBottom: 4 }}>
+            <div style={{ fontSize: 11, minWidth: 165, fontFamily: "system-ui, sans-serif" }}>
+              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#22C55E", borderBottom: "1px solid rgba(34,197,94,0.22)", paddingBottom: 4 }}>
                 ◉ Sucursal · {s.nombre}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 8px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 10px" }}>
                 <span style={{ color: "#7A9C7A" }}>Revenue</span>
                 <span style={{ color: "#22C55E", fontFamily: "monospace", textAlign: "right" }}>{fmtARS(s.revenue_ars, true)}</span>
                 <span style={{ color: "#7A9C7A" }}>Clientes</span>
@@ -317,15 +323,17 @@ export default function LeafletMap({
       {showDepositos && depositos.map(d => (
         <Marker key={`d${d.id}`} position={[d.lat, d.lng]} icon={makeDepositoIcon(d.ocupacion_pct)}>
           <Popup>
-            <div style={{ fontSize: 11, minWidth: 150 }}>
-              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#0EA5E9", borderBottom: "1px solid #0EA5E940", paddingBottom: 4 }}>
+            <div style={{ fontSize: 11, minWidth: 165, fontFamily: "system-ui, sans-serif" }}>
+              <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 6, color: "#0EA5E9", borderBottom: "1px solid rgba(14,165,233,0.22)", paddingBottom: 4 }}>
                 ▣ Depósito · {d.nombre}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 8px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 10px" }}>
                 <span style={{ color: "#7A9C7A" }}>Capacidad</span>
                 <span style={{ fontFamily: "monospace", color: "#DCE8DC", textAlign: "right" }}>{d.capacidad_ton.toLocaleString()} ton</span>
                 <span style={{ color: "#7A9C7A" }}>Ocupación</span>
                 <span style={{ fontFamily: "monospace", color: d.ocupacion_pct > 85 ? "#E03E3E" : d.ocupacion_pct > 70 ? "#E8A020" : "#22C55E", textAlign: "right" }}>{d.ocupacion_pct}%</span>
+                <span style={{ color: "#7A9C7A" }}>Capacidad lib.</span>
+                <span style={{ fontFamily: "monospace", color: "#A3E635", textAlign: "right" }}>{Math.round(d.capacidad_ton * (1 - d.ocupacion_pct / 100)).toLocaleString()} ton</span>
               </div>
             </div>
           </Popup>

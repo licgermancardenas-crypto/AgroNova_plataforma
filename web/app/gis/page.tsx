@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
   AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
@@ -238,7 +238,7 @@ const GIS_OUTPUT_LAYERS = [
 
 // ── Stat chip ─────────────────────────────────────────────────────────────────
 
-function TacStat({ label, value, accent = false }: {
+const TacStat = memo(function TacStat({ label, value, accent = false }: {
   label: string; value: string | number; accent?: boolean;
 }) {
   return (
@@ -249,7 +249,7 @@ function TacStat({ label, value, accent = false }: {
       </span>
     </div>
   );
-}
+});
 
 // ── Layer toggle button ───────────────────────────────────────────────────────
 
@@ -343,32 +343,7 @@ function LeftPanel({
     <div className="flex flex-col gap-2 h-full overflow-y-auto pr-0.5">
 
       {/* ── Back to main menu ─────────────────────────────────────────── */}
-      <Link
-        href="/"
-        className="flex items-center justify-center gap-2 w-full py-2 rounded-xl font-mono font-bold transition-all border"
-        style={{
-          background:    "rgba(34,197,94,0.08)",
-          borderColor:   "rgba(34,197,94,0.40)",
-          color:         "#86EFAC",
-          fontSize:      13,
-          letterSpacing: "0.08em",
-          boxShadow:     "0 0 12px rgba(34,197,94,0.10)",
-        }}
-        onMouseEnter={e => {
-          const el = e.currentTarget as HTMLElement;
-          el.style.background = "rgba(34,197,94,0.18)";
-          el.style.borderColor = "rgba(34,197,94,0.65)";
-          el.style.color = "#ffffff";
-          el.style.boxShadow = "0 0 18px rgba(34,197,94,0.30)";
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget as HTMLElement;
-          el.style.background = "rgba(34,197,94,0.08)";
-          el.style.borderColor = "rgba(34,197,94,0.40)";
-          el.style.color = "#86EFAC";
-          el.style.boxShadow = "0 0 12px rgba(34,197,94,0.10)";
-        }}
-      >
+      <Link href="/" className="back-btn">
         <ChevronLeft size={14} />
         <span>VOLVER AL MENÚ</span>
       </Link>
@@ -478,8 +453,11 @@ function LeftPanel({
         </div>
       )}
 
+      {/* ── separator: engine → analysis ── */}
+      <div className="gis-sep" />
+
       {/* Metric selector */}
-      <div className="glass rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
+      <div className="glass gis-card rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
           <BarChart2 size={10} /><span>Métrica KPI</span>
         </p>
@@ -500,7 +478,7 @@ function LeftPanel({
       </div>
 
       {/* Analysis layers */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Layers size={10} /><span>Análisis</span>
         </p>
@@ -513,7 +491,7 @@ function LeftPanel({
       </div>
 
       {/* GIS-07 spatial layers */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Zap size={10} /><span>Inteligencia Espacial</span>
         </p>
@@ -526,7 +504,7 @@ function LeftPanel({
       </div>
 
       {/* Territory layers */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Globe size={10} /><span>Territorio Real</span>
         </p>
@@ -539,7 +517,7 @@ function LeftPanel({
       </div>
 
       {/* Marker layers */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <MapPin size={10} /><span>Marcadores</span>
         </p>
@@ -552,7 +530,7 @@ function LeftPanel({
       </div>
 
       {/* GIS Output layers */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Zap size={10} /><span>GIS Outputs</span>
         </p>
@@ -564,8 +542,11 @@ function LeftPanel({
         </div>
       </div>
 
+      {/* ── separator: analysis → 3D/animation ── */}
+      <div className="gis-sep" />
+
       {/* WebGL / 3D Intelligence (GIS-13) */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Box size={10} /><span>WebGL 3D</span>
         </p>
@@ -650,8 +631,11 @@ function LeftPanel({
         </div>
       </div>}
 
+      {/* ── separator: basemap → intelligence ── */}
+      <div className="gis-sep" />
+
       {/* Top 5 by metric */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
           <TrendingUp size={10} /><span>Top 5 Provincias</span>
         </p>
@@ -704,7 +688,7 @@ function LeftPanel({
       )}
 
       {/* Sucursales quick list */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Crosshair size={10} /><span>Sucursales</span>
         </p>
@@ -741,7 +725,7 @@ function RightPanel({
     <div className="flex flex-col gap-2 h-full overflow-y-auto pr-0.5">
 
       {/* National KPIs */}
-      <div className="glass rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
+      <div className="glass gis-card rounded-xl p-3" style={{ boxShadow: "0 0 16px rgba(34,197,94,0.04)" }}>
         <p className="tactical-text mb-2.5 flex items-center gap-1.5">
           <Activity size={10} /><span>Nacional</span>
         </p>
@@ -763,7 +747,7 @@ function RightPanel({
       </div>
 
       {/* Depósitos */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Radio size={10} /><span>Depósitos</span>
         </p>
@@ -789,7 +773,7 @@ function RightPanel({
       </div>
 
       {/* Puertos summary */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <Anchor size={10} /><span>Nodos Logísticos</span>
         </p>
@@ -814,7 +798,7 @@ function RightPanel({
       </div>
 
       {/* Low coverage */}
-      <div className="glass rounded-xl p-3">
+      <div className="glass gis-card rounded-xl p-3">
         <p className="tactical-text mb-2 flex items-center gap-1.5">
           <ChevronRight size={10} /><span>Baja Cobertura</span>
         </p>
@@ -1188,7 +1172,7 @@ export default function GISPage() {
       <div className="flex gap-2 flex-1 min-h-0 px-2 pt-1.5 pb-1.5">
 
         {/* Left panel */}
-        <div className="w-[215px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+        <div className="w-[220px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
           {/* Province detail panel — replaces list when province selected */}
           {selected ? (
             <div className="flex-1 min-h-0 overflow-y-auto">
@@ -1275,7 +1259,7 @@ export default function GISPage() {
                 <span className="tactical-text" style={{ color: "#E8A020" }}>NO-TOKEN</span>
               )}
               {(showFlows || showVehicles) && <span className="tactical-text" style={{ color: "#22C55E" }}>FLOWS</span>}
-              <span className="tactical-text" style={{ color: "#4ADE80" }}>GIS-25</span>
+              <span className="tactical-text" style={{ color: "#4ADE80" }}>GIS-27</span>
               {(compareA || compareB) && (
                 <span className="font-mono font-bold" style={{ color: "#0EA5E9", fontSize: 9 }}>⬡ CMP</span>
               )}
@@ -1588,41 +1572,37 @@ export default function GISPage() {
         </div>
 
         {/* Right panel */}
-        <div className="w-[195px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+        <div className="w-[215px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
           <div
-            className="rounded-xl p-1 flex gap-1 flex-shrink-0"
+            className="rounded-xl p-1 grid grid-cols-7 gap-0.5 flex-shrink-0"
             style={{ background: "rgba(7,18,9,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.10)" }}
           >
             {([
-              { id: "ops",      label: "Ops" },
-              { id: "analytics",label: "GIS" },
-              { id: "network",  label: "Net" },
-              { id: "routing",  label: "Log" },
-              { id: "arcgis",   label: "ArcGIS" },
-              { id: "stats",    label: "Stats" },
-              { id: "live",     label: "Live" },
-              { id: "spatial",  label: "Spatial" },
-              { id: "ai",       label: "AI" },
-              { id: "env",      label: "Env" },
-              { id: "cmp",      label: "Cmp" },
-              { id: "cli",      label: "Cli" },
-              { id: "opt",      label: "Opt" },
-              { id: "twin",     label: "Twin" },
+              { id: "ops",       label: "Ops"  },
+              { id: "analytics", label: "GIS"  },
+              { id: "network",   label: "Net"  },
+              { id: "routing",   label: "Log"  },
+              { id: "arcgis",    label: "Arc"  },
+              { id: "stats",     label: "Stat" },
+              { id: "live",      label: "Live" },
+              { id: "spatial",   label: "Sp"   },
+              { id: "ai",        label: "AI"   },
+              { id: "env",       label: "Env"  },
+              { id: "cmp",       label: "Cmp"  },
+              { id: "cli",       label: "Cli"  },
+              { id: "opt",       label: "Opt"  },
+              { id: "twin",      label: "Twin" },
             ] as const).map(t => (
               <button
                 key={t.id}
                 onClick={() => setRightTab(t.id)}
-                className={`flex-1 py-1 rounded text-2xs font-mono transition-all border ${
-                  rightTab === t.id
-                    ? "bg-primary-dim text-primary border-primary/30"
-                    : "text-text-muted border-transparent hover:text-text-secondary"
-                }`}
+                className={`gis-tab ${rightTab === t.id ? "gis-tab-active" : ""}`}
               >
                 {t.label}
               </button>
             ))}
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto pr-0.5">
+          <div key={rightTab} className="panel-fade flex-1 min-h-0 overflow-y-auto pr-0.5">
             {rightTab === "ops"       ? <RightPanel selected={selected} layers={layers} nationalTotals={nationalTotals} lowCoverage={lowCoverage} />
               : rightTab === "analytics" ? <SpatialAnalyticsPanel />
               : rightTab === "network"   ? <NetworkIntelligencePanel />
