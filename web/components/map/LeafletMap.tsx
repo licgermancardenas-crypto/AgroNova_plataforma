@@ -1,6 +1,7 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters, TerritoryAnalysis, NetworkAnalysis } from "@/types";
 import { fmtARS } from "@/lib/formatters";
@@ -24,6 +25,24 @@ import VehicleLayer          from "@/components/gis/VehicleLayer";
 import CustomerLayer                from "@/components/gis/layers/CustomerLayer";
 import TerritoryOptimizationLayer  from "@/components/gis/layers/TerritoryOptimizationLayer";
 import NetworkFlowLayer            from "@/components/gis/layers/NetworkFlowLayer";
+
+// ── Story Mode FlyTo controller ───────────────────────────────────────────────
+
+function FlyToController({ target }: {
+  target: { center: [number, number]; zoom: number; scene: number } | null | undefined;
+}) {
+  const map = useMap();
+  const prevScene = useRef(-1);
+
+  useEffect(() => {
+    if (!target || target.scene === prevScene.current) return;
+    prevScene.current = target.scene;
+    // GeoJSON convention: center = [lng, lat]; Leaflet: [lat, lng]
+    map.flyTo([target.center[1], target.center[0]], target.zoom, { duration: 1.8 });
+  }, [target, map]);
+
+  return null;
+}
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -169,6 +188,8 @@ interface Props {
   showNetworkBottlenecks?: boolean;
   networkData?:         NetworkAnalysis | null;
   simClosedDepot?:      number | null;
+  // UX-02 Story Mode
+  storyFlyTo?:          { center: [number, number]; zoom: number; scene: number } | null;
   // Callbacks
   onProvinceClick:    (kpi: ProvinceKPI) => void;
 }
@@ -190,6 +211,7 @@ export default function LeafletMap({
   simClosedBranch = null,
   showNetworkFlows = false, showNetworkBottlenecks = false,
   networkData = null, simClosedDepot = null,
+  storyFlyTo = null,
 }: Props) {
   const bm = BASEMAPS[basemap];
 
@@ -202,6 +224,9 @@ export default function LeafletMap({
     >
       <ZoomControl position="bottomright" />
       <TileLayer key={basemap} url={bm.url} attribution={bm.attribution} />
+
+      {/* UX-02 Story Mode — smooth flyTo on scene change */}
+      <FlyToController target={storyFlyTo} />
 
       {/* Scale bar + mouse coordinates */}
       <ScaleCoordsControl showCoords={showCoords} />

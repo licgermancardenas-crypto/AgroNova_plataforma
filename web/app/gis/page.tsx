@@ -21,6 +21,7 @@ import {
   YEAR_MIN, YEAR_MAX,
 } from "@/lib/timeseries";
 import type { NationalTotals } from "@/lib/timeseries";
+import type { StoryScene }      from "@/components/gis/StoryPanel";
 import SpatialAnalyticsPanel   from "@/components/gis/SpatialAnalyticsPanel";
 import NetworkIntelligencePanel from "@/components/gis/NetworkIntelligencePanel";
 import RoutingPanel             from "@/components/gis/RoutingPanel";
@@ -80,6 +81,11 @@ const NetworkPanel = dynamic(
   { ssr: false },
 );
 
+const StoryPanel = dynamic(
+  () => import("@/components/gis/StoryPanel"),
+  { ssr: false },
+);
+
 const DEFAULT_CUSTOMER_FILTERS: CustomerFilters = {
   segmentos: [], churnLevels: [], tiers: [], provincias: [],
   revenueMin: 0, revenueMax: 999_999_999,
@@ -132,6 +138,99 @@ const BookmarkPanel = dynamic(
   () => import("@/components/gis/BookmarkPanel"),
   { ssr: false },
 );
+
+// ── Story Mode scenes ─────────────────────────────────────────────────────────
+
+type RightTabId = "ops" | "analytics" | "network" | "routing" | "arcgis" | "stats" | "live" | "spatial" | "ai" | "env" | "cmp" | "cli" | "opt" | "twin";
+
+interface StorySceneDef extends StoryScene {
+  flyTo: { center: [number, number]; zoom: number };
+  layerPatch: Partial<{
+    choropleth: boolean; heatmap: boolean; sucursales: boolean; depositos: boolean;
+    clientes: boolean; candidatos: boolean; hotspots: boolean; puertos: boolean;
+  }>;
+  metric: GisMetric;
+  rightTab: RightTabId;
+  showFlows?: boolean;
+  showNetworkFlows?: boolean;
+  showNetworkBottlenecks?: boolean;
+  showTerritoryConflicts?: boolean;
+  showBranchRings?: boolean;
+  showConflictLines?: boolean;
+}
+
+const STORY_SCENES: StorySceneDef[] = [
+  {
+    id: "overview",
+    title: "Argentina Overview",
+    description: "Cobertura nacional en 24 provincias. Red de 5 sucursales y 3 depósitos de distribución logística.",
+    insight: "Revenue total ARS 4.7B — Buenos Aires y Córdoba concentran el 38% del volumen nacional.",
+    flyTo: { center: [-64, -38], zoom: 4.2 },
+    layerPatch: { choropleth: true, sucursales: true, depositos: true, clientes: false, heatmap: false, candidatos: false, hotspots: false },
+    metric: "revenue",
+    rightTab: "ops",
+    showFlows: false, showNetworkFlows: false, showNetworkBottlenecks: false,
+    showTerritoryConflicts: false, showBranchRings: false, showConflictLines: false,
+  },
+  {
+    id: "customer",
+    title: "Customer Intelligence",
+    description: "3.387 clientes reales distribuidos en 24 provincias. Segmentación por tier, churn y revenue.",
+    insight: "22% de los clientes en riesgo de churn. Pampa Húmeda concentra el 64% del revenue total.",
+    flyTo: { center: [-61, -34], zoom: 5 },
+    layerPatch: { choropleth: true, clientes: true, heatmap: true, sucursales: true, depositos: false, candidatos: false },
+    metric: "clientes",
+    rightTab: "cli",
+  },
+  {
+    id: "territory",
+    title: "Territory Optimization",
+    description: "5 sucursales gestionan 3.387 clientes. Análisis de saturación, conflictos y simulaciones de redistribución.",
+    insight: "2.571 clientes en zona de conflicto entre sucursales. Redistribución potencial reduce churn en 15%.",
+    flyTo: { center: [-60, -33], zoom: 5 },
+    layerPatch: { choropleth: true, sucursales: true, depositos: true, clientes: false, heatmap: false, candidatos: false },
+    metric: "revenue",
+    rightTab: "opt",
+    showTerritoryConflicts: true, showBranchRings: true, showConflictLines: true,
+    showFlows: false, showNetworkFlows: false, showNetworkBottlenecks: false,
+  },
+  {
+    id: "logistics",
+    title: "Logistics Network",
+    description: "Red de distribución con 200.000 envíos anuales. 5 depósitos, 12 rutas activas, OTIF del 87.3%.",
+    insight: "3 cuellos de botella críticos detectados. Depósito Rosario al 94% de capacidad — riesgo de saturación.",
+    flyTo: { center: [-61, -33], zoom: 5 },
+    layerPatch: { choropleth: true, sucursales: true, depositos: true, puertos: true, clientes: false, candidatos: false },
+    metric: "otif",
+    rightTab: "twin",
+    showFlows: true, showNetworkFlows: true, showNetworkBottlenecks: true,
+    showTerritoryConflicts: false, showBranchRings: false, showConflictLines: false,
+  },
+  {
+    id: "environment",
+    title: "Environmental Intelligence",
+    description: "Índices ambientales por provincia: sequía, heladas, inundaciones y riesgo climático agregado.",
+    insight: "Patagonia: riesgo climático extremo. NOA: sequía severa impacta al 34% de la superficie productiva.",
+    flyTo: { center: [-64, -36], zoom: 4 },
+    layerPatch: { choropleth: true, sucursales: false, depositos: false, clientes: false, candidatos: false, heatmap: false },
+    metric: "revenue",
+    rightTab: "env",
+    showFlows: false, showNetworkFlows: false, showNetworkBottlenecks: false,
+    showTerritoryConflicts: false, showBranchRings: false, showConflictLines: false,
+  },
+  {
+    id: "expansion",
+    title: "Expansion Opportunities",
+    description: "Análisis de zonas candidatas a nueva sucursal con ROI proyectado y payback estimado.",
+    insight: "3 zonas de alta oportunidad en NOA y NEA. ROI estimado 28% en 24 meses — sin canibalización.",
+    flyTo: { center: [-65, -25], zoom: 5 },
+    layerPatch: { choropleth: true, candidatos: true, hotspots: true, sucursales: true, depositos: true, clientes: false },
+    metric: "churn",
+    rightTab: "ops",
+    showFlows: false, showNetworkFlows: false, showNetworkBottlenecks: false,
+    showTerritoryConflicts: false, showBranchRings: false, showConflictLines: false,
+  },
+];
 
 // ── Camera presets ────────────────────────────────────────────────────────────
 
@@ -863,6 +962,12 @@ export default function GISPage() {
   const [showNetworkFlows,  setShowNetworkFlows]  = useState(false);
   const [showNetworkBottlenecks, setShowNetworkBottlenecks] = useState(false);
   const [simClosedDepot,    setSimClosedDepot]    = useState<number | null>(null);
+  // UX-02 Story Mode
+  const [storyMode,     setStoryMode]     = useState(false);
+  const [storyScene,    setStoryScene]    = useState(0);
+  const [storyAutoPlay, setStoryAutoPlay] = useState(false);
+  const [storyFlyTo,    setStoryFlyTo]    = useState<{ center: [number, number]; zoom: number; scene: number } | null>(null);
+
   const [compareA,      setCompareA]      = useState<ProvinceKPI | null>(null);
   const [compareB,      setCompareB]      = useState<ProvinceKPI | null>(null);
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
@@ -945,6 +1050,50 @@ export default function GISPage() {
       .then(r => r.json())
       .then((d: NetworkAnalysis) => setNetworkData(d))
       .catch(() => {});
+  }, []);
+
+  // UX-02 — scene activation
+  useEffect(() => {
+    if (!storyMode) return;
+    const s = STORY_SCENES[storyScene];
+    setRightTab(s.rightTab);
+    setMetric(s.metric);
+    setLayers(prev => ({ ...prev, ...s.layerPatch }));
+    setStoryFlyTo({ ...s.flyTo, scene: storyScene });
+    if (s.showFlows              !== undefined) setShowFlows(s.showFlows);
+    if (s.showNetworkFlows       !== undefined) setShowNetworkFlows(s.showNetworkFlows);
+    if (s.showNetworkBottlenecks !== undefined) setShowNetworkBottlenecks(s.showNetworkBottlenecks);
+    if (s.showTerritoryConflicts !== undefined) setShowTerritoryConflicts(s.showTerritoryConflicts);
+    if (s.showBranchRings        !== undefined) setShowBranchRings(s.showBranchRings);
+    if (s.showConflictLines      !== undefined) setShowConflictLines(s.showConflictLines);
+  }, [storyMode, storyScene]);
+
+  // UX-02 — auto-play timer
+  useEffect(() => {
+    if (!storyAutoPlay || !storyMode) return;
+    const timer = setInterval(() => {
+      setStoryScene(prev => (prev + 1) % STORY_SCENES.length);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [storyAutoPlay, storyMode]);
+
+  const enterStoryMode = useCallback(() => {
+    setStoryMode(true);
+    setStoryScene(0);
+    setStoryAutoPlay(false);
+  }, []);
+
+  const exitStoryMode = useCallback(() => {
+    setStoryMode(false);
+    setStoryAutoPlay(false);
+    setStoryFlyTo(null);
+    // Reset transient overlays
+    setShowNetworkFlows(false);
+    setShowNetworkBottlenecks(false);
+    setShowFlows(false);
+    setShowTerritoryConflicts(true);
+    setShowBranchRings(false);
+    setShowConflictLines(false);
   }, []);
 
   const handleCustomerClick = useCallback((c: CustomerGeo | null) => {
@@ -1218,6 +1367,74 @@ export default function GISPage() {
           style={{ border: "1px solid rgba(34,197,94,0.12)", boxShadow: "0 0 32px rgba(34,197,94,0.04), inset 0 0 0 1px rgba(34,197,94,0.05)" }}
         >
           <div className="scan-line pointer-events-none z-10" />
+
+          {/* UX-02 Story Mode button — shown when not in story mode */}
+          {!storyMode && (
+            <button
+              onClick={enterStoryMode}
+              className="absolute bottom-4 left-4 z-[500] flex items-center gap-2 px-3 py-2 rounded-xl font-mono font-bold transition-all"
+              style={{
+                fontSize:     10,
+                letterSpacing:"0.12em",
+                background:   "rgba(34,197,94,0.12)",
+                border:       "1px solid rgba(34,197,94,0.35)",
+                color:        "#86EFAC",
+                backdropFilter: "blur(12px)",
+                boxShadow:    "0 0 16px rgba(34,197,94,0.12)",
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget;
+                el.style.background = "rgba(34,197,94,0.22)";
+                el.style.borderColor = "rgba(34,197,94,0.65)";
+                el.style.color = "#ffffff";
+                el.style.boxShadow = "0 0 24px rgba(34,197,94,0.25)";
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget;
+                el.style.background = "rgba(34,197,94,0.12)";
+                el.style.borderColor = "rgba(34,197,94,0.35)";
+                el.style.color = "#86EFAC";
+                el.style.boxShadow = "0 0 16px rgba(34,197,94,0.12)";
+              }}
+            >
+              <span style={{ fontSize: 12 }}>▶</span>
+              <span>STORY MODE</span>
+            </button>
+          )}
+
+          {/* UX-02 Story Panel overlay */}
+          {storyMode && (
+            <div className="absolute bottom-4 left-4 z-[500] panel-fade">
+              <StoryPanel
+                scene={STORY_SCENES[storyScene]}
+                sceneIndex={storyScene}
+                totalScenes={STORY_SCENES.length}
+                isAutoPlay={storyAutoPlay}
+                onPrev={() => setStoryScene(p => Math.max(0, p - 1))}
+                onNext={() => setStoryScene(p => (p + 1) % STORY_SCENES.length)}
+                onToggleAutoPlay={() => setStoryAutoPlay(p => !p)}
+                onExit={exitStoryMode}
+              />
+            </div>
+          )}
+
+          {/* UX-02 Demo HUD badge */}
+          {storyMode && (
+            <div
+              className="absolute top-3 right-3 z-[500] flex items-center gap-2 px-3 py-1 rounded-full"
+              style={{
+                background:     "rgba(34,197,94,0.12)",
+                backdropFilter: "blur(12px)",
+                border:         "1px solid rgba(34,197,94,0.30)",
+                boxShadow:      "0 0 16px rgba(34,197,94,0.10)",
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-primary blink" style={{ boxShadow: "0 0 6px rgba(34,197,94,0.9)" }} />
+              <span className="tactical-text tracking-widest" style={{ color: "#22C55E" }}>
+                STORY MODE · {storyScene + 1}/{STORY_SCENES.length}
+              </span>
+            </div>
+          )}
 
           {[
             "top-2 left-2 border-t border-l",
@@ -1551,6 +1768,7 @@ export default function GISPage() {
                 showNetworkBottlenecks={showNetworkBottlenecks}
                 networkData={networkData}
                 simClosedDepot={simClosedDepot}
+                storyFlyTo={storyFlyTo}
               />
             ) : (
               <MapboxTerrainView
