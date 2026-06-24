@@ -968,6 +968,10 @@ export default function GISPage() {
   const [storyAutoPlay, setStoryAutoPlay] = useState(false);
   const [storyFlyTo,    setStoryFlyTo]    = useState<{ center: [number, number]; zoom: number; scene: number } | null>(null);
 
+  // UX-03 Responsive panels
+  const [panelLeftOpen,  setPanelLeftOpen]  = useState(false);
+  const [panelRightOpen, setPanelRightOpen] = useState(false);
+
   const [compareA,      setCompareA]      = useState<ProvinceKPI | null>(null);
   const [compareB,      setCompareB]      = useState<ProvinceKPI | null>(null);
   const [geoData,       setGeoData]       = useState<GeoJSON.FeatureCollection | null>(null);
@@ -1261,27 +1265,37 @@ export default function GISPage() {
         className="glass rounded-xl mx-2 mt-1.5 px-2 flex items-center gap-2 flex-shrink-0"
         style={{ boxShadow: "0 0 24px rgba(34,197,94,0.05), inset 0 0 0 1px rgba(34,197,94,0.08)" }}
       >
-        <div className="flex items-center flex-shrink-0">
+        {/* Stats — Revenue always visible; extra stats hidden on mobile */}
+        <div className="flex items-center flex-shrink-0 overflow-x-auto scrollbar-none">
           <TacStat label="Revenue Nac."  value={fmtARS(totalRevenue, true)}  accent />
-          <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
-          <TacStat label="Provincias"    value={nationalTotals.provincias} />
-          <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`}  accent />
-          <TacStat label="Capas ON"      value={activeLayers} />
+          <div className="hidden sm:flex items-center">
+            <TacStat label="Cli. Activos"  value={fmtNumber(activeClients)} />
+            <TacStat label="Provincias"    value={nationalTotals.provincias} />
+          </div>
+          <div className="hidden md:flex items-center">
+            <TacStat label="PAM Share"     value={`${pamShare.toFixed(0)}%`}  accent />
+            <TacStat label="Capas ON"      value={activeLayers} />
+          </div>
         </div>
-        <TimeSlider
-          year={selectedYear}
-          setYear={setSelectedYear}
-          playing={playing}
-          setPlaying={setPlaying}
-        />
+        {/* TimeSlider — hidden on mobile */}
+        <div className="hidden sm:flex flex-1 min-w-0">
+          <TimeSlider
+            year={selectedYear}
+            setYear={setSelectedYear}
+            playing={playing}
+            setPlaying={setPlaying}
+          />
+        </div>
 
-        {/* GIS-24: Global Search */}
-        <GlobalSearchBar
-          provinces={currentKpis}
-          sucursales={sucursales}
-          depositos={depositos}
-          onSelect={handleSearchSelect}
-        />
+        {/* GIS-24: Global Search — hidden on tablet/mobile */}
+        <div className="hidden lg:flex">
+          <GlobalSearchBar
+            provinces={currentKpis}
+            sucursales={sucursales}
+            depositos={depositos}
+            onSelect={handleSearchSelect}
+          />
+        </div>
 
         {/* GIS-24: ⌘K command palette button */}
         <button
@@ -1320,8 +1334,14 @@ export default function GISPage() {
       {/* ── 3-col layout ────────────────────────────────────────────── */}
       <div className="flex gap-2 flex-1 min-h-0 px-2 pt-1.5 pb-1.5">
 
-        {/* Left panel */}
-        <div className="w-[220px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+        {/* Left panel — inline on lg+, overlay drawer on smaller screens */}
+        <div
+          className={
+            panelLeftOpen
+              ? "flex flex-col gap-2 min-h-0 fixed left-0 top-16 bottom-7 z-[650] w-[270px] overflow-y-auto py-2 px-2 panel-drawer panel-drawer-left lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:w-[220px] lg:flex-shrink-0 lg:h-full"
+              : "hidden lg:flex lg:flex-col lg:gap-2 lg:w-[220px] lg:flex-shrink-0 lg:h-full lg:min-h-0"
+          }
+        >
           {/* Province detail panel — replaces list when province selected */}
           {selected ? (
             <div className="flex-1 min-h-0 overflow-y-auto">
@@ -1435,6 +1455,40 @@ export default function GISPage() {
               </span>
             </div>
           )}
+
+          {/* UX-03 Panel FABs — visible only on tablet/mobile */}
+          <div className="lg:hidden absolute top-14 right-3 z-[510] flex flex-col gap-2">
+            <button
+              onClick={() => { setPanelLeftOpen(p => !p); setPanelRightOpen(false); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-mono font-bold transition-all"
+              style={{
+                fontSize: 9, letterSpacing: "0.1em",
+                background:   panelLeftOpen ? "rgba(34,197,94,0.22)" : "rgba(5,12,6,0.90)",
+                border:      `1px solid rgba(34,197,94,${panelLeftOpen ? "0.55" : "0.28"})`,
+                color:        panelLeftOpen ? "#22C55E" : "#7A9C7A",
+                backdropFilter: "blur(14px)",
+                boxShadow:    panelLeftOpen ? "0 0 16px rgba(34,197,94,0.18)" : "none",
+                minHeight: 40,
+              }}
+            >
+              ☰ LAYERS
+            </button>
+            <button
+              onClick={() => { setPanelRightOpen(p => !p); setPanelLeftOpen(false); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-mono font-bold transition-all"
+              style={{
+                fontSize: 9, letterSpacing: "0.1em",
+                background:   panelRightOpen ? "rgba(14,165,233,0.22)" : "rgba(5,12,6,0.90)",
+                border:      `1px solid rgba(14,165,233,${panelRightOpen ? "0.55" : "0.28"})`,
+                color:        panelRightOpen ? "#0EA5E9" : "#7A9C7A",
+                backdropFilter: "blur(14px)",
+                boxShadow:    panelRightOpen ? "0 0 16px rgba(14,165,233,0.18)" : "none",
+                minHeight: 40,
+              }}
+            >
+              ≡ DATA
+            </button>
+          </div>
 
           {[
             "top-2 left-2 border-t border-l",
@@ -1789,8 +1843,14 @@ export default function GISPage() {
           </div>
         </div>
 
-        {/* Right panel */}
-        <div className="w-[215px] flex-shrink-0 flex flex-col gap-2 h-full min-h-0">
+        {/* Right panel — inline on lg+, overlay drawer on smaller screens */}
+        <div
+          className={
+            panelRightOpen
+              ? "flex flex-col gap-2 min-h-0 fixed right-0 top-16 bottom-7 z-[650] w-[280px] overflow-y-auto py-2 px-2 panel-drawer panel-drawer-right lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:w-[215px] lg:flex-shrink-0 lg:h-full"
+              : "hidden lg:flex lg:flex-col lg:gap-2 lg:w-[215px] lg:flex-shrink-0 lg:h-full lg:min-h-0"
+          }
+        >
           <div
             className="rounded-xl p-1 grid grid-cols-7 gap-0.5 flex-shrink-0"
             style={{ background: "rgba(7,18,9,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(34,197,94,0.10)" }}
@@ -1919,6 +1979,15 @@ export default function GISPage() {
           </div>
         </div>
       </div>
+
+      {/* UX-03 Backdrop — closes mobile panels on tap-outside */}
+      {(panelLeftOpen || panelRightOpen) && (
+        <div
+          className="lg:hidden fixed inset-0 z-[640] bg-black/60"
+          style={{ backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
+          onClick={() => { setPanelLeftOpen(false); setPanelRightOpen(false); }}
+        />
+      )}
 
       {/* GIS-24: Command Palette overlay */}
       {showPalette && (
