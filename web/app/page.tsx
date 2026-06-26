@@ -400,6 +400,238 @@ const ModuleCard = memo(function ModuleCard({
   );
 });
 
+// ── Hero monitor (cinematic desktop mockup) ───────────────────────────────────
+
+function HeroMonitor() {
+  return (
+    <div className="relative w-full" style={{ maxWidth: 800, margin: "0 auto" }}>
+      {/* Layer 1 — wide atmospheric green halo */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          inset: "-80px -60px",
+          background: "radial-gradient(ellipse 80% 60% at 50% 55%, rgba(34,197,94,0.14) 0%, transparent 70%)",
+          filter: "blur(50px)",
+          zIndex: 0,
+        }}
+      />
+      {/* Layer 2 — screen-emission hot center */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: "5%", left: "10%", right: "10%", height: "60%",
+          background: "radial-gradient(ellipse 70% 80% at 50% 35%, rgba(34,197,94,0.20) 0%, transparent 65%)",
+          filter: "blur(30px)",
+          zIndex: 0,
+        }}
+      />
+      {/* Layer 3 — floor reflection glow */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          bottom: -24, left: "20%", right: "20%", height: 50,
+          background: "radial-gradient(ellipse 90% 100% at 50% 0%, rgba(34,197,94,0.28) 0%, transparent 100%)",
+          filter: "blur(18px)",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Monitor — floating with CSS 3D perspective via .monitor-float */}
+      <div className="monitor-float relative" style={{ zIndex: 1 }}>
+
+        {/* Outer bezel */}
+        <div
+          style={{
+            background: "linear-gradient(155deg, #252528 0%, #111113 60%, #0b0b0d 100%)",
+            borderRadius: 22,
+            border: "1.5px solid rgba(255,255,255,0.08)",
+            padding: 13,
+            boxShadow:
+              "0 90px 180px rgba(0,0,0,0.96), 0 0 0 1px rgba(255,255,255,0.03), 0 0 90px rgba(34,197,94,0.13), inset 0 1px 0 rgba(255,255,255,0.07)",
+          }}
+        >
+          {/* Screen */}
+          <div
+            style={{
+              background: "#030A04",
+              borderRadius: 12,
+              border: "1px solid rgba(34,197,94,0.20)",
+              overflow: "hidden",
+              aspectRatio: "16/9",
+              position: "relative",
+            }}
+          >
+            {/* Glass sheen */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: 0, left: 0, right: "55%", height: "45%",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+                borderRadius: "12px 0 0 0",
+                zIndex: 10,
+              }}
+            />
+            {/* Scanline */}
+            <div className="scanline" style={{ zIndex: 9 }} />
+
+            {/* Window chrome */}
+            <div
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "5px 10px",
+                background: "rgba(3,8,4,0.98)",
+                borderBottom: "1px solid rgba(34,197,94,0.11)",
+              }}
+            >
+              {(["#EF4444","#F59E0B","#22C55E"] as const).map(c => (
+                <span key={c} style={{ width: 6, height: 6, borderRadius: "50%", background: c, display: "inline-block" }} />
+              ))}
+              <span style={{ marginLeft: 6, fontFamily: "monospace", fontSize: 6.5, color: "#3E5A3E", letterSpacing: "0.10em" }}>
+                AGRONOVA · GIS INTELLIGENCE · LIVE
+              </span>
+              <div style={{ flex: 1 }} />
+              <span className="blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 5px rgba(34,197,94,0.9)", display: "inline-block" }} />
+            </div>
+
+            {/* Dashboard layout */}
+            <div style={{ display: "flex", height: "calc(100% - 21px)" }}>
+              {/* Sidebar nav */}
+              <div style={{
+                width: "20%", padding: "6px 5px",
+                background: "rgba(3,7,4,0.96)",
+                borderRight: "1px solid rgba(34,197,94,0.09)",
+                display: "flex", flexDirection: "column", gap: 3,
+              }}>
+                {["GIS MAP","CLIENTES","TERRITORIO","NETWORK","STORY"].map((item, i) => (
+                  <div key={item} style={{
+                    padding: "2.5px 5px", borderRadius: 3,
+                    fontFamily: "monospace", fontSize: 5,
+                    background: i === 0 ? "rgba(34,197,94,0.14)" : "transparent",
+                    color: i === 0 ? "#22C55E" : "#3E5A3E",
+                    border: i === 0 ? "1px solid rgba(34,197,94,0.28)" : "1px solid transparent",
+                    letterSpacing: "0.08em",
+                  }}>{item}</div>
+                ))}
+                <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 3 }}>
+                  {[
+                    { l: "Revenue", v: "ARS 4.7B", c: "#22C55E" },
+                    { l: "OTIF",    v: "87.3%",    c: "#4ADE80" },
+                    { l: "Churn",   v: "22.4%",    c: "#F97316" },
+                  ].map(k => (
+                    <div key={k.l} style={{ padding: "2px 4px", borderRadius: 3, background: `${k.c}10`, border: `1px solid ${k.c}25` }}>
+                      <div style={{ fontSize: 4, color: "#3E5A3E", fontFamily: "monospace" }}>{k.l}</div>
+                      <div style={{ fontSize: 7, color: k.c, fontFamily: "monospace", fontWeight: 700 }}>{k.v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Map area */}
+              <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+                <svg width="100%" height="100%" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice">
+                  <rect width="360" height="200" fill="#071209" />
+                  {[
+                    { x:60,  y:8,   w:85, h:55, c:"#22C55E", o:0.55 },
+                    { x:150, y:6,   w:70, h:50, c:"#4ADE80", o:0.42 },
+                    { x:225, y:10,  w:60, h:48, c:"#22C55E", o:0.33 },
+                    { x:50,  y:65,  w:80, h:52, c:"#22C55E", o:0.38 },
+                    { x:135, y:62,  w:88, h:56, c:"#A3E635", o:0.48 },
+                    { x:228, y:60,  w:62, h:52, c:"#22C55E", o:0.30 },
+                    { x:58,  y:120, w:75, h:50, c:"#4ADE80", o:0.42 },
+                    { x:138, y:118, w:82, h:48, c:"#22C55E", o:0.52 },
+                    { x:225, y:116, w:60, h:46, c:"#A3E635", o:0.36 },
+                    { x:65,  y:170, w:65, h:24, c:"#22C55E", o:0.28 },
+                    { x:135, y:168, w:70, h:28, c:"#4ADE80", o:0.34 },
+                    { x:210, y:170, w:56, h:25, c:"#22C55E", o:0.24 },
+                  ].map((s,i) => (
+                    <rect key={i} x={s.x} y={s.y} width={s.w} height={s.h} rx="3"
+                      fill={s.c} fillOpacity={s.o} stroke={s.c} strokeWidth="0.4" strokeOpacity="0.22" />
+                  ))}
+                  <line x1="148" y1="112" x2="185" y2="88"  stroke="#22C55E" strokeWidth="1.2" opacity="0.38" strokeDasharray="3,2" />
+                  <line x1="185" y1="88"  x2="222" y2="108" stroke="#0EA5E9" strokeWidth="1.2" opacity="0.35" strokeDasharray="3,2" />
+                  <line x1="222" y1="108" x2="192" y2="140" stroke="#22C55E" strokeWidth="1.0" opacity="0.28" strokeDasharray="3,2" />
+                  {[
+                    { x:148, y:112, c:"#22C55E", r:4   },
+                    { x:185, y:88,  c:"#22C55E", r:4.5 },
+                    { x:222, y:108, c:"#F97316", r:3.5 },
+                    { x:112, y:92,  c:"#0EA5E9", r:3   },
+                    { x:192, y:140, c:"#22C55E", r:3.5 },
+                    { x:258, y:82,  c:"#A3E635", r:2.8 },
+                  ].map((m,i) => (
+                    <circle key={i} cx={m.x} cy={m.y} r={m.r} fill={m.c} opacity="0.92"
+                      style={{ filter: `drop-shadow(0 0 ${m.r}px ${m.c})` }} />
+                  ))}
+                  <text x="10" y="16"  fill="#3E5A3E" fontSize="5.5" fontFamily="monospace">BUENOS AIRES</text>
+                  <text x="10" y="84"  fill="#3E5A3E" fontSize="5.5" fontFamily="monospace">CÓRDOBA</text>
+                  <text x="10" y="148"  fill="#3E5A3E" fontSize="5.5" fontFamily="monospace">SANTA FE</text>
+                </svg>
+                {/* Status bar */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0, padding: "2px 6px",
+                  background: "rgba(3,8,4,0.96)", borderTop: "1px solid rgba(34,197,94,0.09)",
+                  display: "flex", alignItems: "center", gap: 7,
+                }}>
+                  {["● NEON","● POSTGIS","● ARCGIS","● GIS-27"].map(b => (
+                    <span key={b} style={{ fontSize: 4, color: "#22C55E", fontFamily: "monospace", letterSpacing: "0.05em" }}>{b}</span>
+                  ))}
+                  <div style={{ flex: 1 }} />
+                  <span style={{ fontSize: 4, color: "#3E5A3E", fontFamily: "monospace" }}>24 PROVINCIAS · 3.387 CLIENTES</span>
+                </div>
+              </div>
+
+              {/* Right KPI panel */}
+              <div style={{
+                width: "23%", padding: "5px 5px",
+                background: "rgba(3,7,4,0.92)",
+                borderLeft: "1px solid rgba(34,197,94,0.09)",
+                display: "flex", flexDirection: "column", gap: 4,
+              }}>
+                <div style={{ fontSize: 4.5, color: "#3E5A3E", fontFamily: "monospace", letterSpacing: "0.12em", marginBottom: 2 }}>KPI RIBBON</div>
+                {[
+                  { l:"Revenue",    v:"ARS 4.7B", c:"#22C55E", p:68 },
+                  { l:"Clientes",   v:"3.387",    c:"#4ADE80", p:85 },
+                  { l:"OTIF",       v:"87.3%",    c:"#0EA5E9", p:87 },
+                  { l:"Margen",     v:"32.4%",    c:"#A3E635", p:64 },
+                  { l:"Churn",      v:"22.4%",    c:"#F97316", p:22 },
+                  { l:"Conflictos", v:"2.571",    c:"#C084FC", p:51 },
+                ].map(k => (
+                  <div key={k.l} style={{ padding: "2.5px 4px", borderRadius: 3, background: `${k.c}0e`, border: `1px solid ${k.c}28` }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                      <span style={{ fontSize: 4, color: "#4B6B4B", fontFamily: "monospace" }}>{k.l}</span>
+                      <span style={{ fontSize: 6, color: k.c, fontFamily: "monospace", fontWeight: 700 }}>{k.v}</span>
+                    </div>
+                    <div style={{ height: 2, background: "rgba(34,197,94,0.10)", borderRadius: 1 }}>
+                      <div style={{ height: "100%", width: `${k.p}%`, background: k.c, borderRadius: 1 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stand neck */}
+        <div style={{
+          width: 72, height: 20,
+          background: "linear-gradient(to bottom, #222224, #131315)",
+          margin: "0 auto",
+          borderLeft: "1px solid rgba(255,255,255,0.04)",
+          borderRight: "1px solid rgba(255,255,255,0.04)",
+        }} />
+        {/* Stand base */}
+        <div style={{
+          width: 190, height: 7,
+          background: "linear-gradient(to bottom, #1e1e20, #0e0e10)",
+          margin: "0 auto",
+          borderRadius: 10,
+          border: "1px solid rgba(255,255,255,0.05)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.75)",
+        }} />
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
@@ -485,108 +717,135 @@ export default function LandingPage() {
         </Link>
       </nav>
 
-      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      {/* ── Hero (100dvh cinematic) ─────────────────────────────────────────── */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex flex-col items-center justify-center text-center px-6"
-        style={{ paddingTop: 56 }}
+        className="relative flex flex-col"
+        style={{ minHeight: "100dvh", paddingTop: 56 }}
       >
-        {/* Grid pattern background */}
+        {/* Atmospheric background layers */}
+        {/* 1 — subtle grid */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(34,197,94,0.04) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(34,197,94,0.04) 1px, transparent 1px)
+              linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px)
             `,
-            backgroundSize: "48px 48px",
+            backgroundSize: "60px 60px",
           }}
         />
-        {/* Radial glow center */}
+        {/* 2 — deep center radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse 60% 55% at 50% 40%, rgba(34,197,94,0.06) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(34,197,94,0.07) 0%, transparent 70%)",
+          }}
+        />
+        {/* 3 — corner accent glows */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 50% 35% at 0% 100%, rgba(34,197,94,0.05) 0%, transparent 60%), " +
+              "radial-gradient(ellipse 40% 30% at 100% 0%, rgba(34,197,94,0.04) 0%, transparent 55%)",
+          }}
+        />
+        {/* 4 — cinematic vignette */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 45%, rgba(0,0,0,0.55) 100%)",
           }}
         />
 
-        <div className="relative z-10 max-w-4xl mx-auto">
-          {/* Pre-badge */}
+        {/* Content — column: copy above, monitor below */}
+        <div className="relative z-10 flex flex-col items-center flex-1 px-4 sm:px-6 pt-10 pb-6 text-center">
+
+          {/* LIVE badge */}
           <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
             style={{
-              background:   "rgba(34,197,94,0.08)",
-              border:       "1px solid rgba(34,197,94,0.28)",
+              background: "rgba(34,197,94,0.08)",
+              border: "1px solid rgba(34,197,94,0.28)",
               backdropFilter: "blur(8px)",
             }}
           >
             <span className="w-1.5 h-1.5 rounded-full blink" style={{ background: "#22C55E", boxShadow: "0 0 5px rgba(34,197,94,0.9)" }} />
             <span className="font-mono" style={{ fontSize: 9, color: "#22C55E", letterSpacing: "0.14em" }}>
-              LIVE · GIS v10.0 · GIS-27 · feature/geospatial-v2
+              LIVE · GIS v10.0 · GIS-27 · FEATURE/GEOSPATIAL-V2
             </span>
           </div>
 
-          {/* Main title */}
+          {/* Title */}
           <h1
-            className="font-mono font-black leading-none mb-4"
-            style={{
-              fontSize: "clamp(32px, 6vw, 72px)",
-              color:    "#DCE8DC",
-              letterSpacing: "-0.02em",
-            }}
+            className="font-mono font-black leading-none mb-3"
+            style={{ fontSize: "clamp(36px,6vw,80px)", color: "#DCE8DC", letterSpacing: "-0.025em" }}
           >
-            AgroNova
-            <span style={{ color: "#22C55E", display: "block" }}>
-              Intelligence
-            </span>
-            Platform
+            <span className="text-gradient-green">AGRONOVA</span>
           </h1>
 
           {/* Subtitle */}
           <p
-            className="font-mono mb-10 max-w-2xl mx-auto"
-            style={{ fontSize: "clamp(11px, 1.5vw, 14px)", color: "#7A9C7A", lineHeight: 1.7, letterSpacing: "0.04em" }}
+            className="font-mono mb-5 max-w-lg mx-auto"
+            style={{ fontSize: "clamp(10px,1.3vw,13px)", color: "#7A9C7A", lineHeight: 1.75, letterSpacing: "0.04em" }}
           >
-            Decision Intelligence · GIS · AI · Supply Chain
-            <br />
-            <span style={{ color: "#3E5A3E" }}>
-              27+ módulos GIS · 3.387 clientes reales · PostGIS · ArcGIS Live · Neon
-            </span>
+            Decision Intelligence Platform for Agriculture,<br />
+            Territory Optimization and Geospatial Analytics.
           </p>
 
+          {/* Tech badges */}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 mb-7">
+            {["POSTGIS","NEON","ARCGIS","MAPBOX","LEAFLET","AI"].map(b => (
+              <span
+                key={b}
+                className="px-2.5 py-1 rounded-lg font-mono font-bold"
+                style={{
+                  fontSize: 8,
+                  background: "rgba(34,197,94,0.07)",
+                  border: "1px solid rgba(34,197,94,0.22)",
+                  color: "#22C55E",
+                  letterSpacing: "0.10em",
+                }}
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+
           {/* CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
             <Link
               href="/gis"
               className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-mono font-bold transition-all"
               style={{
-                fontSize:    12,
-                background:  "rgba(34,197,94,0.16)",
-                border:      "1px solid rgba(34,197,94,0.50)",
-                color:       "#22C55E",
+                fontSize: 11,
+                background: "rgba(34,197,94,0.16)",
+                border: "1px solid rgba(34,197,94,0.50)",
+                color: "#22C55E",
                 letterSpacing: "0.12em",
-                boxShadow:   "0 0 30px rgba(34,197,94,0.18), inset 0 1px 0 rgba(255,255,255,0.04)",
+                boxShadow: "0 0 28px rgba(34,197,94,0.18), inset 0 1px 0 rgba(255,255,255,0.04)",
               }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.26)";
-                (e.currentTarget as HTMLElement).style.boxShadow  = "0 0 48px rgba(34,197,94,0.30), inset 0 1px 0 rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 44px rgba(34,197,94,0.30)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.16)";
-                (e.currentTarget as HTMLElement).style.boxShadow  = "0 0 30px rgba(34,197,94,0.18), inset 0 1px 0 rgba(255,255,255,0.04)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px rgba(34,197,94,0.18)";
               }}
             >
-              <Map size={14} />
-              ENTER GIS
+              <Map size={13} />
+              ENTER PLATFORM
             </Link>
             <a
               href="#modules"
               className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-mono font-bold transition-all"
               style={{
-                fontSize:    12,
-                background:  "rgba(5,12,6,0.60)",
-                border:      "1px solid rgba(34,197,94,0.22)",
-                color:       "#7A9C7A",
+                fontSize: 11,
+                background: "rgba(5,12,6,0.55)",
+                border: "1px solid rgba(34,197,94,0.22)",
+                color: "#7A9C7A",
                 letterSpacing: "0.12em",
                 backdropFilter: "blur(8px)",
               }}
@@ -599,20 +858,27 @@ export default function LandingPage() {
                 (e.currentTarget as HTMLElement).style.color = "#7A9C7A";
               }}
             >
-              <BarChart3 size={14} />
-              VIEW MODULES
+              <BarChart3 size={13} />
+              WATCH DEMO
             </a>
+          </div>
+
+          {/* Monitor — the protagonist (65-75% viewport width on desktop) */}
+          <div className="w-full flex items-center justify-center flex-1" style={{ minHeight: 0 }}>
+            <div className="w-full" style={{ maxWidth: "min(800px, 90vw)" }}>
+              <HeroMonitor />
+            </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
         <a
           href="#metrics"
-          className="absolute bottom-8 left-1/2 flex flex-col items-center gap-1 transition-opacity hover:opacity-60"
-          style={{ transform: "translateX(-50%)" }}
+          className="absolute bottom-6 left-1/2 flex flex-col items-center gap-1 transition-opacity hover:opacity-50"
+          style={{ transform: "translateX(-50%)", zIndex: 20 }}
         >
-          <span className="font-mono" style={{ fontSize: 8, color: "#3E5A3E", letterSpacing: "0.12em" }}>SCROLL</span>
-          <ChevronDown size={14} style={{ color: "#3E5A3E" }} className="animate-bounce" />
+          <span className="font-mono" style={{ fontSize: 7.5, color: "#3E5A3E", letterSpacing: "0.12em" }}>SCROLL</span>
+          <ChevronDown size={13} style={{ color: "#3E5A3E" }} className="animate-bounce" />
         </a>
       </section>
 

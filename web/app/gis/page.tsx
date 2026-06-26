@@ -1023,7 +1023,7 @@ export default function GISPage() {
     choropleth:    true,
     heatmap:       false,
     departamentos: false,
-    municipios:    false,
+    municipios:    true,
     vial:          false,
     puertos:       false,
     sucursales:    true,

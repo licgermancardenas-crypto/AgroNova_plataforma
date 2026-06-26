@@ -106,13 +106,17 @@ function buildPopupHtml(c: CustomerGeo): string {
 </div>`;
 }
 
+const MUNI_RADIUS_KM = 10;
+
 function applyFilters(
-  customers: CustomerGeo[],
-  province:  string | null | undefined,
-  filters:   CustomerFilters | null,
+  customers:  CustomerGeo[],
+  province:   string | null | undefined,
+  filters:    CustomerFilters | null,
+  muniCenter: { lat: number; lon: number } | null | undefined,
 ): CustomerGeo[] {
   let list = customers.filter(c => !c.is_outlier);
   if (province) list = list.filter(c => c.provincia === province);
+  if (muniCenter) list = list.filter(c => haversineKm(c.lat, c.lon, muniCenter.lat, muniCenter.lon) <= MUNI_RADIUS_KM);
   if (!filters) return list;
 
   if (filters.segmentos.length)   list = list.filter(c => filters.segmentos.includes(c.segmento ?? ""));
@@ -136,11 +140,12 @@ interface Props {
   selectedCustomer: CustomerGeo | null;
   onCustomerClick:  (c: CustomerGeo | null) => void;
   sucursales:       Sucursal[];
+  muniCenter?:      { lat: number; lon: number } | null;
 }
 
 function CustomerLayerInner({
   visible, filterProvince = null, filters = null,
-  selectedCustomer, onCustomerClick, sucursales,
+  selectedCustomer, onCustomerClick, sucursales, muniCenter = null,
 }: Props) {
   const [zoom,      setZoom]      = useState(5);
   const [customers, setCustomers] = useState<CustomerGeo[]>([]);
@@ -238,7 +243,7 @@ function CustomerLayerInner({
     if (layerRef.current) { m.removeLayer(layerRef.current); layerRef.current = null; }
     if (!visible || customers.length === 0) return;
 
-    const visible_list = applyFilters(customers, filterProvince, filters ?? null);
+    const visible_list = applyFilters(customers, filterProvince, filters ?? null, muniCenter);
     const group = L.layerGroup();
 
     if (zoom >= CLUSTER_ZOOM) {
@@ -249,8 +254,10 @@ function CustomerLayerInner({
         });
         marker.bindPopup(buildPopupHtml(c), { maxWidth: 260, className: "agronova-popup" });
         marker.on("click", () => {
-          const cur = selRef.current;
-          onCustomerClick(cur?.cliente_id === c.cliente_id ? null : c);
+          const cur  = selRef.current;
+          const next = cur?.cliente_id === c.cliente_id ? null : c;
+          onCustomerClick(next);
+          if (next) mapRef.current?.flyTo([c.lat, c.lon], 13, { animate: true, duration: 0.6 });
         });
         group.addLayer(marker);
       });
