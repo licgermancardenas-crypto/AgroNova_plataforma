@@ -171,8 +171,8 @@ const MetricCounter = memo(function MetricCounter({
         {value >= 1_000_000 ? "" : value === 27 ? "+" : ""}
       </span>
       <span
-        className="font-mono text-center leading-tight"
-        style={{ fontSize: 9, color: "#3E5A3E", letterSpacing: "0.12em", textTransform: "uppercase" }}
+        className="text-center leading-tight"
+        style={{ fontSize: 11, color: "#3E5A3E", letterSpacing: "0.06em", textTransform: "uppercase" }}
       >
         {label}
       </span>
@@ -380,10 +380,10 @@ const ModuleCard = memo(function ModuleCard({
 
       {/* Content */}
       <div className="flex flex-col gap-1.5">
-        <h3 className="font-mono font-bold" style={{ fontSize: 13, color: "#DCE8DC" }}>
+        <h3 className="font-sans font-semibold" style={{ fontSize: 15, color: "#DCE8DC" }}>
           {title}
         </h3>
-        <p style={{ fontSize: 11, color: "#7A9C7A", lineHeight: 1.55 }}>
+        <p style={{ fontSize: 13, color: "#7A9C7A", lineHeight: 1.6 }}>
           {desc}
         </p>
       </div>
@@ -400,7 +400,290 @@ const ModuleCard = memo(function ModuleCard({
   );
 });
 
-// ── Hero monitor (cinematic desktop mockup) ───────────────────────────────────
+// ── Laptop hero — cinematic 3D perspective with aerial farmland photo ─────────
+
+function LaptopHero() {
+  return (
+    <div className="relative w-full flex flex-col items-center">
+
+      {/* 3D perspective wrapper */}
+      <div style={{ perspective: "2000px", perspectiveOrigin: "50% 42%", width: "100%" }}>
+        <div
+          style={{
+            transform: "rotateX(6deg) rotateY(-20deg)",
+            transformStyle: "preserve-3d",
+            maxWidth: "min(1020px, 90vw)",
+            margin: "0 auto",
+          }}
+        >
+          {/* ── Screen panel ── */}
+          <div style={{
+            background: "linear-gradient(160deg, #202022 0%, #131315 70%, #0e0e10 100%)",
+            borderRadius: "14px 14px 0 0",
+            padding: "10px 10px 0 10px",
+            border: "1.5px solid rgba(255,255,255,0.07)",
+            borderBottom: "none",
+            boxShadow:
+              "0 -2px 0 rgba(255,255,255,0.04) inset, " +
+              "0 80px 220px rgba(0,0,0,0.97), " +
+              "-18px 0 60px rgba(0,0,0,0.70), " +
+              "0 0 100px rgba(34,197,94,0.20), " +
+              "0 0 0 1px rgba(255,255,255,0.04)",
+          }}>
+            {/* Camera dot */}
+            <div style={{ display: "flex", justifyContent: "center", paddingBottom: 7 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#2c2c2e", border: "1px solid rgba(255,255,255,0.07)" }} />
+            </div>
+
+            {/* ── Screen area ── */}
+            <div style={{
+              borderRadius: 8,
+              overflow: "hidden",
+              aspectRatio: "16 / 10",
+              position: "relative",
+              background: "#071209",
+              border: "1px solid rgba(34,197,94,0.15)",
+            }}>
+
+              {/* Aerial farmland background photo */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/farm-aerial.jpg"
+                alt=""
+                aria-hidden
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.90, filter: "hue-rotate(40deg) saturate(1.4) brightness(0.80)" }}
+              />
+
+              {/* Green tone overlay — matches reference color cast */}
+              <div style={{ position: "absolute", inset: 0, background: "rgba(4,18,6,0.38)" }} />
+
+              {/* ── Dashboard UI overlay ── */}
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" }}>
+
+                {/* Top nav */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "5px 10px", flexShrink: 0,
+                  background: "rgba(3,10,3,0.80)",
+                  backdropFilter: "blur(14px)",
+                  borderBottom: "1px solid rgba(34,197,94,0.11)",
+                }}>
+                  <span style={{ fontFamily: "monospace", fontSize: 7, color: "#22C55E", fontWeight: 700, letterSpacing: "0.10em" }}>
+                    ✦ AgroNova
+                  </span>
+                  <div style={{ flex: 1 }} />
+                  {["Dashboard","Cultivos","Logística","Informe","ML · IA"].map((t, i) => (
+                    <span key={t} style={{
+                      fontSize: 6, fontFamily: "monospace",
+                      color: i === 0 ? "#22C55E" : "rgba(255,255,255,0.32)",
+                      background: i === 0 ? "rgba(34,197,94,0.14)" : "transparent",
+                      padding: "2px 5px", borderRadius: 3,
+                      border: i === 0 ? "1px solid rgba(34,197,94,0.28)" : "1px solid transparent",
+                    }}>{t}</span>
+                  ))}
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <div style={{ width: 14, height: 14, borderRadius: "50%", background: "rgba(34,197,94,0.20)", border: "1px solid rgba(34,197,94,0.40)" }} />
+                    <span style={{ fontSize: 5.5, color: "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>Admin</span>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+
+                  {/* Left panel */}
+                  <div style={{
+                    width: "22%", flexShrink: 0,
+                    background: "rgba(3,10,3,0.72)",
+                    backdropFilter: "blur(18px)",
+                    borderRight: "1px solid rgba(34,197,94,0.09)",
+                    padding: "7px 6px",
+                    display: "flex", flexDirection: "column", gap: 5,
+                  }}>
+                    <div>
+                      <p style={{ fontSize: 8.5, color: "#22C55E", fontFamily: "monospace", fontWeight: 700 }}>Geork Field</p>
+                      <p style={{ fontSize: 5, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>Mendoza · Argentina</p>
+                    </div>
+
+                    <div style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.18)", borderRadius: 4, padding: "4px 5px" }}>
+                      <p style={{ fontSize: 4.5, color: "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>Resilience Score</p>
+                      <p style={{ fontSize: 20, color: "#22C55E", fontFamily: "monospace", fontWeight: 700, lineHeight: 1.1 }}>6.5</p>
+                      <p style={{ fontSize: 4.5, color: "rgba(34,197,94,0.55)", fontFamily: "monospace" }}>↑ 15 pts desde 2021</p>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid rgba(34,197,94,0.07)", paddingTop: 4 }}>
+                      <p style={{ fontSize: 4.5, color: "rgba(255,255,255,0.35)", fontFamily: "monospace", marginBottom: 3 }}>Weather Cond.</p>
+                      <div style={{ display: "flex", gap: 5 }}>
+                        <div>
+                          <p style={{ fontSize: 11, color: "#DCE8DC", fontFamily: "monospace", fontWeight: 700 }}>22°C</p>
+                          <p style={{ fontSize: 4.5, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>Temperatura</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 11, color: "#DCE8DC", fontFamily: "monospace", fontWeight: 700 }}>48%</p>
+                          <p style={{ fontSize: 4.5, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>Humedad</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid rgba(34,197,94,0.07)", paddingTop: 4 }}>
+                      <p style={{ fontSize: 4.5, color: "rgba(255,255,255,0.35)", fontFamily: "monospace", marginBottom: 3 }}>Daily Tasks</p>
+                      <div style={{ background: "rgba(14,165,233,0.09)", border: "1px solid rgba(14,165,233,0.22)", borderRadius: 3, padding: "3px 5px" }}>
+                        <p style={{ fontSize: 6.5, color: "#0EA5E9", fontFamily: "monospace", fontWeight: 700 }}>Riego · Parcela B</p>
+                        <span style={{ fontSize: 4.5, background: "rgba(34,197,94,0.12)", color: "#22C55E", padding: "1px 3px", borderRadius: 2, fontFamily: "monospace" }}>✓ Completado</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Center — map shows through (transparent) */}
+                  <div style={{ flex: 1, position: "relative" }}>
+                    {/* Layer toggles top-right */}
+                    <div style={{ position: "absolute", top: 5, right: 5, display: "flex", flexDirection: "column", gap: 2 }}>
+                      {[["#22C55E","Choropleth"],["#4ADE80","Sucursales"],["#F97316","Clientes"]].map(([c,l]) => (
+                        <div key={l} style={{
+                          background: "rgba(3,10,3,0.82)", border: "1px solid rgba(34,197,94,0.15)",
+                          borderRadius: 3, padding: "2px 5px",
+                          display: "flex", alignItems: "center", gap: 3,
+                        }}>
+                          <span style={{ width: 4, height: 4, borderRadius: "50%", background: c, display: "inline-block" }} />
+                          <span style={{ fontSize: 5, color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>{l}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Field label */}
+                    <div style={{
+                      position: "absolute", top: "45%", left: "28%",
+                      background: "rgba(3,10,3,0.88)", border: "1px solid rgba(34,197,94,0.28)",
+                      borderRadius: 5, padding: "5px 9px", backdropFilter: "blur(10px)",
+                    }}>
+                      <p style={{ fontSize: 8, color: "#DCE8DC", fontFamily: "monospace", fontWeight: 700 }}>Watering Field</p>
+                      <p style={{ fontSize: 5, color: "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>Geork Field · 100% visto</p>
+                    </div>
+                  </div>
+
+                  {/* Right panel */}
+                  <div style={{
+                    width: "30%", flexShrink: 0,
+                    background: "rgba(3,10,3,0.72)",
+                    backdropFilter: "blur(18px)",
+                    borderLeft: "1px solid rgba(34,197,94,0.09)",
+                    padding: "7px 6px",
+                    display: "flex", flexDirection: "column", gap: 4,
+                  }}>
+                    <div>
+                      <p style={{ fontSize: 5.5, color: "rgba(255,255,255,0.4)", fontFamily: "monospace", marginBottom: 4 }}>Field Health Map</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: "1.5px" }}>
+                        {Array.from({ length: 60 }, (_, i) => (
+                          <div key={i} style={{
+                            aspectRatio: "1", borderRadius: 1,
+                            background:
+                              i % 9 === 0 ? "#EF4444" :
+                              i % 7 === 0 ? "#F59E0B" :
+                              i % 4 === 0 ? "#4ADE80" : "#22C55E",
+                            opacity: 0.65 + (i % 4) * 0.1,
+                          }} />
+                        ))}
+                      </div>
+                      <p style={{ fontSize: 4.5, color: "rgba(34,197,94,0.6)", fontFamily: "monospace", marginTop: 3 }}>
+                        +15% sobre proyección · <span style={{ color: "#22C55E" }}>Good for planting</span>
+                      </p>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 4, borderTop: "1px solid rgba(34,197,94,0.07)", paddingTop: 4 }}>
+                      {[["Avg Temp","32°C","#F97316"],["pH Level","4.5","#22C55E"],["Presión","43kPa","#0EA5E9"]].map(([l,v,c]) => (
+                        <div key={l} style={{ flex: 1, background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 3, padding: "3px 4px" }}>
+                          <p style={{ fontSize: 4, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>{l}</p>
+                          <p style={{ fontSize: 10, color: c, fontFamily: "monospace", fontWeight: 700 }}>{v}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ borderTop: "1px solid rgba(34,197,94,0.07)", paddingTop: 4 }}>
+                      <p style={{ fontSize: 5.5, color: "rgba(255,255,255,0.4)", fontFamily: "monospace", marginBottom: 4 }}>Crop Distr.</p>
+                      {[["Soja",68,"#22C55E"],["Maíz",42,"#4ADE80"],["Trigo",31,"#A3E635"]].map(([l,p,c]) => (
+                        <div key={l as string} style={{ marginBottom: 4 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span style={{ fontSize: 5, color: "rgba(255,255,255,0.45)", fontFamily: "monospace" }}>{l}</span>
+                            <span style={{ fontSize: 5, color: c as string, fontFamily: "monospace", fontWeight: 700 }}>{p}%</span>
+                          </div>
+                          <div style={{ height: 2, background: "rgba(255,255,255,0.07)", borderRadius: 1, marginTop: 1 }}>
+                            <div style={{ height: "100%", width: `${p}%`, background: c as string, borderRadius: 1 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ borderTop: "1px solid rgba(34,197,94,0.07)", paddingTop: 4 }}>
+                      <p style={{ fontSize: 5.5, color: "rgba(255,255,255,0.4)", fontFamily: "monospace", marginBottom: 4 }}>Soil Cond.</p>
+                      {[["Nitrógeno","52.5%","#22C55E"],["Fósforo","38.3%","#4ADE80"],["Potasio","29.1%","#A3E635"]].map(([l,v,c]) => (
+                        <div key={l as string} style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                          <span style={{ fontSize: 5, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>{l}</span>
+                          <span style={{ fontSize: 5, color: c as string, fontFamily: "monospace", fontWeight: 700 }}>{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Glass sheen */}
+              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 45%)" }} />
+            </div>
+          </div>
+
+          {/* Hinge strip */}
+          <div style={{
+            height: "3px",
+            background: "linear-gradient(to right, #181819, #2a2a2c, #181819)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.9)",
+          }} />
+
+          {/* Keyboard base */}
+          <div style={{
+            background: "linear-gradient(170deg, #1e1e21 0%, #141416 60%, #0f0f11 100%)",
+            borderRadius: "0 0 10px 10px",
+            height: "44px",
+            border: "1.5px solid rgba(255,255,255,0.05)",
+            borderTop: "none",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "3px",
+            paddingBottom: "8px",
+          }}>
+            {[70, 65, 60].map((w, i) => (
+              <div key={i} style={{ width: `${w}%`, height: "2.5px", background: "rgba(255,255,255,0.04)", borderRadius: 2 }} />
+            ))}
+            <div style={{ width: "22%", height: "3.5px", background: "rgba(255,255,255,0.05)", borderRadius: 2, marginTop: 1 }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Table/surface base */}
+      <div style={{
+        width: "min(720px, 72vw)",
+        height: "8px",
+        background: "linear-gradient(to bottom, #111, #0a0a0a)",
+        borderRadius: "0 0 50% 50%",
+        boxShadow: "0 12px 60px rgba(0,0,0,0.7)",
+        marginTop: "-1px",
+      }} />
+
+      {/* Green floor glow */}
+      <div style={{
+        position: "absolute",
+        bottom: 0, left: "15%", right: "15%",
+        height: "45%",
+        background: "radial-gradient(ellipse 80% 100% at 50% 100%, rgba(34,197,94,0.22) 0%, transparent 70%)",
+        filter: "blur(30px)",
+        pointerEvents: "none",
+        zIndex: -1,
+      }} />
+    </div>
+  );
+}
+
+// ── LEGACY — kept for sections below the hero ─────────────────────────────────
 
 function HeroMonitor() {
   return (
@@ -676,15 +959,15 @@ export default function LandingPage() {
         </div>
 
         {/* Links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-7">
           {NAV_LINKS.map(l => (
             <Link
               key={l.label}
               href={l.href}
-              className="font-mono transition-colors"
-              style={{ fontSize: 10, color: "#3E5A3E", letterSpacing: "0.10em", textTransform: "uppercase" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22C55E"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#3E5A3E"; }}
+              className="font-sans font-medium transition-colors"
+              style={{ fontSize: 13, color: "#7A9C7A" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#DCE8DC"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#7A9C7A"; }}
             >
               {l.label}
             </Link>
@@ -694,191 +977,94 @@ export default function LandingPage() {
         {/* CTA */}
         <Link
           href="/gis"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-mono font-bold transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl font-sans font-semibold transition-all"
           style={{
-            fontSize:    10,
-            background:  "rgba(34,197,94,0.14)",
-            border:      "1px solid rgba(34,197,94,0.45)",
-            color:       "#22C55E",
-            letterSpacing: "0.10em",
-            boxShadow:   "0 0 16px rgba(34,197,94,0.12)",
+            fontSize:   13,
+            background: "#22C55E",
+            border:     "1px solid #22C55E",
+            color:      "#030A04",
+            boxShadow:  "0 0 16px rgba(34,197,94,0.20)",
           }}
           onMouseEnter={e => {
-            (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.24)";
-            (e.currentTarget as HTMLElement).style.boxShadow  = "0 0 24px rgba(34,197,94,0.25)";
+            (e.currentTarget as HTMLElement).style.background = "#4ADE80";
+            (e.currentTarget as HTMLElement).style.boxShadow  = "0 0 24px rgba(34,197,94,0.35)";
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.14)";
-            (e.currentTarget as HTMLElement).style.boxShadow  = "0 0 16px rgba(34,197,94,0.12)";
+            (e.currentTarget as HTMLElement).style.background = "#22C55E";
+            (e.currentTarget as HTMLElement).style.boxShadow  = "0 0 16px rgba(34,197,94,0.20)";
           }}
         >
-          <Map size={12} />
-          ENTER GIS
+          <Map size={13} />
+          Lanzar GIS
         </Link>
       </nav>
 
-      {/* ── Hero (100dvh cinematic) ─────────────────────────────────────────── */}
+      {/* ── Hero — cinematic laptop showcase ───────────────────────────────── */}
       <section
         ref={heroRef}
-        className="relative flex flex-col"
-        style={{ minHeight: "100dvh", paddingTop: 56 }}
+        className="relative flex flex-col items-center justify-center overflow-hidden"
+        style={{ minHeight: "100dvh", paddingTop: 56, background: "#070d07" }}
       >
-        {/* Atmospheric background layers */}
-        {/* 1 — subtle grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
-        {/* 2 — deep center radial glow */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(34,197,94,0.07) 0%, transparent 70%)",
-          }}
-        />
-        {/* 3 — corner accent glows */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 35% at 0% 100%, rgba(34,197,94,0.05) 0%, transparent 60%), " +
-              "radial-gradient(ellipse 40% 30% at 100% 0%, rgba(34,197,94,0.04) 0%, transparent 55%)",
-          }}
-        />
-        {/* 4 — cinematic vignette */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse 90% 90% at 50% 50%, transparent 45%, rgba(0,0,0,0.55) 100%)",
-          }}
-        />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: `linear-gradient(rgba(34,197,94,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,0.025) 1px,transparent 1px)`,
+          backgroundSize: "64px 64px",
+        }} />
+        {/* Corner vignette */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: "radial-gradient(ellipse 95% 95% at 50% 50%, transparent 40%, rgba(0,0,0,0.70) 100%)",
+        }} />
+        {/* Left ambient glow */}
+        <div className="absolute pointer-events-none" style={{
+          left: 0, top: "15%", width: "18%", height: "70%",
+          background: "radial-gradient(ellipse at 0% 50%, rgba(34,197,94,0.07) 0%, transparent 100%)",
+          filter: "blur(50px)",
+        }} />
 
-        {/* Content — column: copy above, monitor below */}
-        <div className="relative z-10 flex flex-col items-center flex-1 px-4 sm:px-6 pt-10 pb-6 text-center">
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center w-full px-4 py-10">
 
-          {/* LIVE badge */}
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
-            style={{
-              background: "rgba(34,197,94,0.08)",
-              border: "1px solid rgba(34,197,94,0.28)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full blink" style={{ background: "#22C55E", boxShadow: "0 0 5px rgba(34,197,94,0.9)" }} />
-            <span className="font-mono" style={{ fontSize: 9, color: "#22C55E", letterSpacing: "0.14em" }}>
-              LIVE · GIS v10.0 · GIS-27 · FEATURE/GEOSPATIAL-V2
-            </span>
+          {/* Brand + tagline — compact above laptop */}
+          <div className="text-center mb-8">
+            <h1 className="font-sans font-black mb-2" style={{ fontSize: "clamp(32px,5vw,64px)", color: "#F0FAF0", letterSpacing: "-0.03em" }}>
+              <span className="text-gradient-green">AgroNova</span>
+            </h1>
+            <p style={{ fontSize: "clamp(13px,1.4vw,16px)", color: "#5A7A5A" }}>
+              Decision Intelligence Platform · Agriculture & Territory
+            </p>
           </div>
 
-          {/* Title */}
-          <h1
-            className="font-mono font-black leading-none mb-3"
-            style={{ fontSize: "clamp(36px,6vw,80px)", color: "#DCE8DC", letterSpacing: "-0.025em" }}
-          >
-            <span className="text-gradient-green">AGRONOVA</span>
-          </h1>
+          {/* Laptop hero */}
+          <LaptopHero />
 
-          {/* Subtitle */}
-          <p
-            className="font-mono mb-5 max-w-lg mx-auto"
-            style={{ fontSize: "clamp(10px,1.3vw,13px)", color: "#7A9C7A", lineHeight: 1.75, letterSpacing: "0.04em" }}
-          >
-            Decision Intelligence Platform for Agriculture,<br />
-            Territory Optimization and Geospatial Analytics.
-          </p>
-
-          {/* Tech badges */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 mb-7">
-            {["POSTGIS","NEON","ARCGIS","MAPBOX","LEAFLET","AI"].map(b => (
-              <span
-                key={b}
-                className="px-2.5 py-1 rounded-lg font-mono font-bold"
-                style={{
-                  fontSize: 8,
-                  background: "rgba(34,197,94,0.07)",
-                  border: "1px solid rgba(34,197,94,0.22)",
-                  color: "#22C55E",
-                  letterSpacing: "0.10em",
-                }}
-              >
-                {b}
-              </span>
-            ))}
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+          {/* CTAs below laptop */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
             <Link
               href="/gis"
-              className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-mono font-bold transition-all"
-              style={{
-                fontSize: 11,
-                background: "rgba(34,197,94,0.16)",
-                border: "1px solid rgba(34,197,94,0.50)",
-                color: "#22C55E",
-                letterSpacing: "0.12em",
-                boxShadow: "0 0 28px rgba(34,197,94,0.18), inset 0 1px 0 rgba(255,255,255,0.04)",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.26)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 44px rgba(34,197,94,0.30)";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.16)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px rgba(34,197,94,0.18)";
-              }}
+              className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-sans font-semibold transition-all"
+              style={{ fontSize: 15, background: "#22C55E", border: "1px solid #22C55E", color: "#030A04", boxShadow: "0 0 32px rgba(34,197,94,0.28)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#4ADE80"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 48px rgba(34,197,94,0.45)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#22C55E"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 32px rgba(34,197,94,0.28)"; }}
             >
-              <Map size={13} />
-              ENTER PLATFORM
+              <Map size={16} />
+              Entrar a la plataforma
             </Link>
             <a
               href="#modules"
-              className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-mono font-bold transition-all"
-              style={{
-                fontSize: 11,
-                background: "rgba(5,12,6,0.55)",
-                border: "1px solid rgba(34,197,94,0.22)",
-                color: "#7A9C7A",
-                letterSpacing: "0.12em",
-                backdropFilter: "blur(8px)",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.45)";
-                (e.currentTarget as HTMLElement).style.color = "#DCE8DC";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.22)";
-                (e.currentTarget as HTMLElement).style.color = "#7A9C7A";
-              }}
+              className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl font-sans font-medium transition-all"
+              style={{ fontSize: 15, background: "rgba(5,12,6,0.55)", border: "1px solid rgba(34,197,94,0.25)", color: "#7A9C7A", backdropFilter: "blur(8px)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.50)"; (e.currentTarget as HTMLElement).style.color = "#DCE8DC"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(34,197,94,0.25)"; (e.currentTarget as HTMLElement).style.color = "#7A9C7A"; }}
             >
-              <BarChart3 size={13} />
-              WATCH DEMO
+              <BarChart3 size={16} />
+              Ver módulos
             </a>
-          </div>
-
-          {/* Monitor — the protagonist (65-75% viewport width on desktop) */}
-          <div className="w-full flex items-center justify-center flex-1" style={{ minHeight: 0 }}>
-            <div className="w-full" style={{ maxWidth: "min(800px, 90vw)" }}>
-              <HeroMonitor />
-            </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <a
-          href="#metrics"
-          className="absolute bottom-6 left-1/2 flex flex-col items-center gap-1 transition-opacity hover:opacity-50"
-          style={{ transform: "translateX(-50%)", zIndex: 20 }}
-        >
-          <span className="font-mono" style={{ fontSize: 7.5, color: "#3E5A3E", letterSpacing: "0.12em" }}>SCROLL</span>
-          <ChevronDown size={13} style={{ color: "#3E5A3E" }} className="animate-bounce" />
+        <a href="#metrics" className="absolute bottom-6 left-1/2 flex flex-col items-center gap-1 transition-opacity hover:opacity-40" style={{ transform: "translateX(-50%)", zIndex: 20 }}>
+          <ChevronDown size={14} style={{ color: "#3E5A3E" }} className="animate-bounce" />
         </a>
       </section>
 
@@ -907,10 +1093,10 @@ export default function LandingPage() {
             <p className="font-mono mb-2" style={{ fontSize: 10, color: "#22C55E", letterSpacing: "0.16em" }}>
               PRODUCT PREVIEW
             </p>
-            <h2 className="font-mono font-black" style={{ fontSize: "clamp(22px, 4vw, 36px)", color: "#DCE8DC" }}>
+            <h2 className="font-sans font-bold" style={{ fontSize: "clamp(26px, 4vw, 42px)", color: "#DCE8DC", letterSpacing: "-0.02em" }}>
               Command Center Completo
             </h2>
-            <p className="mt-3" style={{ fontSize: 13, color: "#7A9C7A" }}>
+            <p className="mt-3" style={{ fontSize: 15, color: "#7A9C7A" }}>
               GIS · KPI Ribbon · Story Mode · System Status
             </p>
           </div>
@@ -942,10 +1128,10 @@ export default function LandingPage() {
             <p className="font-mono mb-2" style={{ fontSize: 10, color: "#22C55E", letterSpacing: "0.16em" }}>
               INTELLIGENCE MODULES
             </p>
-            <h2 className="font-mono font-black" style={{ fontSize: "clamp(22px, 4vw, 36px)", color: "#DCE8DC" }}>
+            <h2 className="font-sans font-bold" style={{ fontSize: "clamp(26px, 4vw, 42px)", color: "#DCE8DC", letterSpacing: "-0.02em" }}>
               7 Módulos de Inteligencia
             </h2>
-            <p className="mt-3" style={{ fontSize: 13, color: "#7A9C7A" }}>
+            <p className="mt-3" style={{ fontSize: 15, color: "#7A9C7A" }}>
               Cada módulo conecta datos reales con insights accionables
             </p>
           </div>
@@ -957,13 +1143,12 @@ export default function LandingPage() {
           <div className="mt-8 flex justify-center">
             <Link
               href="/gis"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-mono font-bold transition-all"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-sans font-medium transition-all"
               style={{
-                fontSize:    11,
-                background:  "rgba(34,197,94,0.10)",
-                border:      "1px solid rgba(34,197,94,0.35)",
-                color:       "#22C55E",
-                letterSpacing: "0.10em",
+                fontSize:   14,
+                background: "rgba(34,197,94,0.10)",
+                border:     "1px solid rgba(34,197,94,0.35)",
+                color:      "#22C55E",
               }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.20)";
@@ -972,9 +1157,9 @@ export default function LandingPage() {
                 (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.10)";
               }}
             >
-              <Map size={12} />
+              <Map size={14} />
               Explorar todos los módulos en el GIS
-              <ExternalLink size={10} />
+              <ExternalLink size={12} />
             </Link>
           </div>
         </div>
@@ -987,10 +1172,10 @@ export default function LandingPage() {
             <p className="font-mono mb-2" style={{ fontSize: 10, color: "#22C55E", letterSpacing: "0.16em" }}>
               ARCHITECTURE
             </p>
-            <h2 className="font-mono font-black" style={{ fontSize: "clamp(22px, 4vw, 36px)", color: "#DCE8DC" }}>
+            <h2 className="font-sans font-bold" style={{ fontSize: "clamp(26px, 4vw, 42px)", color: "#DCE8DC", letterSpacing: "-0.02em" }}>
               Stack Técnico
             </h2>
-            <p className="mt-3" style={{ fontSize: 13, color: "#7A9C7A" }}>
+            <p className="mt-3" style={{ fontSize: 15, color: "#7A9C7A" }}>
               Production-grade. Zero compromises.
             </p>
           </div>
@@ -1059,10 +1244,10 @@ export default function LandingPage() {
             <p className="font-mono mb-2" style={{ fontSize: 10, color: "#22C55E", letterSpacing: "0.16em" }}>
               EVOLUTION
             </p>
-            <h2 className="font-mono font-black" style={{ fontSize: "clamp(22px, 4vw, 36px)", color: "#DCE8DC" }}>
+            <h2 className="font-sans font-bold" style={{ fontSize: "clamp(26px, 4vw, 42px)", color: "#DCE8DC", letterSpacing: "-0.02em" }}>
               De v1.0 a GIS-27
             </h2>
-            <p className="mt-3" style={{ fontSize: 13, color: "#7A9C7A" }}>
+            <p className="mt-3" style={{ fontSize: 15, color: "#7A9C7A" }}>
               Cronología de sprints · GIS-01 → GIS-27 · UX-01 → UX-05
             </p>
           </div>
@@ -1100,7 +1285,7 @@ export default function LandingPage() {
                         >
                           {phase.phase}
                         </span>
-                        <h3 className="font-mono font-bold" style={{ fontSize: 13, color: "#DCE8DC" }}>
+                        <h3 className="font-sans font-semibold" style={{ fontSize: 15, color: "#DCE8DC" }}>
                           {phase.title}
                         </h3>
                       </div>
@@ -1132,7 +1317,7 @@ export default function LandingPage() {
       <section className="py-16 px-6 border-t" style={{ borderColor: "rgba(34,197,94,0.08)", background: "rgba(3,10,4,0.60)" }}>
         <div className="max-w-4xl mx-auto text-center">
           <p className="font-mono mb-2" style={{ fontSize: 10, color: "#22C55E", letterSpacing: "0.16em" }}>PLATFORM MODULES</p>
-          <h2 className="font-mono font-black mb-8" style={{ fontSize: "clamp(20px, 3vw, 30px)", color: "#DCE8DC" }}>
+          <h2 className="font-sans font-bold mb-8" style={{ fontSize: "clamp(24px, 3vw, 36px)", color: "#DCE8DC", letterSpacing: "-0.02em" }}>
             Plataforma Completa
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -1163,7 +1348,7 @@ export default function LandingPage() {
                   }}
                 >
                   <MIcon size={18} style={{ color: m.color }} />
-                  <span className="font-mono" style={{ fontSize: 9, color: "#7A9C7A", letterSpacing: "0.08em" }}>
+                  <span className="font-sans" style={{ fontSize: 12, color: "#7A9C7A" }}>
                     {m.label}
                   </span>
                 </Link>
