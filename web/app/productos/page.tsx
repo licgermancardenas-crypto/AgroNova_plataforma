@@ -99,7 +99,13 @@ export default function ProductosPage() {
     return productos
       .filter(p => (catFilter === "Todas" || p.categoria === catFilter))
       .filter(p => (!soloActivos || p.activo))
-      .filter(p => !q || p.nombre_producto.toLowerCase().includes(q) || p.subcategoria.toLowerCase().includes(q))
+      .filter(p => !q ||
+        p.nombre_producto.toLowerCase().includes(q) ||
+        p.producto_id.toLowerCase().includes(q) ||
+        p.categoria.toLowerCase().includes(q) ||
+        p.subcategoria.toLowerCase().includes(q) ||
+        p.nombre_proveedor.toLowerCase().includes(q)
+      )
       .sort((a, b) => b.revenue_ars - a.revenue_ars);
   }, [productos, search, catFilter, soloActivos]);
 
@@ -181,8 +187,8 @@ export default function ProductosPage() {
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Buscar producto…"
-                  className="pl-7 pr-2 py-1.5 text-xs bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-DEFAULT/50 w-40"
+                  placeholder="Buscar por SKU, nombre, categoría, proveedor…"
+                  className="pl-7 pr-2 py-1.5 text-xs bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-DEFAULT/50 w-64"
                 />
               </div>
               <select
@@ -199,10 +205,11 @@ export default function ProductosPage() {
             </div>
           }
         />
-        <SimpleTable headers={["Producto", "Categoría", "Proveedor", "Precio USD", "Margen", "Rotación", "Stock", "Revenue ARS", "Estado"]}>
+        <SimpleTable headers={["SKU", "Producto", "Categoría", "Proveedor", "Precio USD", "Margen", "Rotación", "Stock", "Revenue ARS", "Estado"]}>
           {shown.map(p => (
             <tr key={p.producto_id} className="tr-hover border-b border-border-subtle last:border-0">
-              <td className="py-2 px-3 first:pl-0">
+              <td className="py-2 px-3 first:pl-0 font-mono text-text-muted">{p.producto_id}</td>
+              <td className="py-2 px-3">
                 <span className="text-text-primary font-medium">{p.nombre_producto}</span>
                 {p.requiere_frio && <Snowflake size={11} className="inline ml-1.5 text-cyan-brand" />}
               </td>
