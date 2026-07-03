@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, TrendingUp, BarChart3, Users, Boxes,
   Truck, MapPin, Brain, Sparkles, ChevronLeft, ChevronRight,
-  Leaf,
+  Leaf, Package,
 } from "lucide-react";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ const NAV = [
   { label: "Inicio",       href: "/",          icon: LayoutDashboard, badge: null },
   { label: "Comercial",    href: "/comercial",  icon: TrendingUp,      badge: null },
   { label: "Finanzas",     href: "/finanzas",   icon: BarChart3,       badge: null },
+  { label: "Productos",    href: "/productos",  icon: Package,         badge: null },
   { label: "Clientes",     href: "/clientes",   icon: Users,           badge: "47" },
   { label: "Inventario",   href: "/inventario", icon: Boxes,           badge: "3" },
   { label: "Logística",    href: "/logistica",  icon: Truck,           badge: null },
