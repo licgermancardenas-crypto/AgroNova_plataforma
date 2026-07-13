@@ -159,14 +159,17 @@ export default function ProductosPage() {
               <XAxis type="number" tickFormatter={v => fmtARS(v, true)} tick={AXIS_TICK} axisLine={false} tickLine={false} />
               <YAxis
                 type="category"
-                dataKey="nombre_producto"
-                width={140}
-                tick={AXIS_TICK_LABEL}
+                dataKey="producto_id"
+                width={64}
+                tick={{ ...AXIS_TICK_LABEL, fontFamily: "monospace" }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v: string) => v.length > 20 ? `${v.slice(0, 20)}…` : v}
               />
-              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any) => fmtARS(v)} />
+              <Tooltip
+                contentStyle={TOOLTIP_STYLE}
+                formatter={(v: any) => fmtARS(v)}
+                labelFormatter={(sku: string) => topRevenue.find(p => p.producto_id === sku)?.nombre_producto ?? sku}
+              />
               <Bar dataKey="revenue_ars" radius={[0, 3, 3, 0]} maxBarSize={16}>
                 {topRevenue.map((p, i) => <Cell key={p.producto_id} fill={colorFor(p.categoria, i)} fillOpacity={0.85} />)}
               </Bar>
