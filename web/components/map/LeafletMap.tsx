@@ -183,6 +183,7 @@ interface Props {
   selectedCustomer?:    CustomerGeo | null;
   onCustomerClick?:     (c: CustomerGeo | null) => void;
   customerFilters?:     CustomerFilters | null;
+  filterMunicipio?:     string | null;
   // GIS-26 Territory Optimization
   showTerritoryOpt?:    boolean;
   territoryData?:       TerritoryAnalysis | null;
@@ -220,6 +221,7 @@ export default function LeafletMap({
   show3D, show3DArcs, showBeams, metric3D,
   showFlows, showVehicles, showPulse, animPlaying, animSpeed,
   showCustomers = false, selectedCustomer = null, onCustomerClick, customerFilters = null,
+  filterMunicipio = null,
   showTerritoryOpt = false, territoryData = null,
   showTerritoryConflicts = true, showBranchRings = false, showConflictLines = false,
   simClosedBranch = null,
@@ -418,6 +420,7 @@ export default function LeafletMap({
       <CustomerLayer
         visible={showCustomers || showClientes}
         filterProvince={selectedProvince}
+        filterMunicipio={filterMunicipio}
         filters={customerFilters}
         selectedCustomer={selectedCustomer ?? null}
         onCustomerClick={onCustomerClick ?? (() => {})}

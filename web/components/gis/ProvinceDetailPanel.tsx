@@ -104,15 +104,23 @@ function TrendIcon({ val }: { val: number }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+interface MunicipioCount { nombre: string; count: number; }
+
 interface Props {
   kpi: ProvinceKPI;
   metric: GisMetric;
   onClose: () => void;
   year: number;
   allKpis: ProvinceKPI[];
+  municipios?: MunicipioCount[];
+  selectedMunicipio?: string | null;
+  onMunicipioClick?: (nombre: string) => void;
 }
 
-export default function ProvinceDetailPanel({ kpi, metric, onClose, year, allKpis }: Props) {
+export default function ProvinceDetailPanel({
+  kpi, metric, onClose, year, allKpis,
+  municipios = [], selectedMunicipio = null, onMunicipioClick,
+}: Props) {
   const rank        = nationalRank(kpi, metric, allKpis);
   const total       = allKpis.length;
   const leader      = peerLeader(kpi, metric, allKpis);
@@ -158,7 +166,9 @@ export default function ProvinceDetailPanel({ kpi, metric, onClose, year, allKpi
           <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"
             style={{ boxShadow: "0 0 6px rgba(34,197,94,0.8)" }} />
           <div className="min-w-0">
-            <p className="text-xs text-text-primary font-bold truncate leading-tight">{kpi.nombre}</p>
+            <p className="text-xs text-text-primary font-bold truncate leading-tight">
+              {kpi.nombre}{selectedMunicipio && <span style={{ color: "#0EA5E9" }}> · {selectedMunicipio}</span>}
+            </p>
             <p className="tactical-text" style={{ fontSize: 9 }}>{kpi.macro_region} · {kpi.agr_ha_m.toFixed(1)}M ha · <span className="text-primary">{year}</span></p>
           </div>
         </div>
@@ -194,6 +204,46 @@ export default function ProvinceDetailPanel({ kpi, metric, onClose, year, allKpi
             yoyPct={yoyChr?.pct} yoyInvert />
           <KpiRow label="Gap Score"   value={kpi.gap_score.toFixed(2)}           color="#0EA5E9" />
         </div>
+
+        {/* Municipios — cascading filter, only municipios with real clients */}
+        {municipios.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Users size={8} style={{ color: "#0EA5E9" }} />
+                <p className="tactical-text" style={{ fontSize: 9 }}>Municipios ({municipios.length})</p>
+              </div>
+              {selectedMunicipio && (
+                <button
+                  onClick={() => onMunicipioClick?.(selectedMunicipio)}
+                  className="font-mono transition-colors"
+                  style={{ fontSize: 8, color: "#0EA5E9" }}
+                >
+                  limpiar
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto pr-0.5">
+              {municipios.map(m => {
+                const active = selectedMunicipio === m.nombre;
+                return (
+                  <button
+                    key={m.nombre}
+                    onClick={() => onMunicipioClick?.(m.nombre)}
+                    className="px-2 py-0.5 rounded-full text-2xs font-mono font-semibold transition-all"
+                    style={{
+                      background: active ? "rgba(14,165,233,0.18)" : "rgba(255,255,255,0.04)",
+                      border:     `1px solid ${active ? "#0EA5E9" : "rgba(255,255,255,0.10)"}`,
+                      color:      active ? "#0EA5E9" : "#7A9C7A",
+                    }}
+                  >
+                    {m.nombre} <span style={{ opacity: 0.6 }}>({m.count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* National ranking bar */}
         <div>

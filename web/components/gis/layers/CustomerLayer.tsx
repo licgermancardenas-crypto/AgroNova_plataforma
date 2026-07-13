@@ -6,6 +6,7 @@ import L from "leaflet";
 import type { CustomerGeo, CustomerFilters } from "@/types";
 import { fmtARS } from "@/lib/formatters";
 import { findNearestLineFeature } from "@/lib/transport-network";
+import { loadMunicipioPoints, municipiosForProvincia, nearestMunicipioName, type MunicipioPoint } from "@/lib/municipio-lookup";
 
 // ── constants ──────────────────────────────────────────────────────────────
 
@@ -107,17 +108,21 @@ function buildPopupHtml(c: CustomerGeo): string {
 </div>`;
 }
 
-const MUNI_RADIUS_KM = 10;
-
 function applyFilters(
-  customers:  CustomerGeo[],
-  province:   string | null | undefined,
-  filters:    CustomerFilters | null,
-  muniCenter: { lat: number; lon: number } | null | undefined,
+  customers:      CustomerGeo[],
+  province:       string | null | undefined,
+  municipio:      string | null | undefined,
+  filters:        CustomerFilters | null,
+  municipioPoints: MunicipioPoint[],
 ): CustomerGeo[] {
   let list = customers.filter(c => !c.is_outlier);
-  if (province) list = list.filter(c => c.provincia === province);
-  if (muniCenter) list = list.filter(c => haversineKm(c.lat, c.lon, muniCenter.lat, muniCenter.lon) <= MUNI_RADIUS_KM);
+  if (province)  list = list.filter(c => c.provincia === province);
+  if (municipio && province) {
+    const candidates = municipiosForProvincia(municipioPoints, province);
+    if (candidates.length) {
+      list = list.filter(c => nearestMunicipioName(c.lat, c.lon, candidates) === municipio);
+    }
+  }
   if (!filters) return list;
 
   if (filters.segmentos.length)   list = list.filter(c => filters.segmentos.includes(c.segmento ?? ""));
@@ -137,19 +142,20 @@ interface Sucursal { sucursal_id?: number; nombre: string; lat: number; lng: num
 interface Props {
   visible:          boolean;
   filterProvince?:  string | null;
+  filterMunicipio?: string | null;
   filters?:         CustomerFilters | null;
   selectedCustomer: CustomerGeo | null;
   onCustomerClick:  (c: CustomerGeo | null) => void;
   sucursales:       Sucursal[];
-  muniCenter?:      { lat: number; lon: number } | null;
 }
 
 function CustomerLayerInner({
-  visible, filterProvince = null, filters = null,
-  selectedCustomer, onCustomerClick, sucursales, muniCenter = null,
+  visible, filterProvince = null, filterMunicipio = null, filters = null,
+  selectedCustomer, onCustomerClick, sucursales,
 }: Props) {
   const [zoom,      setZoom]      = useState(5);
   const [customers, setCustomers] = useState<CustomerGeo[]>([]);
+  const [municipioPoints, setMunicipioPoints] = useState<MunicipioPoint[]>([]);
   const layerRef   = useRef<L.LayerGroup | null>(null);
   const mapRef     = useRef<L.Map | null>(null);
   const selRef     = useRef<CustomerGeo | null>(null);
@@ -165,6 +171,12 @@ function CustomerLayerInner({
 
   useEffect(() => { mapRef.current = map; }, [map]);
   useEffect(() => { selRef.current = selectedCustomer; }, [selectedCustomer]);
+
+  // Lazy-load the municipio gazetteer only once a municipio filter is active
+  useEffect(() => {
+    if (!filterMunicipio || municipioPoints.length) return;
+    loadMunicipioPoints().then(setMunicipioPoints);
+  }, [filterMunicipio, municipioPoints.length]);
 
   // Load once
   useEffect(() => {
@@ -308,7 +320,7 @@ function CustomerLayerInner({
     if (layerRef.current) { m.removeLayer(layerRef.current); layerRef.current = null; }
     if (!visible || customers.length === 0) return;
 
-    const visible_list = applyFilters(customers, filterProvince, filters ?? null, muniCenter);
+    const visible_list = applyFilters(customers, filterProvince, filterMunicipio, filters ?? null, municipioPoints);
     const group = L.layerGroup();
 
     if (zoom >= CLUSTER_ZOOM) {
@@ -358,7 +370,7 @@ function CustomerLayerInner({
     layerRef.current = group;
     return () => { if (m && layerRef.current) { m.removeLayer(layerRef.current); layerRef.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customers, visible, zoom, filterProvince, filters]);
+  }, [customers, visible, zoom, filterProvince, filterMunicipio, filters, municipioPoints]);
 
   return null;
 }

@@ -16,6 +16,7 @@ import { fmtARS, fmtNumber } from "@/lib/formatters";
 import type { ProvinceKPI, GisMetric, BasemapId, MapEngine, CameraTarget, CustomerGeo, CustomerFilters, TerritoryAnalysis, NetworkAnalysis } from "@/types";
 import { getMetricValue } from "@/lib/geo-data";
 import { isMapboxConfigured } from "@/lib/mapbox-config";
+import { loadMunicipioPoints, municipiosForProvincia, nearestMunicipioName, type MunicipioPoint } from "@/lib/municipio-lookup";
 import {
   getKpisByYear, getNationalTotalsForYear, getLowCoverageForYear,
   YEAR_MIN, YEAR_MAX,
@@ -989,6 +990,8 @@ export default function GISPage() {
   const [rightTab,      setRightTab]      = useState<RightTabId>("ops");
   // GIS-25 Customer Intelligence
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGeo | null>(null);
+  const [selectedMunicipio, setSelectedMunicipio] = useState<string | null>(null);
+  const [municipioPoints, setMunicipioPoints] = useState<MunicipioPoint[]>([]);
   const [customerFilters,  setCustomerFilters]  = useState<CustomerFilters>(DEFAULT_CUSTOMER_FILTERS);
   const [allCustomers,     setAllCustomers]     = useState<CustomerGeo[]>([]);
   const [cliSubTab,        setCliSubTab]        = useState<"search" | "filtros" | "stats">("search");
@@ -1164,6 +1167,27 @@ export default function GISPage() {
     return list.length;
   }, [allCustomers, customerFilters]);
 
+  // Real IGN municipio gazetteer — loaded once, used to assign each customer
+  // to its nearest actual municipio (the `ciudad` field on customer records
+  // doesn't reliably match their provincia).
+  useEffect(() => { loadMunicipioPoints().then(setMunicipioPoints); }, []);
+
+  // Municipios with clients inside the selected province (cascading filter)
+  const provinceMunicipios = useMemo(() => {
+    if (!selected || !allCustomers.length || !municipioPoints.length) return [];
+    const candidates = municipiosForProvincia(municipioPoints, selected.nombre);
+    if (!candidates.length) return [];
+    const counts = new Map<string, number>();
+    allCustomers.forEach(c => {
+      if (c.is_outlier || c.provincia !== selected.nombre) return;
+      const nombre = nearestMunicipioName(c.lat, c.lon, candidates);
+      if (!nombre) return;
+      counts.set(nombre, (counts.get(nombre) ?? 0) + 1);
+    });
+    return Array.from(counts, ([nombre, count]) => ({ nombre, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [allCustomers, selected, municipioPoints]);
+
   // ── Temporal KPI data ─────────────────────────────────────────────
   const currentKpis     = useMemo(() => getKpisByYear(selectedYear),            [selectedYear]);
   const nationalTotals  = useMemo(() => getNationalTotalsForYear(selectedYear), [selectedYear]);
@@ -1178,6 +1202,17 @@ export default function GISPage() {
 
   useEffect(() => {
     selectedNameRef.current = selected?.nombre ?? null;
+  }, [selected]);
+
+  // Reset the municipio sub-filter whenever the selected province actually
+  // changes (not on year-driven KPI refresh, which keeps the same name).
+  const prevProvinceNameRef = useRef<string | null>(null);
+  useEffect(() => {
+    const name = selected?.nombre ?? null;
+    if (prevProvinceNameRef.current !== name) {
+      setSelectedMunicipio(null);
+      prevProvinceNameRef.current = name;
+    }
   }, [selected]);
 
   // GIS-23: camera preset handler (also syncs pitch + currentCamera)
@@ -1276,6 +1311,11 @@ export default function GISPage() {
     setSelected(prev => prev?.nombre === kpi.nombre ? null : kpi);
   }, []);
 
+  // Municipio click: toggle deselect (second click clears the sub-filter)
+  const handleMunicipioClick = useCallback((nombre: string) => {
+    setSelectedMunicipio(prev => prev === nombre ? null : nombre);
+  }, []);
+
   // True when the selected province has no clients in the dataset
   const selectedHasNoClients = useMemo(() =>
     selected !== null && clienteMarkers.filter(c => c.provincia === selected.nombre).length === 0,
@@ -1366,6 +1406,9 @@ export default function GISPage() {
                 onClose={() => { setSelected(null); selectedNameRef.current = null; }}
                 year={selectedYear}
                 allKpis={currentKpis}
+                municipios={provinceMunicipios}
+                selectedMunicipio={selectedMunicipio}
+                onMunicipioClick={handleMunicipioClick}
               />
             </div>
           ) : (
@@ -1833,6 +1876,7 @@ export default function GISPage() {
                 selectedCustomer={selectedCustomer}
                 onCustomerClick={handleCustomerClick}
                 customerFilters={customerFilters}
+                filterMunicipio={selectedMunicipio}
                 showTerritoryOpt={rightTab === "opt"}
                 territoryData={territoryData}
                 showTerritoryConflicts={showTerritoryConflicts}
