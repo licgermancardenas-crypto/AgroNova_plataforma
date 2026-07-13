@@ -39,7 +39,15 @@ const ALL_LAYER_DEFS: LayerDef[] = [
   { key: "buffers",       label: "Buffers Cobertura",  color: "#A3E635", shape: "dashed",  active: false },
   { key: "candidatos",    label: "Candidatas",         color: "#E8A020", shape: "diamond", active: false },
   { key: "serviceareas",  label: "Service Areas",      color: "#22C55E", shape: "square",  active: false },
+  { key: "roadNational",   label: "Red Vial Nacional (IGN)",    color: "#F4C542", shape: "line",    active: false },
+  { key: "roadProvincial", label: "Red Vial Provincial (IGN)",  color: "#B88A3D", shape: "line",    active: false },
+  { key: "roadSecondary",  label: "Red Vial Terciaria (IGN)",   color: "#666666", shape: "dashed",  active: false },
+  { key: "railway",        label: "Ferrocarriles (IGN)",        color: "#8ED0FF", shape: "dashed",  active: false },
+  { key: "transportInfra", label: "Infraestructura Transporte", color: "#4ADE80", shape: "circle",  active: false },
+  { key: "bridges",        label: "Puentes",                    color: "#C7C7C7", shape: "diamond", active: false },
 ];
+
+const TRANSPORT_KEYS = ["roadNational", "roadProvincial", "roadSecondary", "railway", "transportInfra", "bridges"];
 
 function ShapeIcon({ shape, color }: { shape: LayerDef["shape"]; color: string }) {
   if (shape === "circle") {
@@ -109,7 +117,7 @@ export default function MapLegendAdvanced({ metric, layers }: Props) {
 
       <div style={{ marginTop: layers.choropleth ? 8 : 0, display: "flex", flexDirection: "column", gap: 5 }}>
         {activeLayers
-          .filter(l => l.key !== "choropleth")
+          .filter(l => l.key !== "choropleth" && !TRANSPORT_KEYS.includes(l.key))
           .map(l => (
             <div key={l.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "#B0C8B0" }}>
               <ShapeIcon shape={l.shape} color={l.color} />
@@ -146,6 +154,19 @@ export default function MapLegendAdvanced({ metric, layers }: Props) {
             <div key={n.label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 9, color: "#B0C8B0", marginBottom: 3 }}>
               <span style={{ display: "inline-block", width: 12, height: 2, background: n.color, borderRadius: 1, flexShrink: 0 }} />
               <span>{n.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* GIS-28 — Transport legend, dynamic: only shows the sub-layers switched on */}
+      {TRANSPORT_KEYS.some(k => layers[k]) && (
+        <div style={{ marginTop: 8, borderTop: "1px solid rgba(34,197,94,0.12)", paddingTop: 6 }}>
+          <div style={{ fontSize: 9, color: "#7A9C7A", marginBottom: 4 }}>Transporte</div>
+          {ALL_LAYER_DEFS.filter(l => TRANSPORT_KEYS.includes(l.key) && layers[l.key]).map(l => (
+            <div key={l.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 9, color: "#B0C8B0", marginBottom: 3 }}>
+              <ShapeIcon shape={l.shape} color={l.color} />
+              <span>{l.label}</span>
             </div>
           ))}
         </div>

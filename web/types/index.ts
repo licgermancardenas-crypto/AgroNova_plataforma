@@ -831,3 +831,40 @@ export interface AlertItem {
   time: string;
   module: string;
 }
+
+// ── GIS-28 National Transport Network ─────────────────────────────────────────
+
+export interface RoadFeatureProps {
+  nombre:      string;
+  provincia?:  string;
+  longitud_km?: number;
+}
+
+export interface RailwayFeatureProps {
+  nombre:      string;
+  tipo:        string;
+  operador:    string;
+  provincia?:  string;
+  longitud_km?: number;
+}
+
+export interface BridgeFeatureProps {
+  nombre:    string;
+  tipo:      string;
+  provincia?: string;
+}
+
+export type InfraCategoria = "peaje" | "combustible";
+
+export interface InfraFeatureProps {
+  nombre:    string;
+  provincia?: string;
+}
+
+export interface RoadSecondaryIndexEntry {
+  provincia: string;
+  slug:      string;
+  features:  number;
+  km:        number;
+  size_kb:   number;
+}

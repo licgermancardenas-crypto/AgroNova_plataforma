@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { SucursalMarker, DepositoMarker, ClienteMapMarker, GISRoute, ProvinceKPI, GisMetric, BasemapId, CustomerGeo, CustomerFilters, TerritoryAnalysis, NetworkAnalysis } from "@/types";
 import { fmtARS } from "@/lib/formatters";
+import { snapRouteToRoad } from "@/lib/transport-network";
 import ChoroplethLayer   from "./ChoroplethLayer";
 import ClientClusterLayer from "./ClientClusterLayer";
 import HeatmapLayer      from "./HeatmapLayer";
@@ -25,6 +26,12 @@ import VehicleLayer          from "@/components/gis/VehicleLayer";
 import CustomerLayer                from "@/components/gis/layers/CustomerLayer";
 import TerritoryOptimizationLayer  from "@/components/gis/layers/TerritoryOptimizationLayer";
 import NetworkFlowLayer            from "@/components/gis/layers/NetworkFlowLayer";
+import RoadNationalLayer           from "@/components/gis/layers/RoadNationalLayer";
+import RoadProvincialLayer         from "@/components/gis/layers/RoadProvincialLayer";
+import RoadSecondaryLayer          from "@/components/gis/layers/RoadSecondaryLayer";
+import RailwayLayer                from "@/components/gis/layers/RailwayLayer";
+import BridgeLayer                 from "@/components/gis/layers/BridgeLayer";
+import TransportInfrastructureLayer from "@/components/gis/layers/TransportInfrastructureLayer";
 
 // ── Story Mode FlyTo controller ───────────────────────────────────────────────
 
@@ -190,6 +197,13 @@ interface Props {
   simClosedDepot?:      number | null;
   // UX-02 Story Mode
   storyFlyTo?:          { center: [number, number]; zoom: number; scene: number } | null;
+  // GIS-28 National Transport Network
+  showRoadNational?:    boolean;
+  showRoadProvincial?:  boolean;
+  showRoadSecondary?:   boolean;
+  showRailway?:         boolean;
+  showBridges?:         boolean;
+  showTransportInfra?:  boolean;
   // Callbacks
   onProvinceClick:    (kpi: ProvinceKPI) => void;
 }
@@ -212,8 +226,32 @@ export default function LeafletMap({
   showNetworkFlows = false, showNetworkBottlenecks = false,
   networkData = null, simClosedDepot = null,
   storyFlyTo = null,
+  showRoadNational = false, showRoadProvincial = false, showRoadSecondary = false,
+  showRailway = false, showBridges = false, showTransportInfra = false,
 }: Props) {
   const bm = BASEMAPS[basemap];
+
+  // GIS-28 Fase 7 — snap the static demo routes to the real road network
+  // instead of a straight line cutting across open country.
+  const [roadNetwork, setRoadNetwork] = useState<GeoJSON.FeatureCollection | null>(null);
+  useEffect(() => {
+    if (routes.length === 0 || roadNetwork) return;
+    Promise.all([
+      fetch("/data/geo/transport/road_national.geojson").then(r => r.json()),
+      fetch("/data/geo/transport/road_provincial.geojson").then(r => r.json()),
+    ])
+      .then(([national, provincial]) => setRoadNetwork({
+        type: "FeatureCollection",
+        features: [...national.features, ...provincial.features],
+      }))
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routes.length]);
+
+  const snappedRoutes = useMemo(() => {
+    if (!roadNetwork) return routes.map(r => ({ id: r.id, positions: [r.from, r.to] as [number, number][] }));
+    return routes.map(r => ({ id: r.id, positions: snapRouteToRoad(r.from, r.to, roadNetwork) }));
+  }, [routes, roadNetwork]);
 
   return (
     <MapContainer
@@ -267,8 +305,16 @@ export default function LeafletMap({
 
       {/* ── Line layers ──────────────────────────────────────────── */}
 
-      {/* National road network */}
+      {/* National road network (legacy demo overlay — GIS-01) */}
       <VialLayer visible={showVial} />
+
+      {/* GIS-28 — National Transport Network (real IGN data) */}
+      <RoadSecondaryLayer  visible={showRoadSecondary}  filterProvince={selectedProvince} />
+      <RoadProvincialLayer visible={showRoadProvincial} />
+      <RoadNationalLayer   visible={showRoadNational} />
+      <RailwayLayer        visible={showRailway} />
+      <BridgeLayer         visible={showBridges} />
+      <TransportInfrastructureLayer visible={showTransportInfra} />
 
       {/* Sucursal coverage radii */}
       {showRadios && sucursales.map(s => (
@@ -280,11 +326,11 @@ export default function LeafletMap({
         />
       ))}
 
-      {/* Static routes */}
+      {/* Static routes — snapped to the national/provincial road network (GIS-28 Fase 7) */}
       {routes.map(r => (
         <Polyline
           key={`rt${r.id}`}
-          positions={[r.from, r.to]}
+          positions={snappedRoutes.find(s => s.id === r.id)?.positions ?? [r.from, r.to]}
           pathOptions={{
             color:     r.activo ? r.color : "#3E5A3E",
             weight:    r.activo ? 2 : 1,

@@ -5,6 +5,7 @@ import { useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import type { CustomerGeo, CustomerFilters } from "@/types";
 import { fmtARS } from "@/lib/formatters";
+import { findNearestLineFeature } from "@/lib/transport-network";
 
 // ── constants ──────────────────────────────────────────────────────────────
 
@@ -154,6 +155,11 @@ function CustomerLayerInner({
   const selRef     = useRef<CustomerGeo | null>(null);
   const inflRef    = useRef<L.LayerGroup | null>(null);  // influence circles
   const routeRef   = useRef<L.LayerGroup | null>(null);  // sucursal line
+  const infraRef   = useRef<L.LayerGroup | null>(null);  // GIS-28 — nearest road/rail connectors
+  const transportRef = useRef<{
+    roads: GeoJSON.FeatureCollection | null;
+    rail:  GeoJSON.FeatureCollection | null;
+  }>({ roads: null, rail: null });
 
   const map = useMapEvents({ zoomend() { setZoom(map.getZoom()); } });
 
@@ -233,6 +239,65 @@ function CustomerLayerInner({
       routeGroup.addTo(m);
       routeRef.current = routeGroup;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCustomer]);
+
+  // GIS-28 Fase 6 — connectors to nearest national/provincial road + railway
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+
+    if (infraRef.current) { m.removeLayer(infraRef.current); infraRef.current = null; }
+    const c = selectedCustomer;
+    if (!c) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const t = transportRef.current;
+      if (!t.roads) {
+        const [national, provincial] = await Promise.all([
+          fetch("/data/geo/transport/road_national.geojson").then(r => r.json()).catch(() => null),
+          fetch("/data/geo/transport/road_provincial.geojson").then(r => r.json()).catch(() => null),
+        ]);
+        t.roads = national && provincial
+          ? { type: "FeatureCollection", features: [...national.features, ...provincial.features] }
+          : (national ?? provincial);
+      }
+      if (!t.rail) {
+        t.rail = await fetch("/data/geo/transport/railway.geojson").then(r => r.json()).catch(() => null);
+      }
+      if (cancelled || selRef.current?.cliente_id !== c.cliente_id) return;
+
+      const group = L.layerGroup();
+
+      const nearestRoad = t.roads ? findNearestLineFeature(c.lat, c.lon, t.roads) : null;
+      if (nearestRoad && nearestRoad.distanceKm < 80) {
+        const name = (nearestRoad.feature.properties as { nombre?: string })?.nombre ?? "Ruta";
+        L.polyline([[c.lat, c.lon], nearestRoad.point], {
+          color: "#F4C542", weight: 1.3, opacity: 0.55, dashArray: "3 4",
+        }).bindTooltip(
+          `<div style="font-size:9px;font-family:system-ui,sans-serif">🛣️ ${name}<br/>${nearestRoad.distanceKm.toFixed(1)} km</div>`,
+          { sticky: true },
+        ).addTo(group);
+      }
+
+      const nearestRail = t.rail ? findNearestLineFeature(c.lat, c.lon, t.rail) : null;
+      if (nearestRail && nearestRail.distanceKm < 60) {
+        const name = (nearestRail.feature.properties as { nombre?: string })?.nombre ?? "Ferrocarril";
+        L.polyline([[c.lat, c.lon], nearestRail.point], {
+          color: "#8ED0FF", weight: 1.3, opacity: 0.5, dashArray: "2 5",
+        }).bindTooltip(
+          `<div style="font-size:9px;font-family:system-ui,sans-serif">🚆 ${name}<br/>${nearestRail.distanceKm.toFixed(1)} km</div>`,
+          { sticky: true },
+        ).addTo(group);
+      }
+
+      group.addTo(m);
+      infraRef.current = group;
+    })();
+
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCustomer]);
 

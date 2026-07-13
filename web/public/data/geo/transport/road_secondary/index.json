@@ -1,0 +1,163 @@
+[
+  {
+    "provincia": "Buenos Aires",
+    "slug": "buenos-aires",
+    "features": 42048,
+    "km": 99266.4,
+    "size_kb": 8414.8
+  },
+  {
+    "provincia": "Catamarca",
+    "slug": "catamarca",
+    "features": 843,
+    "km": 2120.2,
+    "size_kb": 171.2
+  },
+  {
+    "provincia": "Chaco",
+    "slug": "chaco",
+    "features": 9674,
+    "km": 25540.2,
+    "size_kb": 1948.9
+  },
+  {
+    "provincia": "Chubut",
+    "slug": "chubut",
+    "features": 1687,
+    "km": 11497.0,
+    "size_kb": 390.8
+  },
+  {
+    "provincia": "Ciudad Autónoma de Buenos Aires",
+    "slug": "ciudad-autonoma-de-buenos-aires",
+    "features": 29,
+    "km": 101.9,
+    "size_kb": 6.0
+  },
+  {
+    "provincia": "Corrientes",
+    "slug": "corrientes",
+    "features": 4157,
+    "km": 15113.2,
+    "size_kb": 872.7
+  },
+  {
+    "provincia": "Córdoba",
+    "slug": "cordoba",
+    "features": 5103,
+    "km": 25815.4,
+    "size_kb": 1057.0
+  },
+  {
+    "provincia": "Entre Ríos",
+    "slug": "entre-rios",
+    "features": 4791,
+    "km": 17866.1,
+    "size_kb": 1003.6
+  },
+  {
+    "provincia": "Formosa",
+    "slug": "formosa",
+    "features": 2060,
+    "km": 11229.1,
+    "size_kb": 464.6
+  },
+  {
+    "provincia": "Jujuy",
+    "slug": "jujuy",
+    "features": 4999,
+    "km": 4719.1,
+    "size_kb": 907.8
+  },
+  {
+    "provincia": "La Pampa",
+    "slug": "la-pampa",
+    "features": 4420,
+    "km": 21701.6,
+    "size_kb": 901.4
+  },
+  {
+    "provincia": "La Rioja",
+    "slug": "la-rioja",
+    "features": 422,
+    "km": 1951.3,
+    "size_kb": 90.5
+  },
+  {
+    "provincia": "Mendoza",
+    "slug": "mendoza",
+    "features": 3166,
+    "km": 10103.7,
+    "size_kb": 640.7
+  },
+  {
+    "provincia": "Misiones",
+    "slug": "misiones",
+    "features": 705,
+    "km": 2421.3,
+    "size_kb": 150.5
+  },
+  {
+    "provincia": "Neuquén",
+    "slug": "neuquen",
+    "features": 7710,
+    "km": 6257.3,
+    "size_kb": 1505.3
+  },
+  {
+    "provincia": "Río Negro",
+    "slug": "rio-negro",
+    "features": 3777,
+    "km": 9264.9,
+    "size_kb": 764.1
+  },
+  {
+    "provincia": "Salta",
+    "slug": "salta",
+    "features": 4583,
+    "km": 16644.3,
+    "size_kb": 941.8
+  },
+  {
+    "provincia": "San Luis",
+    "slug": "san-luis",
+    "features": 1049,
+    "km": 6177.2,
+    "size_kb": 226.6
+  },
+  {
+    "provincia": "Santa Cruz",
+    "slug": "santa-cruz",
+    "features": 2529,
+    "km": 16139.0,
+    "size_kb": 576.6
+  },
+  {
+    "provincia": "Santa Fe",
+    "slug": "santa-fe",
+    "features": 8321,
+    "km": 24088.5,
+    "size_kb": 1650.2
+  },
+  {
+    "provincia": "Santiago del Estero",
+    "slug": "santiago-del-estero",
+    "features": 11567,
+    "km": 30187.3,
+    "size_kb": 2333.0
+  },
+  {
+    "provincia": "Tierra del Fuego",
+    "slug": "tierra-del-fuego",
+    "features": 62,
+    "km": 490.8,
+    "size_kb": 15.6
+  },
+  {
+    "provincia": "Tucumán",
+    "slug": "tucuman",
+    "features": 12466,
+    "km": 6938.8,
+    "size_kb": 2414.4
+  }
+]

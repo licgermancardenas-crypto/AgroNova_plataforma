@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import {
   Layers, MapPin, Activity, Crosshair, Radio, TrendingUp,
   AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, BarChart2, Globe, Anchor, Zap, Box,
-  Mountain, Play, Pause, Gauge, Command, Bookmark,
+  Mountain, Play, Pause, Gauge, Command, Bookmark, Route,
 } from "lucide-react";
 import type { SearchResult } from "@/components/gis/GlobalSearchBar";
 import type { PaletteCommand } from "@/components/gis/CommandPalette";
@@ -348,6 +348,16 @@ const GIS_OUTPUT_LAYERS = [
   { key: "serviceareas",  label: "Service Areas",      color: "#22C55E" },
 ];
 
+// GIS-28 — National Transport Network (real IGN data)
+const TRANSPORT_LAYERS = [
+  { key: "roadNational",    label: "Red vial nacional",    color: "#F4C542" },
+  { key: "roadProvincial",  label: "Red vial provincial",   color: "#B88A3D" },
+  { key: "roadSecondary",   label: "Red vial terciaria",    color: "#666666" },
+  { key: "railway",         label: "Ferrocarriles",         color: "#8ED0FF" },
+  { key: "transportInfra",  label: "Infraestructura",       color: "#4ADE80" },
+  { key: "bridges",         label: "Puentes",                color: "#C7C7C7" },
+];
+
 // ── Stat chip ─────────────────────────────────────────────────────────────────
 
 const TacStat = memo(function TacStat({ label, value, accent = false }: {
@@ -652,6 +662,24 @@ function LeftPanel({
               active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
           ))}
         </div>
+      </div>
+
+      {/* GIS-28 Transport layers — real IGN infrastructure */}
+      <div className="glass gis-card rounded-xl p-3">
+        <p className="tactical-text mb-2 flex items-center gap-1.5">
+          <Route size={10} /><span>Transporte</span>
+        </p>
+        <div className="space-y-1.5">
+          {TRANSPORT_LAYERS.map(l => (
+            <LayerBtn key={l.key} layerKey={l.key} label={l.label} color={l.color}
+              active={!!layers[l.key]} onToggle={() => toggleLayer(l.key)} />
+          ))}
+        </div>
+        {layers.roadSecondary && !selected && (
+          <p style={{ fontSize: 9, color: "#7A9C7A", marginTop: 6 }}>
+            Seleccioná una provincia para ver caminos terciarios
+          </p>
+        )}
       </div>
 
       {/* ── separator: analysis → 3D/animation ── */}
@@ -1036,6 +1064,13 @@ export default function GISPage() {
     buffers:       false,
     candidatos:    false,
     serviceareas:  false,
+    // GIS-28 — National Transport Network (all off by default)
+    roadNational:   false,
+    roadProvincial: false,
+    roadSecondary:  false,
+    railway:        false,
+    bridges:        false,
+    transportInfra: false,
   });
 
   useEffect(() => {
@@ -1217,7 +1252,7 @@ export default function GISPage() {
     { id: "engine_leaflet", group: "Motor", label: "Motor: ◆ Leaflet OSM",    description: "2D", action: () => setMapEngine("leaflet") },
     { id: "engine_mapbox",  group: "Motor", label: "Motor: ◈ Mapbox Terrain", description: "3D", action: () => setMapEngine("mapbox")  },
     { id: "engine_earth",   group: "Motor", label: "Motor: ◉ Earth Mode",     description: "Night", action: () => setMapEngine("earth") },
-    ...[...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS].map(l => ({
+    ...[...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS, ...TRANSPORT_LAYERS].map(l => ({
       id: `layer_${l.key}`, group: "Capa", label: `Capa: ${l.label} ${layers[l.key as keyof typeof layers] ? "● ON" : "○ OFF"}`,
       action: () => toggleLayer(l.key),
     })),
@@ -1671,7 +1706,7 @@ export default function GISPage() {
           {mapEngine === "leaflet" && (
             <div className="absolute bottom-24 right-3 z-[500] pointer-events-none flex flex-col gap-0.5 items-end">
               {Object.entries(layers).filter(([k, v]) => v && k !== "coords").map(([k]) => {
-                const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS];
+                const allDefs = [...ANALYSIS_LAYERS, ...TERRITORY_LAYERS, ...MARKER_LAYERS, ...GIS_OUTPUT_LAYERS, ...TRANSPORT_LAYERS];
                 const def = allDefs.find(d => d.key === k);
                 return (
                   <div
@@ -1762,6 +1797,12 @@ export default function GISPage() {
                 showDepartamentos={layers.departamentos}
                 showMunicipios={layers.municipios}
                 showVial={layers.vial}
+                showRoadNational={layers.roadNational}
+                showRoadProvincial={layers.roadProvincial}
+                showRoadSecondary={layers.roadSecondary}
+                showRailway={layers.railway}
+                showBridges={layers.bridges}
+                showTransportInfra={layers.transportInfra}
                 showPuertos={layers.puertos}
                 showSucursales={layers.sucursales}
                 showDepositos={layers.depositos}
